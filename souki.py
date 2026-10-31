@@ -46,7 +46,7 @@ except ImportError:
     sys.stderr.write("Pillow が必要です:  pip install Pillow\n")
     raise
 
-VERSION = "2.4.0"
+VERSION = "2.4.1"
 APP_NAME = "想起"
 APP_DIR = Path(__file__).resolve().parent
 DATA_DIR = APP_DIR / "data"
@@ -4284,6 +4284,120 @@ def open_app_window(url: str, cfg: dict | None = None, remember: bool = True) ->
     return "browser"
 
 
+APP_USER_MODEL_ID = "Souki.Ledger"      # タスクバーで、ほかの Edge の窓（台割工房など）とまとめられないための名札
+WINDOW_TITLE_HEAD = "想起"               # ui.html・chara.html の <title> の頭
+
+
+def _set_window_identity(hwnd: int, launcher: str, icon: str) -> bool:
+    """窓に想起の名札（AppUserModelID）を付ける。タスクバーは名札ごとにまとめるので、
+    同じ Edge の窓でも、台割工房などとは別のボタンになる。アイコンも想起のものにする。"""
+    import ctypes
+    from ctypes import wintypes
+
+    class GUID(ctypes.Structure):
+        _fields_ = [("d1", ctypes.c_uint32), ("d2", ctypes.c_uint16), ("d3", ctypes.c_uint16),
+                    ("d4", ctypes.c_ubyte * 8)]
+
+    def guid(s):
+        import uuid
+        u = uuid.UUID(s)
+        g = GUID(u.time_low, u.time_mid, u.time_hi_version)
+        g.d4[:] = list(u.bytes[8:])
+        return g
+
+    class PROPERTYKEY(ctypes.Structure):
+        _fields_ = [("fmtid", GUID), ("pid", ctypes.c_uint32)]
+
+    class PROPVARIANT(ctypes.Structure):
+        _fields_ = [("vt", ctypes.c_ushort), ("r1", ctypes.c_ushort), ("r2", ctypes.c_ushort),
+                    ("r3", ctypes.c_ushort), ("p", ctypes.c_void_p), ("pad", ctypes.c_void_p)]
+
+    fmt = "{9F4C2855-9F79-4B39-A8D0-E1D42DE1D5F3}"
+    keys = [(5, APP_USER_MODEL_ID),          # PKEY_AppUserModel_ID
+            (2, launcher),                   # RelaunchCommand（ピン留めしたとき 起動.bat から開く）
+            (3, icon),                       # RelaunchIconResource
+            (4, APP_NAME)]                   # RelaunchDisplayNameResource
+    ole32, shell32 = ctypes.windll.ole32, ctypes.windll.shell32
+    ole32.CoInitialize(None)
+    iid = guid("{886D8EEB-8CF2-4446-8D02-79F1B4AF7E1D}")   # IID_IPropertyStore
+    store = ctypes.c_void_p()
+    hr = shell32.SHGetPropertyStoreForWindow(wintypes.HWND(hwnd), ctypes.byref(iid), ctypes.byref(store))
+    if hr != 0 or not store:
+        return False
+    vtbl = ctypes.cast(ctypes.cast(store, ctypes.POINTER(ctypes.c_void_p))[0],
+                       ctypes.POINTER(ctypes.c_void_p))
+    SetValue = ctypes.WINFUNCTYPE(ctypes.c_long, ctypes.c_void_p, ctypes.POINTER(PROPERTYKEY),
+                                  ctypes.POINTER(PROPVARIANT))(vtbl[6])
+    Commit = ctypes.WINFUNCTYPE(ctypes.c_long, ctypes.c_void_p)(vtbl[7])
+    Release = ctypes.WINFUNCTYPE(ctypes.c_ulong, ctypes.c_void_p)(vtbl[2])
+    ok = True
+    # 名札は最後に付ける（付けた時点でタスクバーが分け直すので、その前に残りをそろえる）
+    for pid, val in sorted(keys, key=lambda k: k[0] == 5):
+        buf = ctypes.create_unicode_buffer(val)
+        pv = PROPVARIANT()
+        pv.vt = 31                           # VT_LPWSTR
+        pv.p = ctypes.cast(buf, ctypes.c_void_p)
+        pk = PROPERTYKEY(guid(fmt), pid)
+        ok = SetValue(store, ctypes.byref(pk), ctypes.byref(pv)) == 0 and ok
+    Commit(store)
+    Release(store)
+    # 窓のアイコンも想起のものに（タスクバーのボタンに出る）
+    try:
+        user32 = ctypes.windll.user32
+        user32.LoadImageW.restype = wintypes.HANDLE
+        for which, size in ((1, 32), (0, 16)):          # ICON_BIG, ICON_SMALL
+            h = user32.LoadImageW(None, icon, 1, size, size, 0x10)   # IMAGE_ICON, LR_LOADFROMFILE
+            if h:
+                user32.SendMessageW(wintypes.HWND(hwnd), 0x80, which, h)   # WM_SETICON
+    except Exception:
+        pass
+    return ok
+
+
+def watch_window_identity() -> None:
+    """想起の窓（Edge の専用窓）が現れたら名札を付ける。台帳⇄キャラ帳の切り替えでは窓は同じまま。"""
+    if sys.platform != "win32":
+        return
+
+    def run():
+        import ctypes
+        from ctypes import wintypes
+        user32 = ctypes.windll.user32
+        done: set = set()
+        launcher = str(APP_DIR / "起動.bat")
+        icon = str(APP_DIR / "souki.ico")
+        EnumProc = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
+        while True:
+            found = []
+
+            def cb(hwnd, _):
+                if not user32.IsWindowVisible(hwnd):
+                    return True
+                cls = ctypes.create_unicode_buffer(64)
+                user32.GetClassNameW(hwnd, cls, 64)
+                if not cls.value.startswith("Chrome_WidgetWin"):
+                    return True
+                n = user32.GetWindowTextLengthW(hwnd)
+                t = ctypes.create_unicode_buffer(n + 1)
+                user32.GetWindowTextW(hwnd, t, n + 1)
+                if t.value.startswith(WINDOW_TITLE_HEAD):
+                    found.append(int(hwnd))
+                return True
+            try:
+                user32.EnumWindows(EnumProc(cb), 0)
+                for h in found:
+                    if h not in done:
+                        if _set_window_identity(h, launcher, icon):
+                            log(f"窓に想起の名札を付けました（{h}）")
+                        done.add(h)
+                done = {h for h in done if user32.IsWindow(h)}
+            except Exception as e:
+                log(f"窓の名札を付けられませんでした: {e}")
+                return
+            time.sleep(1.5)
+    threading.Thread(target=run, daemon=True, name="souki-window-identity").start()
+
+
 def log(msg: str) -> None:
     try:
         print(f"{time.strftime('%Y-%m-%d %H:%M:%S')}  {msg}", flush=True)
@@ -4575,6 +4689,7 @@ def cmd_serve(args) -> None:
 
     if args.app:
         watch_window(srv)          # 専用の窓を閉じたら終わる
+        watch_window_identity()    # タスクバーで台割工房などとまとめられないように
     if not args.no_browser:
         if args.app:
             threading.Timer(0.5, lambda: log("窓: " + open_app_window(url, cfg))).start()

@@ -1656,7 +1656,7 @@ function alive(){
 alive(); setInterval(alive, 5000);
 window.addEventListener("pagehide", () => { try{ navigator.sendBeacon("/api/bye", ""); }catch(e){} });
 
-const UI_VERSION = "2.4.0";
+const UI_VERSION = "2.4.1";
 async function checkVersion(){
   try{
     const v = await api("/api/version");

@@ -27,7 +27,7 @@ ComfyUI が出力した PNG に入っているワークフロー（API 形式の
 
 ## いまの状態と次の作業
 
-- 今の版は v2.4.0（docs/仕様_v2.4.md の第 1 弾）。
+- 今の版は v2.4.1（docs/仕様_v2.4.md の第 1 弾＋タスクバーの名札）。
 - 次は同じ仕様書の「第 2 弾（v2.5.0）」。仕様は作者と確定済みなので、そのとおりに作る。
   書いていないことで迷ったら作者に聞く。
 - 版を上げるときは souki.py・chara.py・vision.py の `VERSION`、ui.html の `UI_VERSION`、chara.html の `PAGE_VERSION` を全部そろえる
@@ -112,6 +112,8 @@ ComfyUI が出力した PNG に入っているワークフロー（API 形式の
 - 台帳の読み直し: `reparse_ledger`。`PARSE_VERSION` を上げると、次の起動で 1 回読み直す。
 - 専用の窓: `serve --app`（起動.bat が pythonw で呼ぶ）。画面は 5 秒ごとに /api/alive、閉じるとき /api/bye。
   `Alive`・`watch_window` が、知らせが途絶えたら仕事の終わりを待って止める。窓の大きさは config.json の "window"。
+- タスクバー（v2.4.1）: `watch_window_identity` が、題が「想起」で始まる Edge の窓に AppUserModelID `Souki.Ledger`・
+  起動.bat・souki.ico を付ける（台割工房の窓とまとめられないため）。Windows でしか動かず、テストでは確かめられない。
 
 ## テスト
 
