@@ -230,7 +230,25 @@ select.tool{padding:5px 6px}
 .kv dd{margin:0;font-family:var(--mono);font-size:11.5px;color:var(--text);word-break:break-all}
 
 .taglist{display:flex;flex-wrap:wrap;gap:4px}
+.lineage{display:flex;flex-direction:column;gap:6px;font-size:11.5px}
+.lineage .lrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.lineage .k{font-size:9.5px;letter-spacing:.12em;color:var(--faint)}
+.lineage .v{color:var(--dim)}
+.lstrip{display:flex;flex-wrap:wrap;gap:5px}
+.lthumb{padding:0;border:1px solid var(--rule);background:var(--sunk);cursor:pointer;width:64px;height:64px;border-radius:3px;overflow:hidden}
+.lthumb img{width:100%;height:100%;object-fit:cover;display:block}
 .refs{display:flex;flex-wrap:wrap;gap:8px}
+#refrow{margin-top:8px}
+.refsel{display:flex;align-items:center;gap:7px;margin-top:5px;font-size:11.5px}
+.refsel img{width:40px;height:40px;object-fit:cover;border:1px solid var(--rule);border-radius:3px;background:var(--sunk)}
+.refsel img.chosen{border-color:var(--live)}
+.refsel select{flex:1;background:var(--sunk);border:1px solid var(--rule);border-radius:3px;padding:5px 6px;font-size:11.5px}
+.refgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px;max-height:60vh;overflow:auto;margin-top:8px}
+.refcand{position:relative;padding:0;border:1px solid var(--rule);background:var(--sunk);cursor:pointer;aspect-ratio:1;border-radius:3px;overflow:hidden}
+.refcand img{width:100%;height:100%;object-fit:cover;display:block}
+.refcand .why{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);color:#fff;font-size:10px;padding:1px 3px}
+.refline{display:flex;align-items:center;gap:6px}
+.refline img{width:28px;height:28px;object-fit:cover;border-radius:2px}
 .ref{width:118px;display:flex;flex-direction:column;gap:3px;font-size:11px}
 .ref img{width:118px;height:118px;object-fit:contain;background:var(--sunk);border:1px solid var(--rule);cursor:zoom-in}
 .ref-none{width:118px;height:118px;display:flex;align-items:center;justify-content:center;background:var(--sunk);border:1px dashed var(--rule);color:var(--warn)}
@@ -316,6 +334,13 @@ input:disabled{opacity:.4;cursor:not-allowed}
 #swapgo:hover:not(:disabled){filter:brightness(1.12)}
 #swapgo:disabled{background:var(--rule);color:var(--faint);cursor:not-allowed}
 #swapwf{width:100%;margin-top:6px}
+#batchbox{margin-top:8px;border-top:1px solid var(--rule-soft);padding-top:8px}
+#batchchars{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:6px;max-height:150px;overflow:auto;font-size:11.5px}
+#batchchars label{display:flex;align-items:center;gap:4px;cursor:pointer}
+#batchsaved{width:100%;background:var(--sunk);border:1px solid var(--rule);border-radius:3px;padding:6px 8px;font-size:12px}
+.batchseed{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--dim);margin-top:8px;cursor:pointer}
+#batchgo{width:100%;margin-top:8px;padding:8px;border-radius:3px;background:var(--lamp);color:#1A1206;font-weight:700;border:none;cursor:pointer}
+#batchgo:disabled{background:var(--rule);color:var(--faint);cursor:not-allowed}
 #outfitsel{width:100%;background:var(--sunk);border:1px solid var(--rule);border-radius:3px;padding:7px 8px;font-size:12px}
 #outfittxt{width:100%;margin-top:6px;background:var(--sunk);border:1px solid var(--rule);border-radius:3px;padding:6px 8px;font-family:var(--mono);font-size:11px;resize:vertical}
 .swaptools{display:flex;gap:6px;justify-content:flex-end;margin-top:6px}
@@ -451,6 +476,10 @@ input:disabled{opacity:.4;cursor:not-allowed}
   <div id="dbody"></div>
   <div id="swapbox">
     <div class="plate">キャラ・服を差し替える</div>
+    <div id="childrow" style="display:none;margin-bottom:6px">
+      <div class="hint" style="margin-bottom:4px">差し替える子（左から）</div>
+      <div class="seg" id="childseg"></div>
+    </div>
     <select id="swapsel"><option value="">キャラ：このまま（差し替えない）</option></select>
     <div class="seg" id="strseg" style="display:none;margin-top:6px">
       <button data-s="full" class="on" title="髪・目に加えて、体格・年齢・種族の語も入れ替える">体格・年齢・種族まで</button>
@@ -462,9 +491,23 @@ input:disabled{opacity:.4;cursor:not-allowed}
       <button class="tool" id="outfitsave" style="display:none">この服を登録…</button>
       <button class="tool" id="outfitfromimg" title="この絵のプロンプトの服の語を、名前を付けて保存します">この絵の服を登録…</button>
     </div>
+    <div id="refrow" style="display:none"></div>
     <div id="swapprev" style="display:none"></div>
     <button id="swapgo" disabled>差し替えて投入</button>
     <button class="tool" id="swapwf" disabled>差し替えて ComfyUI の画面で開く（投入しない）</button>
+    <button class="tool" id="batchtoggle" style="width:100%;margin-top:6px">まとめて差し替え（何人か選んで 1 人ずつ投入）…</button>
+    <div id="batchbox" style="display:none">
+      <div class="hint">差し替え先を何人か選ぶと、1 人ずつ投入します。上の「差し替える子」「強さ」「参照画像の枠」の指定も全員に効きます。</div>
+      <div id="batchchars"></div>
+      <div class="seg" id="batchoutfit" style="margin-top:6px">
+        <button data-o="keep" class="on">全員元の絵のまま</button>
+        <button data-o="usual">それぞれのいつもの服</button>
+        <button data-o="same">全員同じ登録服</button>
+      </div>
+      <select id="batchsaved" style="display:none;margin-top:6px"></select>
+      <label class="batchseed"><input type="checkbox" id="batchseed" checked> 全員同じ seed（同じ構図のまま見比べる）</label>
+      <button id="batchgo" disabled>選んだ 0 人を 1 人ずつ投入</button>
+    </div>
   </div>
 
   <div id="fire">
@@ -875,6 +918,9 @@ async function openDrawer(id){
   // 別の絵に前のキャラを当てかねない。
   showSaveHint(d);
   $("#swapsel").value = "";
+  paintChildSeg(d);
+  paintRefRow(d);
+  $("#batchbox").style.display = "none";
   $("#outfitsel").value = ""; $("#outfittxt").value = "";
   $("#swapprev").style.display = "none";
   $("#swapgo").disabled = true; $("#swapwf").disabled = true;
@@ -979,6 +1025,36 @@ function renderDetail(d){
       rl.appendChild(c);
     }
     b.appendChild(section(`参照画像 (${d.refs.length})`, rl));
+  }
+
+  // つながり: この絵の元（想起の差し替えの記録）と、この絵から作った絵
+  const mf = (d.made_from || []).filter(x => x.kind === "source");
+  const mh = d.made_here || [];
+  if(mf.length || mh.length){
+    const box = el("div","lineage");
+    for(const f of mf){
+      const row = el("div","lrow");
+      const what = f.to && f.from && f.to !== f.from ? `${f.from} → ${f.to}` : (f.to || "");
+      const ow = f.outfit ? `（服: ${f.outfit.name || (f.outfit.words || []).slice(0, 4).join(", ")}）` : "";
+      row.appendChild(el("span","k","元の絵"));
+      if(f.image_id){ const b2 = el("button","tag", f.filename || "開く"); b2.onclick = ()=>openDrawer(f.image_id); row.appendChild(b2); }
+      else row.appendChild(el("span","v", (f.filename || "") + "（台帳にありません）"));
+      if(what || ow) row.appendChild(el("span","v", what + ow));
+      box.appendChild(row);
+    }
+    if(mh.length){
+      box.appendChild(el("div","k", `この絵から作った絵（${mh.length}）`));
+      const st = el("div","lstrip");
+      for(const m of mh.slice(0, 40)){
+        const t = el("button","lthumb");
+        const im = el("img"); im.src = "/thumb/" + m.image_id; im.loading = "lazy"; im.alt = m.filename;
+        t.title = m.filename + (m.kind === "ref" ? `（参照画像 ${m.slot || ""} に使った）` : m.to ? `（${m.to}）` : "");
+        t.appendChild(im); t.onclick = ()=>openDrawer(m.image_id);
+        st.appendChild(t);
+      }
+      box.appendChild(st);
+    }
+    b.appendChild(section("つながり", box));
   }
 
   if(d.positive){
@@ -1302,8 +1378,82 @@ function currentOutfit(){
   if(v.startsWith("s:")){ const o = OUT.saved.find(x => String(x.id) === v.slice(2)); return o ? o.words.slice() : null; }
   return null;
 }
+/* 2 人以上の絵: 差し替える子を選ぶ（その子の語だけ入れ替える） */
+function paintChildSeg(d){
+  const kids = (d && d.characters) || [];
+  S.child = kids.length >= 2 ? (d.main_character || kids[0]) : null;
+  const seg = $("#childseg"); seg.innerHTML = "";
+  $("#childrow").style.display = kids.length >= 2 ? "block" : "none";
+  if(kids.length < 2) return;
+  for(const k of kids){
+    const b = el("button", k === S.child ? "on" : "", k);
+    b.onclick = () => { S.child = k; for(const x of seg.children) x.classList.toggle("on", x === b); if(hasSwap()) swapPreview(); };
+    seg.appendChild(b);
+  }
+}
+/* 参照画像の差し替え（Qwen-Image 2.1 など）: 枠ごとに おまかせ／このまま／ほかの絵に替える */
+S.refs = {};
+function paintRefRow(d){
+  const box = $("#refrow"); box.innerHTML = "";
+  const refs = (d && d.refs) || [];
+  S.refs = {}; S.refInfo = refs; S.prose = !!(d && d.prose);
+  box.style.display = refs.length ? "block" : "none";
+  if(!refs.length) return;
+  box.appendChild(el("div","hint", S.prose
+    ? "参照画像（文章のプロンプトなので、語は入れ替えず、枠の絵を替えます）"
+    : "参照画像（替える枠だけ選んでください）"));
+  for(const r of refs){
+    const row = el("div","refsel");
+    const cur = el("img"); cur.alt = r.filename; if(r.url) cur.src = r.url; cur.title = r.filename;
+    const sl = el("span","ref-slot", r.slot);
+    const sel = el("select");
+    const opts = S.prose ? [["auto","おまかせ"],["keep","このまま"],["pick","ほかの絵に替える…"]] : [["keep","このまま"],["pick","ほかの絵に替える…"]];
+    for(const [v, t] of opts){ const o = el("option", null, t); o.value = v; sel.appendChild(o); }
+    const chosen = el("img","chosen"); chosen.style.display = "none";
+    sel.onchange = async () => {
+      if(sel.value === "pick"){
+        const c = await pickRef(r.slot);
+        if(c){ S.refs[r.slot] = c.image_id ? {image_id: c.image_id} : {sha: c.sha}; chosen.src = c.thumb; chosen.title = c.filename; chosen.style.display = ""; }
+        else{ sel.value = S.refs[r.slot] && typeof S.refs[r.slot] === "object" ? "pick" : (S.prose ? "auto" : "keep"); }
+      }else{
+        if(sel.value === "auto") delete S.refs[r.slot]; else S.refs[r.slot] = "keep";
+        chosen.style.display = "none";
+      }
+      paintSwapTools(); swapPreview();
+    };
+    row.append(cur, sl, sel, chosen);
+    box.appendChild(row);
+  }
+}
+async function pickRef(slot){
+  const to = $("#swapsel").value, o = currentOutfit();
+  let d;
+  try{ d = await api(`/api/ref_candidates?image_id=${S.current.id}&slot=${encodeURIComponent(slot)}&to=${encodeURIComponent(to)}` + (o ? `&outfit=${encodeURIComponent(JSON.stringify(o))}` : "")); }
+  catch(e){ toast("候補を読めませんでした", "bad"); return null; }
+  return modal(`参照画像 ${slot} に入れる絵`, (box, done) => {
+    box.appendChild(el("div","mdl-d", d.kind === "chara"
+      ? (to ? `「${to}」の絵です。` + (d.outfit && d.outfit.length ? `同じ服（${d.outfit.join(", ")}）を着た絵を先に並べています。` : "") : "差し替え先のキャラを選ぶと、その子の絵が並びます。")
+      : (d.outfit && d.outfit.length ? `服（${d.outfit.join(", ")}）の絵と、前に参照画像に使った絵です。` : "前に参照画像に使った絵です。服装を選ぶと、その服の絵も並びます。")));
+    const grid = el("div","refgrid");
+    if(!(d.candidates || []).length) grid.appendChild(el("div","hint","候補がありません"));
+    for(const c of (d.candidates || [])){
+      const b = el("button","refcand"); b.title = c.filename + (c.why ? `（${c.why}）` : "");
+      const im = el("img"); im.src = c.thumb; im.loading = "lazy"; im.alt = c.filename; b.appendChild(im);
+      if(c.why) b.appendChild(el("span","why", c.why));
+      b.onclick = () => done(c);
+      grid.appendChild(b);
+    }
+    box.appendChild(grid);
+    const r = el("div","mdl-b"); const cn = el("button","tool","やめる"); cn.onclick = () => done(null); r.appendChild(cn); box.appendChild(r);
+  });
+}
+function refParams(){
+  const keys = Object.keys(S.refs || {});
+  return keys.length ? {refs: Object.assign({}, S.refs)} : {};
+}
 function swapParams(){
-  const p = {};
+  const p = Object.assign({}, refParams());
+  if(S.child) p.child = S.child;
   const v = $("#swapsel").value;
   const o = currentOutfit();
   if(v) p.to = v; else if(o) p.keep_char = true;
@@ -1313,7 +1463,7 @@ function swapParams(){
   if(v) p.strength = S.strength;
   return p;
 }
-function hasSwap(){ const p = swapParams(); return !!(p.to || p.keep_char); }
+function hasSwap(){ const p = swapParams(); return !!(p.to || p.keep_char || Object.values(p.refs || {}).some(v => typeof v === "object")); }
 function baseParams(){ return {template: $("#today").checked, today: $("#today").checked, front: $("#front").checked}; }
 function seedParams(){ return {seed_mode: S.seedMode, seed_value: $("#seedval").value, batch: +$("#batch").value || 1}; }
 const postJSON = (path, body) => api(path, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)});
@@ -1423,10 +1573,12 @@ function paintSwapTools(){
   const v = $("#outfitsel").value;
   $("#outfittxt").style.display = v === "custom" ? "block" : "none";
   $("#outfitsave").style.display = (v === "custom" || v.startsWith("u:")) ? "" : "none";
-  $("#strseg").style.display = $("#swapsel").value ? "flex" : "none";
+  $("#strseg").style.display = $("#swapsel").value && !S.prose ? "flex" : "none";
   const any = hasSwap();
-  $("#swapgo").textContent = $("#swapsel").value ? "差し替えて投入" : "服を替えて投入";
-  $("#swapwf").textContent = ($("#swapsel").value ? "差し替えて" : "服を替えて") + " ComfyUI の画面で開く（投入しない）";
+  const refPicked = Object.values(S.refs || {}).some(v => typeof v === "object");
+  const what = $("#swapsel").value ? "差し替えて" : currentOutfit() ? "服を替えて" : refPicked ? "参照画像を替えて" : "差し替えて";
+  $("#swapgo").textContent = what + "投入";
+  $("#swapwf").textContent = what + " ComfyUI の画面で開く（投入しない）";
   if(!any){ $("#swapgo").disabled = true; $("#swapwf").disabled = true; }
 }
 
@@ -1441,9 +1593,9 @@ function renderSwapPreview(r){
   const head = el("div");
   const what = r.to && r.from !== r.to ? `${r.from ? r.from + " → " : ""}${r.to}` : `${r.to || "キャラはこのまま"}（服だけ）`;
   head.innerHTML = `<span class="lbl"></span>`;
-  head.firstChild.textContent = `${what}　（書き換える窓 ${r.edits.length} 個）`;
+  head.firstChild.textContent = r.prose ? `${what}　（参照画像で差し替え）` : `${what}　（書き換える窓 ${r.edits.length} 個）`;
   box.appendChild(head);
-  if(!r.edits.length) box.appendChild(el("div","keep","プロンプトは変わりません"));
+  if(!r.edits.length) box.appendChild(el("div","keep", r.prose ? "文章のプロンプトなので、語は入れ替えません（参照画像の枠の絵を替えます）" : "プロンプトは変わりません"));
   for(const e of r.edits){
     // 窓（文字の欄）ごとに、外す語・入れる語・結果を出す
     if(r.edits.length > 1 || e.title) box.appendChild(el("span","lbl", "窓：" + (e.title || e.class_type || e.node)));
@@ -1458,6 +1610,21 @@ function renderSwapPreview(r){
     box.appendChild(el("div","keep", e.after));
   }
   if(r.kigae) box.appendChild(el("div","keep", `着替工房：服の ${r.kigae.no} 番の行だけ出し直します`));
+  if((r.ref_changes || []).length || (r.ref_notes || []).length){
+    box.appendChild(el("span","lbl","参照画像"));
+    for(const c of (r.ref_changes || [])){
+      const line = el("div","add refline");
+      if(c.thumb){ const im = el("img"); im.src = c.thumb; im.alt = ""; line.appendChild(im); }
+      line.appendChild(document.createTextNode(`${c.slot}: ${c.from} → ${c.to}`));
+      box.appendChild(line);
+    }
+    for(const n of (r.ref_notes || [])) box.appendChild(el("div","del", n));
+  }
+  if(r.lora && ((r.lora.changes || []).length || r.lora.warning)){
+    box.appendChild(el("span","lbl","LoRA"));
+    for(const c of (r.lora.changes || [])) box.appendChild(el("div","add", c));
+    if(r.lora.warning) box.appendChild(el("div","del", r.lora.warning));
+  }
   const svs = (r.save_changes || []).filter(c => c.kind === "save");
   box.appendChild(el("span","lbl","保存名"));
   box.appendChild(el("div", r.need_name ? "del" : "add",
@@ -1526,6 +1693,8 @@ function showSubmitResult(r){
     d2.push(S.seedMode==="same" ? "seed はそのまま（完全再現）" : (seeds ? "seed: "+seeds : ""));
     const sv = (r.save_changes || []).find(c => c.kind === "save") || (r.save_changes || [])[0];
     if(sv) d2.push(`保存名: ${sv.after}`);
+    if(r.lora && (r.lora.changes || []).length) d2.push("LoRA: " + r.lora.changes.join(" ／ "));
+    if(r.lora && r.lora.warning) d2.push(r.lora.warning);
     for(const x of (r.restored || [])) d2.push(x.ok ? `参照画像 ${x.slot} を控えから ComfyUI に戻しました（${x.file}）` : `参照画像 ${x.slot}: ${x.error || "戻せませんでした"}`);
     toast(`${r.submitted} 件を投入しました` + ($("#front").checked ? "（キューの先頭へ）" : ""), "good", d2.filter(Boolean).join("\n"));
     pollStatus();
@@ -1569,6 +1738,65 @@ $("#swapgo").addEventListener("click", async ()=>{
 });
 
 $("#swapwf").addEventListener("click", ()=>{ if(S.current && hasSwap()) openInComfy($("#swapwf"), true); });
+
+/* ── まとめて差し替え ── */
+const BATCH = {mode: "keep", saved: []};
+function batchTargets(){ return [...document.querySelectorAll("#batchchars input:checked")].map(x => x.value); }
+function paintBatch(){
+  const n = batchTargets().length;
+  $("#batchgo").textContent = `選んだ ${n} 人を 1 人ずつ投入`;
+  $("#batchgo").disabled = !n || (BATCH.mode === "same" && !$("#batchsaved").value);
+  $("#batchsaved").style.display = BATCH.mode === "same" ? "block" : "none";
+}
+async function openBatch(){
+  const box = $("#batchbox");
+  const on = box.style.display === "none";
+  box.style.display = on ? "block" : "none";
+  if(!on || !S.current) return;
+  const skip = S.child || (S.current.main_character) || null;
+  const list = $("#batchchars"); list.innerHTML = "";
+  for(const c of swapChars){
+    if(c.name === skip) continue;
+    const lb = el("label"); const cb = el("input"); cb.type = "checkbox"; cb.value = c.name; cb.onchange = paintBatch;
+    lb.append(cb, document.createTextNode(c.name)); list.appendChild(lb);
+  }
+  try{ BATCH.saved = (await api("/api/outfits?all=1")).saved || []; }catch(e){ BATCH.saved = []; }
+  const sel = $("#batchsaved"); sel.innerHTML = "";
+  const o0 = el("option", null, "（登録した服を選ぶ）"); o0.value = ""; sel.appendChild(o0);
+  for(const s of BATCH.saved){ const o = el("option", null, s.name + (s.character ? `（${s.character}）` : "")); o.value = String(s.id); o.title = s.words.join(", "); sel.appendChild(o); }
+  paintBatch();
+}
+$("#batchtoggle").addEventListener("click", openBatch);
+for(const b of document.querySelectorAll("#batchoutfit button")) b.addEventListener("click", () => {
+  BATCH.mode = b.dataset.o;
+  for(const x of document.querySelectorAll("#batchoutfit button")) x.classList.toggle("on", x === b);
+  paintBatch();
+});
+$("#batchsaved").addEventListener("change", paintBatch);
+$("#batchgo").addEventListener("click", async () => {
+  if(!S.current) return;
+  const targets = batchTargets(); if(!targets.length) return;
+  const body = Object.assign({image_id: S.current.id, targets, outfit_mode: BATCH.mode, same_seed: $("#batchseed").checked},
+    refParams(), S.child ? {child: S.child} : {}, {strength: S.strength}, seedParams(), baseParams());
+  if(BATCH.mode === "same"){
+    const s = BATCH.saved.find(x => String(x.id) === $("#batchsaved").value);
+    if(!s){ toast("全員に着せる服を選んでください", "bad"); return; }
+    body.outfit = s.words; body.outfit_name = s.name;
+  }
+  const b = $("#batchgo"); b.disabled = true; const lb = b.textContent; b.textContent = "投入中…";
+  try{
+    const r = await postJSON("/api/swap/batch", body);
+    if(r.error && !r.results){ toast("投入できません", "bad", r.error); }
+    else{
+      const lines = (r.results || []).map(x => x.ok ? `${x.to}: 投入しました` + (x.save_name ? `（${x.save_name}）` : "") + (x.note ? ` ※${x.note}` : "")
+                                                     : `${x.to}: できませんでした（${x.error || "?"}）`);
+      if(r.seed != null) lines.push(`seed（全員同じ）: ${r.seed}`);
+      toast(`${r.submitted} / ${(r.results || []).length} 人分を投入しました`, r.ok ? "good" : "bad", lines.join("\n"), 14000);
+      pollStatus();
+    }
+  }catch(e){ toast("投入に失敗しました", "bad", String(e)); }
+  b.textContent = lb; paintBatch();
+});
 $("#openonly").addEventListener("click", ()=>openInComfy($("#openonly"), false));
 try{ const v = localStorage.getItem("souki.openwf"); if(v !== null) $("#openwf").checked = v === "1"; }catch(e){}
 $("#openwf").addEventListener("change", ()=>{ try{ localStorage.setItem("souki.openwf", $("#openwf").checked ? "1" : "0"); }catch(e){} });
@@ -1656,7 +1884,7 @@ function alive(){
 alive(); setInterval(alive, 5000);
 window.addEventListener("pagehide", () => { try{ navigator.sendBeacon("/api/bye", ""); }catch(e){} });
 
-const UI_VERSION = "2.4.2";
+const UI_VERSION = "2.5.0";
 async function checkVersion(){
   try{
     const v = await api("/api/version");

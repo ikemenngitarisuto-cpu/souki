@@ -20,6 +20,7 @@ from __future__ import annotations
 import argparse
 import io
 import json
+import math
 import mimetypes
 import os
 import random
@@ -46,7 +47,7 @@ except ImportError:
     sys.stderr.write("Pillow が必要です:  pip install Pillow\n")
     raise
 
-VERSION = "2.4.2"
+VERSION = "2.5.0"
 APP_NAME = "想起"
 APP_DIR = Path(__file__).resolve().parent
 DATA_DIR = APP_DIR / "data"
@@ -177,6 +178,32 @@ CREATE TABLE IF NOT EXISTS ref_files (
     saved_at     REAL
 );
 
+-- 差し替えの記録（できた絵 → 元の絵・参照画像にした絵）。投入した PNG の souki（extra_pnginfo）から読む
+CREATE TABLE IF NOT EXISTS lineage (
+    image_id    INTEGER NOT NULL,
+    kind        TEXT NOT NULL,
+    slot        TEXT,
+    src_path    TEXT,
+    src_file    TEXT,
+    src_dhash   TEXT,
+    src_size    INTEGER,
+    to_chara    TEXT,
+    from_chara  TEXT,
+    outfit      TEXT,
+    data        TEXT
+);
+CREATE INDEX IF NOT EXISTS ix_lineage_image ON lineage(image_id);
+CREATE INDEX IF NOT EXISTS ix_lineage_path  ON lineage(src_path);
+CREATE INDEX IF NOT EXISTS ix_lineage_dhash ON lineage(src_dhash);
+-- キャラの LoRA（差し替えで入れ替える）。手で決めたもの。無ければ台帳から推し量る
+CREATE TABLE IF NOT EXISTS c_lora (
+    character_id INTEGER PRIMARY KEY,
+    lora       TEXT,
+    strength   REAL,
+    trigger    TEXT,
+    updated_at REAL
+);
+
 CREATE TABLE IF NOT EXISTS outfits (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
@@ -218,6 +245,23 @@ LORA_CLASSES = {
     "LoraLoader|pysssss": ("lora_name", "strength_model"),
 }
 TEXT_KEYS = ("text", "text_g", "text_l", "prompt", "string", "positive", "wildcard_text")
+_POWER_KEY = re.compile(r"^lora_(\d+)$", re.I)
+
+
+def is_power_lora(ct: str) -> bool:
+    """rgthree の Power Lora Loader か。"""
+    return "power lora loader" in str(ct).lower()
+
+
+def power_entries(inputs: dict) -> list:
+    """Power Lora Loader の LoRA の欄。[(欄の名前, {on, lora, strength, …})]、番号順。"""
+    out = []
+    for k, v in (inputs or {}).items():
+        m = _POWER_KEY.match(str(k))
+        if m and isinstance(v, dict) and isinstance(v.get("lora"), str) and v.get("lora"):
+            out.append((int(m.group(1)), k, v))
+    out.sort()
+    return [(k, v) for _, k, v in out]
 
 
 def is_link(v) -> bool:
@@ -637,6 +681,14 @@ def extract_workflow_info(prompt: dict, filename: str | None = None) -> dict:
                 info["loras"].append(
                     {"name": name, "strength": float(st) if isinstance(st, (int, float)) else None}
                 )
+        elif is_power_lora(ct):
+            # rgthree の Power Lora Loader: lora_1, lora_2 … に {on, lora, strength}
+            for k, v in power_entries(inputs):
+                model_files.add(v["lora"])
+                if v.get("on"):
+                    st = v.get("strength")
+                    info["loras"].append({"name": v["lora"],
+                                          "strength": float(st) if isinstance(st, (int, float)) else None})
 
         for v in inputs.values():
             if isinstance(v, str) and v.lower().endswith(MODEL_SUFFIXES):
@@ -902,7 +954,7 @@ def scan_file(path: Path, root: Path, want_thumb: bool) -> dict | None:
         "cfg": None, "seed": None,
         "prompt_json": None, "workflow_json": None,
         "node_types": None, "model_files": None,
-        "loras": [], "tags": [], "refs": [], "_thumb": None,
+        "loras": [], "tags": [], "refs": [], "lineage": [], "_thumb": None,
         "indexed_at": time.time(),
     }
     if rec["folder"] == ".":
@@ -913,6 +965,7 @@ def scan_file(path: Path, root: Path, want_thumb: bool) -> dict | None:
         with Image.open(path) as im:
             rec["width"], rec["height"] = im.size
             api_raw, ui_raw = read_embedded(im)
+            rec["lineage"] = lineage_rows((im.info or {}).get("souki"))
             im.load()
             rec["dhash"] = useful_hash(dhash(im))
             if want_thumb:
@@ -1155,6 +1208,7 @@ def run_index(dirs: list[str], full: bool = False, workers: int = 6,
             cur.execute(f"DELETE FROM loras  WHERE image_id IN ({qm})", ids)
             cur.execute(f"DELETE FROM tags   WHERE image_id IN ({qm})", ids)
             cur.execute(f"DELETE FROM refs   WHERE image_id IN ({qm})", ids)
+            cur.execute(f"DELETE FROM lineage WHERE image_id IN ({qm})", ids)
             if chara_mod is not None:
                 chara_mod.purge_images(con, ids)
             for iid in ids:
@@ -1199,6 +1253,7 @@ def _flush(con, cur, batch: list[dict], known: dict) -> list[int]:
         cur.execute("DELETE FROM loras WHERE image_id=?", (iid,))
         cur.execute("DELETE FROM tags  WHERE image_id=?", (iid,))
         write_refs(cur, iid, rec.get("refs") or [])
+        write_lineage(cur, iid, rec.get("lineage") or [])
         if rec["loras"]:
             cur.executemany(
                 "INSERT INTO loras(image_id,name,strength) VALUES(?,?,?)",
@@ -1354,7 +1409,15 @@ def image_refs(image_id: int) -> list:
     rows = q("SELECT r.slot, r.node, r.filename, r.sha, f.ext, f.width, f.height, f.src_image_id "
              "FROM refs r LEFT JOIN ref_files f ON f.sha=r.sha WHERE r.image_id=?", (image_id,))
     rows.sort(key=lambda r: int(re.sub(r"\D", "", r["slot"]) or 0))
+    # 想起が参照画像を差し替えたときは、記録に元の絵がそのまま書いてある（絵柄で探すより確か）
+    lin = {r["slot"]: r for r in q("SELECT slot, src_path, src_file, src_dhash, src_size FROM lineage "
+                                    "WHERE image_id=? AND kind='ref'", (image_id,))}
     for r in rows:
+        l = lin.get(r["slot"])
+        if l:
+            sid = resolve_image(l["src_path"], l["src_file"], l["src_dhash"], l["src_size"])
+            if sid:
+                r["src_image_id"] = sid
         r["kept"] = bool(r["sha"] and r["ext"] and ref_file_path(r["sha"], r["ext"]).exists())
         r["url"] = f"/ref/{r['sha']}" if r["kept"] else None
         if r["src_image_id"]:
@@ -1364,10 +1427,114 @@ def image_refs(image_id: int) -> list:
 
 
 # --------------------------------------------------------------------------
+# 差し替えの記録 — 投入した PNG に「どの絵から・誰に・どの服で」を残し、台帳でつなぐ
+# --------------------------------------------------------------------------
+
+def lineage_rows(raw) -> list:
+    """PNG の souki（想起が投入のときに入れた記録）を、台帳の行にする。"""
+    if raw is None:
+        return []
+    try:
+        d = json.loads(raw.decode("utf-8", "replace") if isinstance(raw, bytes) else raw) \
+            if not isinstance(raw, dict) else raw
+    except Exception:
+        return []
+    if not isinstance(d, dict):
+        return []
+    out = []
+    outfit = d.get("outfit")
+    oj = json.dumps(outfit, ensure_ascii=False) if outfit else None
+    src = d.get("source") if isinstance(d.get("source"), dict) else None
+    if src:
+        out.append({"kind": "source", "slot": None, "src_path": src.get("path"),
+                    "src_file": src.get("file"), "src_dhash": src.get("dhash"),
+                    "src_size": src.get("size"), "to_chara": d.get("to"), "from_chara": d.get("from"),
+                    "outfit": oj, "data": json.dumps(d, ensure_ascii=False)[:4000]})
+    for slot, r in (d.get("refs") or {}).items():
+        if isinstance(r, dict):
+            out.append({"kind": "ref", "slot": str(slot), "src_path": r.get("path"),
+                        "src_file": r.get("file"), "src_dhash": r.get("dhash"),
+                        "src_size": r.get("size"), "to_chara": d.get("to"),
+                        "from_chara": d.get("from"), "outfit": None, "data": None})
+    return out
+
+
+LINEAGE_COLS = ("kind", "slot", "src_path", "src_file", "src_dhash", "src_size", "to_chara",
+                "from_chara", "outfit", "data")
+
+
+def write_lineage(cur, iid: int, rows: list) -> None:
+    cur.execute("DELETE FROM lineage WHERE image_id=?", (iid,))
+    for r in rows or []:
+        cur.execute(f"INSERT INTO lineage(image_id,{','.join(LINEAGE_COLS)}) "
+                    f"VALUES(?{',?' * len(LINEAGE_COLS)})", [iid] + [r.get(c) for c in LINEAGE_COLS])
+
+
+def resolve_image(path=None, file=None, dhash=None, size=None) -> int | None:
+    """記録にある絵が、台帳のどの絵か（場所 → 絵柄と名前 → 名前と大きさ の順に探す）。"""
+    if path:
+        r = q("SELECT id FROM images WHERE path=?", (path,))
+        if r:
+            return r[0]["id"]
+    if dhash and file:
+        r = q("SELECT id FROM images WHERE dhash=? AND filename=? ORDER BY mtime LIMIT 1", (dhash, file))
+        if r:
+            return r[0]["id"]
+    if file and size:
+        r = q("SELECT id FROM images WHERE filename=? AND size=? ORDER BY mtime LIMIT 1", (file, size))
+        if r:
+            return r[0]["id"]
+    return None
+
+
+def image_record(image_id: int) -> dict:
+    """その絵の場所と見た目の印（記録に書く形）。"""
+    r = q("SELECT path, filename, dhash, size FROM images WHERE id=?", (image_id,))
+    if not r:
+        return {}
+    r = r[0]
+    return {"file": r["filename"], "path": r["path"], "dhash": r["dhash"], "size": r["size"]}
+
+
+def made_from(image_id: int) -> list:
+    """この絵の元（想起の記録から）。[{kind, slot, image_id, filename, to, from, outfit}]"""
+    out = []
+    for r in q("SELECT * FROM lineage WHERE image_id=? ORDER BY kind DESC, slot", (image_id,)):
+        sid = resolve_image(r["src_path"], r["src_file"], r["src_dhash"], r["src_size"])
+        out.append({"kind": r["kind"], "slot": r["slot"], "image_id": sid,
+                    "filename": r["src_file"], "to": r["to_chara"], "from": r["from_chara"],
+                    "outfit": json.loads(r["outfit"]) if r["outfit"] else None})
+    return out
+
+
+def made_here(image_id: int, limit: int = 80) -> list:
+    """この絵から作った絵（想起の記録と、参照画像にした絵）。新しい順。"""
+    me = q("SELECT path, filename, dhash FROM images WHERE id=?", (image_id,))
+    if not me:
+        return []
+    me = me[0]
+    rows = q("SELECT l.image_id, l.kind, l.slot, l.to_chara, i.filename, i.mtime FROM lineage l "
+             "JOIN images i ON i.id=l.image_id WHERE l.image_id<>? AND (l.src_path=? "
+             "OR (l.src_dhash IS NOT NULL AND l.src_dhash=? AND l.src_file=?))",
+             (image_id, me["path"], me["dhash"], me["filename"]))
+    rows += q("SELECT r.image_id, 'ref' AS kind, r.slot, NULL AS to_chara, i.filename, i.mtime "
+              "FROM ref_files f JOIN refs r ON r.sha=f.sha JOIN images i ON i.id=r.image_id "
+              "WHERE f.src_image_id=? AND r.image_id<>?", (image_id, image_id))
+    best = {}
+    for r in rows:
+        e = best.get(r["image_id"])
+        if e is None or (e["kind"] == "ref" and r["kind"] == "source"):
+            best[r["image_id"]] = {"image_id": r["image_id"], "kind": r["kind"], "slot": r["slot"],
+                                   "to": r["to_chara"], "filename": r["filename"], "mtime": r["mtime"]}
+    out = sorted(best.values(), key=lambda x: -(x["mtime"] or 0))
+    return out[:limit]
+
+
+# --------------------------------------------------------------------------
 # 台帳の読み直し（読み取り方を直した版で、保存してあるワークフローから）
 # --------------------------------------------------------------------------
 
-PARSE_VERSION = "2.4.0"      # 読み取り方を変えたら上げる。上がっていれば起動時に 1 回読み直す
+PARSE_VERSION = "2.5.0"      # 読み取り方を変えたら上げる。上がっていれば起動時に 1 回読み直す
 
 
 def reparse_ledger(progress=None, force: bool = False) -> dict:
@@ -1397,6 +1564,11 @@ def reparse_ledger(progress=None, force: bool = False) -> dict:
                 except Exception:
                     continue
                 write_refs(cur, r["id"], info["refs"])
+                if any(is_power_lora(c) for c in info["node_types"]):
+                    # v2.5.0 から Power Lora Loader の LoRA も台帳に載せる
+                    cur.execute("DELETE FROM loras WHERE image_id=?", (r["id"],))
+                    cur.executemany("INSERT INTO loras(image_id,name,strength) VALUES(?,?,?)",
+                                    [(r["id"], x["name"], x["strength"]) for x in info["loras"]])
                 if (info["positive"] == r["positive"] and info["negative"] == r["negative"]
                         and not info["prose"]):
                     continue
@@ -2050,6 +2222,11 @@ def api_detail(iid: int) -> dict:
         r["seed_targets"] = []
     r.pop("workflow_json", None)   # 大きいので詳細では返さない
     r["refs"] = image_refs(iid)
+    r["made_from"] = made_from(iid)
+    r["made_here"] = made_here(iid)
+    r["characters"] = image_characters(iid, order="lr")      # 左から順
+    big = image_characters(iid)
+    r["main_character"] = big[0] if big else None              # いちばん大きく写っている子
     r["prose"] = bool(r.get("has_api")) and not r["tags"] and looks_like_prose(r.get("positive"))
     return r
 
@@ -2857,9 +3034,24 @@ def _field_lines_set(value: str, line: int, text: str) -> str:
     return "\n".join(lines)
 
 
+_MULTI_RE = re.compile(r"\b([2-9]|\d{2,})\s*(girls|boys|others)\b|\bmultiple (girls|boys|others)\b")
+
+
+def is_multi_prompt(text: str | None) -> bool:
+    """プロンプトから「2 人以上の絵」と読めるか。"""
+    tags = normalize_tags(text)
+    if chara_ok():
+        try:
+            return bool(CHARA.multi_hint(tags))
+        except Exception:
+            pass
+    return any(_MULTI_RE.search(t) for t in tags)
+
+
 def build_swap(image_id: int, to_name: str, extra_remove=None, extra_add=None,
                outfit=None, strength: str = "full", keep_char: bool = False,
-               outfit_name: str | None = None) -> dict:
+               outfit_name: str | None = None, child: str | None = None,
+               trig_rm=(), trig_add=()) -> dict:
     """キャラ（と服）を入れ替えたプロンプトを作る。
 
     窓（文字の欄）ごとに入れ替える。キャラの語はキャラの窓へ、服は服の窓へ。
@@ -2868,7 +3060,9 @@ def build_swap(image_id: int, to_name: str, extra_remove=None, extra_add=None,
 
     outfit: None なら服はそのまま。語の並びなら、元の服の語（髪飾りも含む）を外してそれを入れる。
     strength: "full" は体格・年齢・種族まで、"light" は髪と目だけ入れ替える。
-    keep_char: キャラはそのまま（服だけ替える）。"""
+    keep_char: キャラはそのまま（服だけ替える）。
+    child: 2 人以上の絵で、差し替える子（無ければいちばん大きく写っている子）。
+           2 人以上の絵では、その子の特徴の語だけを入れ替える（ほかの子の語は残す）。"""
     rows = q("SELECT prompt_json, positive, filename FROM images WHERE id=?",
              (image_id,))
     if not rows or not rows[0]["prompt_json"]:
@@ -2882,7 +3076,9 @@ def build_swap(image_id: int, to_name: str, extra_remove=None, extra_add=None,
     if rd["prose"] or looks_like_prose(rd["positive"]):
         return {"ok": False, "error": "文章で書いたプロンプトなので、語の入れ替えはしません"}
 
-    src = source_character(image_id)
+    chars = image_characters(image_id)
+    src = child if child and child in chars else (chars[0] if chars else None)
+    multi = len(chars) >= 2 or is_multi_prompt(rd["positive"])
     if not keep_char and src and src == to_name:
         if outfit is None:
             return {"ok": False,
@@ -2900,6 +3096,9 @@ def build_swap(image_id: int, to_name: str, extra_remove=None, extra_add=None,
         if light:
             rm = [t for t in rm if is_hair_eye_tag(t)]
             add = [t for t in add if is_hair_eye_tag(t)]
+        # LoRA のトリガー語も入れ替える（入れる語の先頭に）
+        rm += [t for t in trig_rm if t and t.lower() not in [x.lower() for x in rm]]
+        add = [t for t in trig_add if t] + [t for t in add if t.lower() not in [x.lower() for x in trig_add]]
         if not add:
             return {"ok": False,
                     "error": f"「{to_name}」の特徴が取れませんでした。"
@@ -2938,6 +3137,15 @@ def build_swap(image_id: int, to_name: str, extra_remove=None, extra_add=None,
                 # キャラの窓があるときは、ほかの窓（品質・ポーズなど）からは元の子の語だけ外す
                 rm_at.append(list(dict.fromkeys(rm)))
                 continue
+            if multi:
+                # 2 人以上の絵: 差し替える子の語だけ外す（ほかの子の髪や目の語は残す）
+                auto = [t for t in normalize_tags(texts[i])
+                        if src and learned.get(t) == src and not is_outfit_tag(t)]
+                if light:
+                    auto = [t for t in auto if is_hair_eye_tag(t)]
+                rm_at.append(list(dict.fromkeys(rm + auto)))
+                learned_by[i] = [t for t in auto if t not in [x.lower() for x in rm]]
+                continue
             auto = [t for t in normalize_tags(texts[i])
                     if t in learned and learned[t] != to_name and not is_outfit_tag(t)]
             body = body_tags_in(texts[i])
@@ -2947,12 +3155,15 @@ def build_swap(image_id: int, to_name: str, extra_remove=None, extra_add=None,
             rm_at.append(list(dict.fromkeys(rm + body + auto)))
             learned_by[i] = [t for t in auto if t not in [x.lower() for x in rm]]
         # 入れる窓: キャラの窓 → 元の語があった窓 → 最初の窓（服の窓は除く）
-        target = next((i for i in range(n) if roles[i] == "chara"), None)
+        # （2 人以上の絵は、差し替える子の語があった窓を先に）
+        target = None if multi else next((i for i in range(n) if roles[i] == "chara"), None)
         if target is None:
             for i in range(n):
                 if rm_at[i] and swap_in_text(texts[i], rm_at[i], [])["removed"]:
                     target = i
                     break
+        if target is None:
+            target = next((i for i in range(n) if roles[i] == "chara"), None)
         if target is None:
             target = next((i for i in range(n) if roles[i] != "outfit"), 0)
         for i in range(n):
@@ -3040,7 +3251,7 @@ def build_swap(image_id: int, to_name: str, extra_remove=None, extra_add=None,
         prompt[f["node"]]["inputs"][f["key"]] = f["after"]
     to = src if keep_char else to_name
     return {"ok": True, "prompt": prompt, "edits": edits,
-            "from": src, "to": to, "keep_char": keep_char,
+            "from": src, "to": to, "keep_char": keep_char, "multi": multi, "characters": chars,
             "to_tags": tgt["tags"], "from_tags": rm, "kigae": kigae,
             "outfit_label": label_out if (new_outfit is not None or kigae) else "",
             "filename": rows[0]["filename"]}
@@ -3356,11 +3567,508 @@ def apply_save_template(prompt: dict, name: str, old_names=(), outfit: str = "")
 
 
 # --------------------------------------------------------------------------
+# 参照画像の差し替え（Qwen-Image 2.1 など） — 枠ごとに「このまま／ほかの絵に替える」
+# --------------------------------------------------------------------------
+
+def slot_info(image_id: int) -> dict:
+    """その絵の参照画像の枠ごとの様子。{枠: {filename, sha, src_image_id, who: [写っている子], kind}}
+    kind は "chara"（キャラ帳で子が分かる絵）か "other"（服などの絵）。"""
+    out = {}
+    for r in image_refs(image_id):
+        who = image_characters(r["src_image_id"]) if r.get("src_image_id") else []
+        out[r["slot"]] = {"slot": r["slot"], "filename": r["filename"], "sha": r.get("sha"),
+                          "src_image_id": r.get("src_image_id"), "who": who,
+                          "kind": "chara" if who else "other", "url": r.get("url")}
+    return out
+
+
+def _outfit_overlap(words: set, positive: str | None) -> int:
+    if not words:
+        return 0
+    return len(words & set(outfit_tags_in(positive or "")))
+
+
+def ref_candidates(image_id: int, slot: str, to: str | None = None, outfit=None, limit: int = 40) -> dict:
+    """参照画像の枠に入れる絵の候補。キャラの枠なら差し替え先の子の絵（その服を着た絵を先に）、
+    服などの枠なら、その服の絵と、前に参照画像に使った服などの絵。"""
+    info = slot_info(image_id).get(slot)
+    if not info:
+        return {"ok": False, "error": "その枠は見つかりません"}
+    want = {w.strip().lower() for w in (outfit or []) if w and w.strip()}
+    if not want and info.get("src_image_id"):
+        r = q("SELECT positive FROM images WHERE id=?", (info["src_image_id"],))
+        want = set(outfit_tags_in(r[0]["positive"] if r else ""))      # 元の枠の絵の服
+    cands = []
+    if info["kind"] == "chara" or (to and info["kind"] != "other"):
+        if to and chara_ok() and chara_ready_tables():
+            rows = q("SELECT DISTINCT im.id, im.filename, im.positive, im.mtime, a.state, i.solo, "
+                     "(i.x2-i.x1)*(i.y2-i.y1) AS face FROM c_characters c "
+                     "JOIN c_assign a ON a.character_id=c.id AND a.state IN ('confirmed','auto') "
+                     "JOIN c_instances i ON i.id=a.instance_id JOIN images im ON im.id=i.image_id "
+                     "WHERE c.name=? ORDER BY im.mtime DESC LIMIT 3000", (to,))
+            best = {}
+            for r in rows:
+                ov = _outfit_overlap(want, r["positive"])
+                key = (ov, r["solo"] or 0, 1 if r["state"] == "confirmed" else 0, r["face"] or 0, r["mtime"] or 0)
+                if r["id"] not in best or key > best[r["id"]][0]:
+                    best[r["id"]] = (key, r)
+            for key, r in sorted(best.values(), key=lambda x: x[0], reverse=True)[:limit]:
+                cands.append({"image_id": r["id"], "filename": r["filename"], "thumb": f"/thumb/{r['id']}",
+                              "outfit_match": key[0], "solo": bool(key[1]),
+                              "why": "同じ服" if key[0] and want else ("1 人の絵" if key[1] else "")})
+    else:
+        if want:
+            qm = ",".join("?" * len(want))
+            rows = q(f"SELECT t.image_id AS id, COUNT(DISTINCT t.tag) AS n, im.filename, im.mtime FROM tags t "
+                     f"JOIN images im ON im.id=t.image_id WHERE t.tag IN ({qm}) AND t.image_id<>? "
+                     f"GROUP BY t.image_id ORDER BY n DESC, im.mtime DESC LIMIT ?",
+                     list(want) + [image_id, limit])
+            for r in rows:
+                cands.append({"image_id": r["id"], "filename": r["filename"], "thumb": f"/thumb/{r['id']}",
+                              "outfit_match": r["n"], "why": "同じ服"})
+        for r in q("SELECT f.sha, f.ext, f.first_name, f.src_image_id FROM ref_files f "
+                   "WHERE f.sha<>COALESCE(?, '') ORDER BY f.saved_at DESC LIMIT 200", (info.get("sha"),)):
+            if r["src_image_id"] and image_characters(r["src_image_id"]):
+                continue                      # キャラの絵は除く（服などの絵だけ）
+            if not ref_file_path(r["sha"], r["ext"]).exists():
+                continue
+            cands.append({"sha": r["sha"], "filename": r["first_name"], "thumb": f"/ref/{r['sha']}",
+                          "outfit_match": 0, "why": "前に参照画像に使った絵"})
+            if len(cands) >= limit * 2:
+                break
+    return {"ok": True, "slot": slot, "kind": info["kind"], "who": info["who"], "outfit": sorted(want),
+            "current": {"filename": info["filename"], "url": info.get("url")}, "candidates": cands}
+
+
+def _ref_source(spec: dict) -> dict | None:
+    """候補（台帳の絵か、参照画像の控え）のファイルと、記録に書く形。"""
+    if spec.get("image_id"):
+        r = q("SELECT id, path, filename, dhash, size FROM images WHERE id=?", (int(spec["image_id"]),))
+        if not r or not Path(r[0]["path"]).is_file():
+            return None
+        r = r[0]
+        return {"path": Path(r["path"]), "filename": r["filename"], "image_id": r["id"],
+                "record": {"file": r["filename"], "path": r["path"], "dhash": r["dhash"], "size": r["size"]}}
+    if spec.get("sha"):
+        sha = re.sub(r"[^0-9a-f]", "", str(spec["sha"]))[:64]
+        r = q("SELECT ext, first_name, src_image_id FROM ref_files WHERE sha=?", (sha,))
+        if not r or not ref_file_path(sha, r[0]["ext"]).exists():
+            return None
+        rec = image_record(r[0]["src_image_id"]) if r[0]["src_image_id"] else {}
+        return {"path": ref_file_path(sha, r[0]["ext"]), "filename": r[0]["first_name"],
+                "image_id": r[0]["src_image_id"], "record": rec or {"file": r[0]["first_name"], "sha": sha}}
+    return None
+
+
+def plan_ref_swaps(prompt: dict, image_id: int, spec: dict | None, to: str | None, src: str | None,
+                   outfit=None) -> dict:
+    """参照画像の枠を替える。spec は {枠: "keep" | "auto" | {"image_id": n} | {"sha": "…"}}。
+    指定の無い枠は、差し替え先の子があれば「おまかせ」（差し替える子が写っている枠を、その子の絵に）。
+    prompt の Load Image の値を書き換える。送り込み（/upload/image）は ensure_ref_uploads で行う。"""
+    spec = spec if isinstance(spec, dict) else {}
+    refs = find_ref_images(prompt)
+    out = {"changes": [], "node_changes": [], "uploads": [], "record": {}, "notes": []}
+    if not refs:
+        return out
+    infos = slot_info(image_id)
+    chara_slots = [s for s, i in infos.items() if i["kind"] == "chara"]
+    import hashlib
+    for r in refs:
+        s = r["slot"]
+        sp = spec.get(s, "auto")
+        if sp == "keep":
+            continue
+        info = infos.get(s, {"who": [], "kind": "other"})
+        if sp == "auto" or not isinstance(sp, dict):
+            pick = None
+            if to and info["kind"] == "chara" and ((src and src in info["who"]) or
+                                                   (not src and len(chara_slots) == 1)):
+                c = ref_candidates(image_id, s, to, outfit, limit=1).get("candidates") or []
+                pick = c[0] if c else None
+                if not pick:
+                    out["notes"].append(f"{s}: 「{to}」の絵が台帳に見つからないので、このままにします")
+            elif outfit and info["kind"] == "other":
+                c = [x for x in (ref_candidates(image_id, s, None, outfit, limit=5).get("candidates") or [])
+                     if x.get("outfit_match")]
+                pick = c[0] if c else None
+            if not pick:
+                continue
+            sp = {"image_id": pick["image_id"]} if pick.get("image_id") else {"sha": pick["sha"]}
+        got = _ref_source(sp)
+        if not got:
+            out["notes"].append(f"{s}: 選んだ絵のファイルが見つかりません（このままにします）")
+            continue
+        data = got["path"].read_bytes()
+        name = f"souki_{hashlib.sha256(data).hexdigest()[:16]}{got['path'].suffix.lower() or '.png'}"
+        before = prompt[r["node"]]["inputs"][r["key"]]
+        prompt[r["node"]]["inputs"][r["key"]] = name
+        out["node_changes"].append({"node": r["node"], "key": r["key"], "before": before, "after": name,
+                                    "kind": "value"})
+        out["uploads"].append({"node": r["node"], "key": r["key"], "name": name, "path": str(got["path"])})
+        out["record"][s] = got["record"]
+        out["changes"].append({"slot": s, "from": before, "to": got["filename"], "image_id": got.get("image_id"),
+                               "thumb": f"/thumb/{got['image_id']}" if got.get("image_id") and "sha" not in sp
+                               else f"/ref/{sp.get('sha')}" if sp.get("sha") else None})
+    return out
+
+
+def ensure_ref_uploads(P: dict) -> list:
+    """差し替えた参照画像を ComfyUI の input に送る（同じ中身がもうあれば送らない）。"""
+    done = []
+    for u in P.get("ref_uploads") or []:
+        if STATE.comfy.has_input(u["name"]) is True:
+            done.append({"name": u["name"], "ok": True, "sent": False})
+            continue
+        r = STATE.comfy.upload_image(u["name"], Path(u["path"]).read_bytes())
+        if r.get("ok"):
+            got = (r.get("subfolder") + "/" if r.get("subfolder") else "") + (r.get("name") or u["name"])
+            if got != u["name"]:
+                P["prompt"][u["node"]]["inputs"][u["key"]] = got
+                for c in P.get("node_changes") or []:
+                    if c.get("node") == u["node"] and c.get("key") == u["key"]:
+                        c["after"] = got
+        done.append({"name": u["name"], "ok": bool(r.get("ok")), "sent": True, "error": r.get("error")})
+    if any(d["sent"] and d["ok"] for d in done):
+        STATE.comfy.object_info(force=True)
+    return done
+
+
+def api_ref_candidates(qs: dict) -> dict:
+    outfit = qs.get("outfit")
+    if isinstance(outfit, str):
+        try:
+            outfit = json.loads(outfit)
+        except Exception:
+            outfit = [w for w in outfit.split(",") if w.strip()]
+    return ref_candidates(int(qs.get("image_id") or 0), str(qs.get("slot") or ""),
+                          str(qs.get("to") or "").strip() or None, outfit,
+                          limit=max(1, min(int(qs.get("limit") or 40), 120)))
+
+
+# --------------------------------------------------------------------------
+# LoRA — キャラの LoRA（強さ・トリガー語）と、差し替えでの入れ替え
+# --------------------------------------------------------------------------
+
+def lora_key(name: str | None) -> str:
+    """LoRA の名前を比べる形に（フォルダと拡張子を外して小文字）。"""
+    n = str(name or "").replace("\\", "/").rsplit("/", 1)[-1]
+    return re.sub(r"\.(safetensors|ckpt|pt|pth|bin)$", "", n, flags=re.I).strip().lower()
+
+
+def _split_words(v) -> list:
+    if isinstance(v, list):
+        items = v
+    else:
+        items = str(v or "").replace("\n", ",").replace("、", ",").split(",")
+    return [str(w).strip() for w in items if str(w).strip()]
+
+
+_LORA_CACHE: dict = {}
+TRIGGER_SKIP = {"masterpiece", "best quality", "amazing quality", "absurdres", "highres", "1girl", "1boy",
+                "solo", "looking at viewer", "smile", "simple background", "white background", "full body",
+                "upper body", "cowboy shot", "standing", "very aesthetic", "newest"}
+
+
+def _character_id(name: str) -> int | None:
+    r = q("SELECT id FROM c_characters WHERE name=?", (name,)) if chara_ready_tables() else []
+    return r[0]["id"] if r else None
+
+
+def infer_lora(name: str) -> dict | None:
+    """台帳から、その子の LoRA を推し量る。その子の絵によく出て、ほかの絵にはあまり出ない LoRA。
+    トリガー語は、その LoRA を使った絵にほぼ毎回書かれ、ほかの絵にはあまり出ない語（髪・目・服の語を除く）。"""
+    if not chara_ok() or not chara_ready_tables():
+        return None
+    cid = _character_id(name)
+    if cid is None:
+        return None
+    sig = q("SELECT COUNT(*) AS n, COALESCE(MAX(rowid),0) AS m FROM loras")[0]
+    key = (cid, sig["n"], sig["m"], q("SELECT COUNT(*) AS n FROM c_assign")[0]["n"])
+    hit = _LORA_CACHE.get(cid)
+    if hit and hit[0] == key and time.time() - hit[2] < 600:
+        return hit[1]
+    con = STATE.rcon
+    ids = CHARA.character_image_ids(con, cid)
+    out = None
+    if ids:
+        if len(ids) > 3000:
+            ids = sorted(random.Random(cid).sample(ids, 3000))
+        n = len(ids)
+        total = con.execute("SELECT COUNT(*) FROM images WHERE has_api=1").fetchone()[0] or 1
+        mine: dict = {}
+        for i in range(0, n, 900):
+            ch = ids[i:i + 900]
+            qm = ",".join("?" * len(ch))
+            for nm, c, s in con.execute(f"SELECT name, COUNT(DISTINCT image_id), AVG(strength) FROM loras "
+                                        f"WHERE image_id IN ({qm}) GROUP BY name", ch):
+                e = mine.setdefault(nm, [0, 0.0])
+                e[0] += c
+                e[1] = s if s is not None else e[1]
+        best = None
+        for nm, (c, s) in mine.items():
+            g = con.execute("SELECT COUNT(DISTINCT image_id) FROM loras WHERE name=?", (nm,)).fetchone()[0] or 1
+            sup, lift = c / n, (c / n) / (g / total)
+            if sup >= 0.3 and lift >= 2.0:
+                score = sup * math.log(lift)
+                if best is None or score > best[0]:
+                    best = (score, nm, s, sup)
+        if best:
+            _, nm, s, sup = best
+            with_l = [r[0] for i in range(0, n, 900) for r in con.execute(
+                f"SELECT DISTINCT image_id FROM loras WHERE name=? AND image_id IN "
+                f"({','.join('?' * len(ids[i:i + 900]))})", [nm] + ids[i:i + 900])]
+            trig = []
+            if with_l:
+                m = len(with_l)
+                cnt: dict = {}
+                for i in range(0, m, 900):
+                    ch = with_l[i:i + 900]
+                    for t, c in con.execute(f"SELECT tag, COUNT(DISTINCT image_id) FROM tags WHERE image_id IN "
+                                            f"({','.join('?' * len(ch))}) GROUP BY tag", ch):
+                        cnt[t] = cnt.get(t, 0) + c
+                cands = []
+                for t, c in cnt.items():
+                    if c / m < 0.8 or t in TRIGGER_SKIP or is_body_tag(t) or is_outfit_tag(t) \
+                            or is_hair_eye_tag(t):
+                        continue
+                    g = con.execute("SELECT COUNT(DISTINCT image_id) FROM tags WHERE tag=?", (t,)).fetchone()[0] or 1
+                    lift = (c / m) / (g / total)
+                    if lift >= 3.0:
+                        cands.append((lift, c, t))
+                cands.sort(key=lambda x: (-x[0], -x[1]))
+                trig = [t for _, _, t in cands[:2]]
+            st = round((s if s is not None else 1.0) * 20) / 20
+            out = {"lora": nm, "strength": st, "trigger": trig, "source": "auto",
+                   "share": round(sup, 3)}
+    _LORA_CACHE[cid] = (key, out, time.time())
+    return out
+
+
+def character_lora(name: str | None) -> dict:
+    """差し替えで使う、その子の LoRA。手で決めたもの → 台帳から推し量ったもの → なし。
+    {"lora": 名前 or None, "strength": 強さ, "trigger": [語], "source": "manual"/"auto"/"none"}"""
+    none = {"lora": None, "strength": 1.0, "trigger": [], "source": "none"}
+    if not name or not chara_ok() or not chara_ready_tables():
+        return none
+    cid = _character_id(name)
+    if cid is None:
+        return none
+    r = q("SELECT lora, strength, trigger FROM c_lora WHERE character_id=?", (cid,))
+    if r:
+        r = r[0]
+        return {"lora": r["lora"] or None,
+                "strength": float(r["strength"]) if r["strength"] is not None else 1.0,
+                "trigger": _split_words(r["trigger"]), "source": "manual"}
+    return infer_lora(name) or none
+
+
+def api_chara_lora_get(cid: int) -> dict:
+    nm = q("SELECT name FROM c_characters WHERE id=?", (cid,)) if chara_ready_tables() else []
+    if not nm:
+        return {"ok": False, "error": "そのキャラは見つかりません"}
+    name = nm[0]["name"]
+    man = q("SELECT lora, strength, trigger FROM c_lora WHERE character_id=?", (cid,))
+    known = q("SELECT name, COUNT(DISTINCT image_id) AS n FROM loras GROUP BY name ORDER BY n DESC LIMIT 400")
+    return {"ok": True, "name": name, "manual": man[0] if man else None, "auto": infer_lora(name),
+            "effective": character_lora(name), "known": known}
+
+
+def api_chara_lora_set(body: dict) -> dict:
+    err = _need_chara()
+    if err:
+        return err
+    cid = int(body.get("id") or 0)
+    if not q("SELECT 1 FROM c_characters WHERE id=?", (cid,)):
+        return {"ok": False, "error": "そのキャラは見つかりません"}
+    with STATE.wlock:
+        if body.get("reset"):
+            STATE.con.execute("DELETE FROM c_lora WHERE character_id=?", (cid,))
+        else:
+            lora = str(body.get("lora") or "").strip() or None
+            try:
+                st = float(body.get("strength")) if str(body.get("strength") or "").strip() else 1.0
+            except ValueError:
+                return {"ok": False, "error": "強さは数で入れてください（例: 0.8）"}
+            trig = ", ".join(_split_words(body.get("trigger")))
+            STATE.con.execute("INSERT OR REPLACE INTO c_lora(character_id, lora, strength, trigger, updated_at) "
+                              "VALUES(?,?,?,?,?)", (cid, lora, st, trig, time.time()))
+        STATE.con.commit()
+    _LORA_CACHE.pop(cid, None)
+    return dict(api_chara_lora_get(cid), ok=True)
+
+
+# --- ワークフローの LoRA を入れ替える ---------------------------------------
+
+LOADER_LORA_KEYS = {"LoraLoader": ("lora_name", ("strength_model", "strength_clip")),
+                    "LoraLoaderModelOnly": ("lora_name", ("strength_model",)),
+                    "LoraLoader|pysssss": ("lora_name", ("strength_model", "strength_clip"))}
+
+
+def lora_uses(prompt: dict) -> list:
+    """ワークフローにある LoRA。[{node, kind: "loader"/"power", key, name, on}]"""
+    out = []
+    for nid, node in prompt.items():
+        if not isinstance(node, dict):
+            continue
+        ct = str(node.get("class_type", ""))
+        inputs = node.get("inputs") or {}
+        if ct in LOADER_LORA_KEYS:
+            nk, sks = LOADER_LORA_KEYS[ct]
+            if isinstance(inputs.get(nk), str):
+                on = any(isinstance(inputs.get(k), (int, float)) and inputs.get(k) != 0 for k in sks)
+                out.append({"node": str(nid), "kind": "loader", "key": nk, "name": inputs[nk], "on": on,
+                            "class_type": ct})
+        elif is_power_lora(ct):
+            for k, v in power_entries(inputs):
+                out.append({"node": str(nid), "kind": "power", "key": k, "name": v["lora"],
+                            "on": bool(v.get("on")), "class_type": ct})
+    return out
+
+
+def _model_loader(prompt: dict):
+    """サンプラの model をさかのぼって、モデルを読み込むノードを探す。(番号, class) か None。"""
+    for root in Tracer(prompt).roots():
+        link = (prompt[root].get("inputs") or {}).get("model")
+        seen = set()
+        while is_link(link) and str(link[0]) not in seen:
+            nid = str(link[0])
+            seen.add(nid)
+            node = prompt.get(nid) or {}
+            ct = str(node.get("class_type", ""))
+            inputs = node.get("inputs") or {}
+            if ct in CKPT_CLASSES or ("loader" in ct.lower() and ("ckpt_name" in inputs or "unet_name" in inputs)):
+                return nid, ct
+            link = inputs.get("model")
+    return None
+
+
+def _clip_loader(prompt: dict, model_loader: str, ct: str):
+    """LoRA の clip に入れるもの。チェックポイントなら その出口 1、別の CLIP Loader ならそれ。"""
+    if "checkpoint" in ct.lower():
+        return [model_loader, 1]
+    found = [str(n) for n, nd in prompt.items() if isinstance(nd, dict) and ":" not in str(n)
+             and "cliploader" in str(nd.get("class_type", "")).lower()]
+    return [found[0], 0] if len(found) == 1 else None
+
+
+def plan_lora_swap(prompt: dict, src: dict, dst: dict, new_id_floor: int = 0) -> dict:
+    """差し替え元の子の LoRA を、差し替え先の子の LoRA に入れ替える。prompt は書き換える。
+    戻り値 {"changes": [人向けの説明], "ui": [画面用ワークフローへの写し], "warning": 文 or None}"""
+    out = {"changes": [], "ui": [], "warning": None}
+    uses = lora_uses(prompt)
+    sk, dk = lora_key(src.get("lora")), lora_key(dst.get("lora"))
+    if sk and sk == dk:
+        return out                                   # 同じ LoRA の子どうし
+    src_hits = [u for u in uses if sk and lora_key(u["name"]) == sk]
+    dst_hits = [u for u in uses if dk and lora_key(u["name"]) == dk]
+    st = float(dst.get("strength") or 1.0)
+
+    def set_loader(u, name=None, strength=None):
+        node = prompt[u["node"]]["inputs"]
+        nk, sks = LOADER_LORA_KEYS[u["class_type"]]
+        if name is not None:
+            out["ui"].append({"op": "set", "node": u["node"], "key": nk, "before": node[nk], "after": name})
+            node[nk] = name
+        if strength is not None:
+            for k in sks:
+                if k in node and not is_link(node[k]):
+                    out["ui"].append({"op": "set", "node": u["node"], "key": k, "before": node[k], "after": strength})
+                    node[k] = strength
+
+    def set_power(u, **kv):
+        v = prompt[u["node"]]["inputs"][u["key"]]
+        v.update(kv)
+        out["ui"].append({"op": "power", "node": u["node"], "key": u["key"], "lora": u["name"], "set": dict(kv)})
+
+    def off(u):
+        if u["kind"] == "loader":
+            set_loader(u, strength=0)
+        else:
+            set_power(u, on=False)
+        out["changes"].append(f"止める: {lora_key(u['name'])}")
+
+    if not dk:
+        for u in src_hits:
+            off(u)
+        return out
+    if dst_hits:
+        for u in dst_hits:
+            if not u["on"]:
+                if u["kind"] == "loader":
+                    set_loader(u, strength=st)
+                else:
+                    set_power(u, on=True, strength=st)
+                out["changes"].append(f"入れる: {lora_key(u['name'])}（{st:g}）")
+        for u in src_hits:
+            off(u)
+        return out
+    if src_hits:
+        u = src_hits[0]
+        if u["kind"] == "loader":
+            set_loader(u, name=dst["lora"], strength=st)
+        else:
+            set_power(u, lora=dst["lora"], strength=st, on=True)
+        out["changes"].append(f"入れ替え: {lora_key(u['name'])} → {lora_key(dst['lora'])}（{st:g}）")
+        for u2 in src_hits[1:]:
+            off(u2)
+        return out
+    # 元の絵に、差し替え元の子の LoRA が無い → 足す
+    power = [str(n) for n, nd in prompt.items() if isinstance(nd, dict) and ":" not in str(n)
+             and is_power_lora(nd.get("class_type", ""))]
+    if power:
+        nid = power[0]
+        inputs = prompt[nid]["inputs"]
+        k = 1 + max([int(_POWER_KEY.match(x).group(1)) for x in inputs if _POWER_KEY.match(str(x))] or [0])
+        inputs[f"lora_{k}"] = {"on": True, "lora": dst["lora"], "strength": st}
+        out["ui"].append({"op": "power_add", "node": nid, "key": f"lora_{k}", "lora": dst["lora"], "strength": st})
+        out["changes"].append(f"足す: {lora_key(dst['lora'])}（{st:g}）")
+        return out
+    ml = _model_loader(prompt)
+    if not ml or ":" in ml[0]:
+        out["warning"] = ("LoRA を足せる場所が見つかりませんでした（モデルの読み込みがサブグラフの中か、たどれません）。"
+                          "LoRA は入れずに投入します")
+        return out
+    loader, ct = ml
+    clip = _clip_loader(prompt, loader, ct)
+    ids = [int(x) for x in prompt if str(x).isdigit()]
+    new = str(max(ids + [new_id_floor]) + 1)
+    if clip:
+        node = {"class_type": "LoraLoader", "_meta": {"title": "LoRA（想起が足した）"},
+                "inputs": {"lora_name": dst["lora"], "strength_model": st, "strength_clip": st,
+                           "model": [loader, 0], "clip": list(clip)}}
+    else:
+        node = {"class_type": "LoraLoaderModelOnly", "_meta": {"title": "LoRA（想起が足した）"},
+                "inputs": {"lora_name": dst["lora"], "strength_model": st, "model": [loader, 0]}}
+    for nid2, nd in prompt.items():
+        for k, v in (nd.get("inputs") or {}).items() if isinstance(nd, dict) else ():
+            if is_link(v) and str(v[0]) == loader and int(v[1]) == 0:
+                nd["inputs"][k] = [new, 0]
+            elif clip and is_link(v) and str(v[0]) == str(clip[0]) and int(v[1]) == int(clip[1]):
+                nd["inputs"][k] = [new, 1]
+    prompt[new] = node
+    out["ui"].append({"op": "insert_lora", "node": new, "after": loader, "clip": clip,
+                      "class_type": node["class_type"],
+                      "values": [dst["lora"], st, st] if clip else [dst["lora"], st]})
+    out["changes"].append(f"足す: {lora_key(dst['lora'])}（{st:g}）をモデルのすぐ後ろに")
+    return out
+
+
+# --------------------------------------------------------------------------
 # 画面用ワークフロー — 差し替え・保存名・seed を反映する
 # --------------------------------------------------------------------------
 
 CONTROL_VALUES = ("fixed", "increment", "decrement", "randomize")
 WIDGET_TYPES = {"INT", "FLOAT", "STRING", "BOOLEAN", "COMBO"}
+# 古い画面用ワークフロー（ウィジェットの名前が書かれていない形）のための、よく使うノードの並び
+KNOWN_WIDGETS = {
+    "LoraLoader": ["lora_name", "strength_model", "strength_clip"],
+    "LoraLoaderModelOnly": ["lora_name", "strength_model"],
+    "CheckpointLoaderSimple": ["ckpt_name"],
+    "CLIPTextEncode": ["text"],
+    "SaveImage": ["filename_prefix"],
+    "LoadImage": ["image", "upload"],
+    "KSampler": ["seed", "~", "steps", "cfg", "sampler_name", "scheduler", "denoise"],
+}
 
 
 class UIGraph:
@@ -3409,6 +4117,11 @@ class UIGraph:
             named = nd.get("widgets_values_named")
             if isinstance(named, dict) and len(named) == len(wv):
                 return list(named.keys())
+            known = KNOWN_WIDGETS.get(nd.get("type"))
+            if known and len(known) == len(wv):
+                return list(known)
+            if known and "~" in known and len(known) - 1 == len(wv):
+                return [k for k in known if k != "~"]
             return None
         out, vi = [], 0
         for n in names:
@@ -3499,6 +4212,135 @@ class UIGraph:
             self._unlink(container, nd, key)
         return self._set_on(nd, key, value, before) or ok
 
+    # --- LoRA（plan_lora_swap の写し） -----------------------------------------
+    @staticmethod
+    def _power_dicts(nd) -> list:
+        wv = nd.get("widgets_values")
+        if not isinstance(wv, list):
+            return []
+        return [i for i, v in enumerate(wv) if isinstance(v, dict) and "lora" in v and "on" in v]
+
+    def power_set(self, nid, key, lora, values: dict) -> bool:
+        nd = self._find(self.g.get("nodes"), nid)
+        if not nd:
+            return False
+        idx = self._power_dicts(nd)
+        m = _POWER_KEY.match(str(key))
+        pos = None
+        if m and 1 <= int(m.group(1)) <= len(idx) and \
+                lora_key(nd["widgets_values"][idx[int(m.group(1)) - 1]].get("lora")) == lora_key(lora):
+            pos = idx[int(m.group(1)) - 1]
+        if pos is None:
+            pos = next((i for i in idx if lora_key(nd["widgets_values"][i].get("lora")) == lora_key(lora)), None)
+        if pos is None:
+            return False
+        nd["widgets_values"][pos].update(values)
+        named = nd.get("widgets_values_named")
+        if isinstance(named, dict) and isinstance(named.get(key), dict):
+            named[key].update(values)
+        return True
+
+    def power_add(self, nid, key, lora, strength) -> bool:
+        nd = self._find(self.g.get("nodes"), nid)
+        wv = nd.get("widgets_values") if nd else None
+        if not isinstance(wv, list):
+            return False
+        entry = {"on": True, "lora": lora, "strength": strength, "strengthTwo": None}
+        idx = self._power_dicts(nd)
+        if idx:
+            at = idx[-1] + 1
+        else:
+            at = next((i + 1 for i, v in enumerate(wv) if isinstance(v, dict)
+                       and v.get("type") == "PowerLoraLoaderHeaderWidget"), len(wv))
+        wv.insert(at, entry)
+        named = nd.get("widgets_values_named")
+        if isinstance(named, dict):
+            named[key] = dict(entry)
+        return True
+
+    def _links_list(self):
+        return self.g.setdefault("links", [])
+
+    def _next_link_id(self) -> int:
+        ids = [l[0] if isinstance(l, list) else l.get("id") for l in self._links_list()]
+        return max([int(x) for x in ids if isinstance(x, int)] + [int(self.g.get("last_link_id") or 0)]) + 1
+
+    def _move_origin(self, src_id, src_slot, new_id, new_slot) -> list:
+        """src_id の出口 src_slot から出ている線を、new_id の出口 new_slot から出るように付け替える。"""
+        moved = []
+        for l in self._links_list():
+            if isinstance(l, list) and len(l) >= 5 and str(l[1]) == str(src_id) and int(l[2]) == int(src_slot):
+                l[1], l[2] = new_id, new_slot
+                moved.append(l[0])
+            elif isinstance(l, dict) and str(l.get("origin_id")) == str(src_id) and int(l.get("origin_slot")) == int(src_slot):
+                l["origin_id"], l["origin_slot"] = new_id, new_slot
+                moved.append(l.get("id"))
+        src = self._find(self.g.get("nodes"), src_id)
+        if src:
+            outs = src.get("outputs") or []
+            if 0 <= int(src_slot) < len(outs) and isinstance(outs[int(src_slot)].get("links"), list):
+                outs[int(src_slot)]["links"] = [x for x in outs[int(src_slot)]["links"] if x not in moved]
+        return moved
+
+    def insert_lora(self, new_id, after, clip, class_type, values) -> bool:
+        """モデルを読み込むノードのすぐ後ろに LoRA のノードを足し、線を付け替える。"""
+        nodes = self.g.get("nodes")
+        L = self._find(nodes, after)
+        if not L or self._find(nodes, new_id):
+            return False
+        nid = int(new_id)
+        new = {"id": nid, "type": class_type, "pos": [], "size": [315, 126 if clip else 82], "flags": {},
+               "order": int(L.get("order") or 0) + 1, "mode": 0, "inputs": [], "outputs": [],
+               "title": "LoRA（想起が足した）",
+               "properties": {"Node name for S&R": class_type}, "widgets_values": list(values)}
+        try:
+            x, y = (L.get("pos") or [0, 0])[:2] if isinstance(L.get("pos"), list) else \
+                (L["pos"].get("0", 0), L["pos"].get("1", 0))
+            h = (L.get("size") or [0, 100])[1] if isinstance(L.get("size"), list) else 100
+            new["pos"] = [x, y + h + 60]
+        except Exception:
+            new["pos"] = [0, 0]
+        wires = [("model", "MODEL", [after, 0], 0)]
+        if clip:
+            wires.append(("clip", "CLIP", [str(clip[0]), int(clip[1])], 1))
+        for name, typ, (sid, sslot), slot in wires:
+            moved = self._move_origin(sid, sslot, nid, slot)
+            lid = self._next_link_id()
+            self._links_list().append([lid, int(sid), int(sslot), nid, slot, typ])
+            self.g["last_link_id"] = max(int(self.g.get("last_link_id") or 0), lid)
+            src = self._find(nodes, sid)
+            if src:
+                outs = src.setdefault("outputs", [])
+                while len(outs) <= int(sslot):
+                    outs.append({"name": typ, "type": typ, "links": []})
+                outs[int(sslot)].setdefault("links", [])
+                if outs[int(sslot)]["links"] is None:
+                    outs[int(sslot)]["links"] = []
+                outs[int(sslot)]["links"].append(lid)
+            new["inputs"].append({"name": name, "type": typ, "link": lid})
+            new["outputs"].append({"name": typ, "type": typ, "links": moved, "slot_index": slot})
+        nodes.append(new)
+        self.g["last_node_id"] = max(int(self.g.get("last_node_id") or 0), nid)
+        return True
+
+    def apply_ops(self, ops) -> None:
+        for o in ops or []:
+            try:
+                if o["op"] == "set":
+                    self.set(o["node"], o["key"], o["after"], before=o.get("before"))
+                elif o["op"] == "power":
+                    self.power_set(o["node"], o["key"], o["lora"], o["set"])
+                elif o["op"] == "power_add":
+                    self.power_add(o["node"], o["key"], o["lora"], o["strength"])
+                elif o["op"] == "insert_lora":
+                    self.insert_lora(o["node"], o["after"], o.get("clip"), o["class_type"], o["values"])
+            except Exception:
+                continue
+
+    def max_node_id(self) -> int:
+        ids = [nd.get("id") for nd in self.g.get("nodes") or [] if isinstance(nd, dict)]
+        return max([int(x) for x in ids if isinstance(x, int)] + [int(self.g.get("last_node_id") or 0)])
+
     def swap_strings(self, swaps: dict) -> None:
         """同じ文字列を探して置き換える（番号で見つからなかったときの予備）。"""
         def walk(nodes):
@@ -3515,7 +4357,7 @@ class UIGraph:
             walk(sg.get("nodes"))
 
 
-def ui_build(ui_json: str, text_edits=None, node_changes=None) -> str:
+def ui_build(ui_json: str, text_edits=None, node_changes=None, ops=None) -> str:
     """画面用ワークフローに、API 側で変えたことを写す。
 
     プロンプト・保存名・seed・着替工房の番号を、同じ番号のノードの同じ欄で置き換える
@@ -3528,6 +4370,7 @@ def ui_build(ui_json: str, text_edits=None, node_changes=None) -> str:
     except Exception:
         return ui_json
     G = UIGraph(g)
+    G.apply_ops(ops)
     swaps = {}
     for e in text_edits or []:
         if e.get("before") == e.get("after"):
@@ -3591,30 +4434,72 @@ def prepare(image_id: int, body: dict, preview: bool = False) -> dict:
     outfit_name = str(body.get("outfit_name") or "").strip() or None
     strength = "light" if body.get("strength") == "light" else "full"
     chars = image_characters(image_id)
-    src = chars[0] if chars else None
-    out = {"ok": True, "edits": [], "from": src, "to": to or src, "filename": row["filename"]}
+    child = str(body.get("child") or "").strip() or None
+    src = child if child and child in chars else (chars[0] if chars else None)
+    out = {"ok": True, "edits": [], "from": src, "to": to or src, "filename": row["filename"],
+           "characters": image_characters(image_id, order="lr")}
     node_changes = []
+    base = json.loads(row["prompt_json"])
+    rd0 = read_prompts(base, row["filename"])
+    # 文章で書いたプロンプト（Qwen-Image 2.1 など）は語を入れ替えない。参照画像の枠で替える
+    prose = bool(rd0["prose"] or looks_like_prose(rd0["positive"]))
+    out["prose"] = prose
 
-    if to or keep or outfit is not None:
+    # LoRA: 差し替え元の子の LoRA とトリガー語を、差し替え先の子のものに入れ替える
+    lora_on = bool(to) and not keep and to != src and not prose and body.get("lora", True) is not False
+    src_l = character_lora(src) if lora_on else {"lora": None, "trigger": []}
+    dst_l = character_lora(to) if lora_on else {"lora": None, "trigger": []}
+
+    if (to or keep or outfit is not None) and not prose:
         r = build_swap(image_id, to or src or "", body.get("remove"), body.get("add"),
                        outfit=outfit, strength=strength, keep_char=keep or not to,
-                       outfit_name=outfit_name)
+                       outfit_name=outfit_name, child=src,
+                       trig_rm=src_l.get("trigger") or [], trig_add=dst_l.get("trigger") or [])
         if not r.get("ok"):
             return r
         prompt = r["prompt"]
         out.update({"edits": r["edits"], "from": r.get("from"), "to": r.get("to"),
-                    "to_tags": r.get("to_tags"), "from_tags": r.get("from_tags")})
+                    "to_tags": r.get("to_tags"), "from_tags": r.get("from_tags"),
+                    "multi": r.get("multi")})
         swapped = bool(to) and not keep and r.get("from") != r.get("to")
         kigae, outfit_label = r.get("kigae"), r.get("outfit_label") or ""
     else:
-        prompt = json.loads(row["prompt_json"])
-        swapped = False
+        prompt = base
+        swapped = bool(prose and to and not keep and to != src)
+        if prose and to and not keep and to == src and outfit is None:
+            return {"ok": False, "error": f"この画像はすでに「{to}」です。別のキャラを選ぶか、服装を選んでください"}
         kigae, outfit_label = None, ""
-        for s in read_prompts(prompt, row["filename"])["pos"]:
+        for s in rd0["pos"]:
             if s.get("no"):
                 kigae = {"node": s["node"], "no": s["no"], "label": s.get("label") or ""}
                 outfit_label = kigae["label"]
                 break
+
+    # 参照画像: 文章のプロンプトなら差し替え先の子の絵に（おまかせ）。語の絵は、選んだ枠だけ
+    spec = body.get("refs") if isinstance(body.get("refs"), dict) else {}
+    if not prose:
+        spec = {k: v for k, v in spec.items() if isinstance(v, dict)}     # 語の絵は、選んだ枠だけ替える
+    if prose or spec:
+        rp = plan_ref_swaps(prompt, image_id, spec, to if (prose and to and not keep) else None, src,
+                            outfit if prose else None)
+    else:
+        rp = {"changes": [], "node_changes": [], "uploads": [], "record": {}, "notes": []}
+    node_changes += rp["node_changes"]
+    out.update({"ref_changes": rp["changes"], "ref_notes": rp["notes"], "ref_uploads": rp["uploads"]})
+    if prose and (to or keep or outfit is not None) and not rp["changes"]:
+        msg = "文章で書いたプロンプトなので、語の入れ替えはしません。参照画像の枠で、替える絵を選んでください"
+        return {"ok": False, "error": msg + ("（" + "／".join(rp["notes"]) + "）" if rp["notes"] else ""),
+                "prose": True, "ref_notes": rp["notes"]}
+
+    ui_ops = []
+    if lora_on and swapped and (src_l.get("lora") or dst_l.get("lora")):
+        try:
+            floor = UIGraph(json.loads(row["workflow_json"])).max_node_id() if row["workflow_json"] else 0
+        except Exception:
+            floor = 0
+        lp = plan_lora_swap(prompt, src_l, dst_l, new_id_floor=floor)
+        ui_ops += lp["ui"]
+        out["lora"] = {"from": src_l, "to": dst_l, "changes": lp["changes"], "warning": lp["warning"]}
 
     # 着替工房の専用ノード: その絵の服の行だけ出し直す
     if kigae:
@@ -3648,10 +4533,25 @@ def prepare(image_id: int, body: dict, preview: bool = False) -> dict:
     out["prompt"] = prompt
     out["save_changes"] = save_changes
     out["node_changes"] = node_changes
+    out["ui_ops"] = ui_ops
     out["ui"] = row["workflow_json"]
     stem = Path(row["filename"]).stem
     out["stem"] = f"{stem}_{out['to']}" if swapped and out.get("to") else stem
     out["image_id"] = image_id
+    # 差し替えの記録（できた PNG に souki として残る）
+    rec = {"v": 1, "app": f"{APP_NAME} {VERSION}", "at": int(time.time()),
+           "source": image_record(image_id)}
+    if swapped:
+        rec["from"], rec["to"] = out.get("from"), out.get("to")
+    elif out.get("from"):
+        rec["to"] = out.get("from")
+    if outfit is not None:
+        rec["outfit"] = {"name": outfit_name or outfit_label or None, "words": outfit}
+    if out.get("lora") and out["lora"]["changes"]:
+        rec["lora"] = {"from": src_l.get("lora"), "to": dst_l.get("lora")}
+    if rp["record"]:
+        rec["refs"] = rp["record"]
+    out["record"] = rec
     return out
 
 
@@ -3661,7 +4561,7 @@ def _ui_for(P: dict, seed_changes=()) -> str | None:
     nc = list(P.get("save_changes") or []) + list(P.get("node_changes") or [])
     nc += [{"node": c["node_id"], "key": c["key"], "before": c["current"], "after": c["new"],
             "kind": "seed"} for c in seed_changes]
-    return ui_build(P["ui"], P.get("edits"), nc)
+    return ui_build(P["ui"], P.get("edits"), nc, ops=P.get("ui_ops"))
 
 
 def restore_refs(P: dict) -> list:
@@ -3700,6 +4600,7 @@ def restore_refs(P: dict) -> list:
 
 def open_prepared(P: dict) -> dict:
     """準備したワークフローを ComfyUI の画面に開く。受け口が無ければ一覧に保存する。"""
+    P["ref_sent"] = ensure_ref_uploads(P)
     P["restored"] = restore_refs(P)
     ui = _ui_for(P)
     data = {"workflow": json.loads(ui), "name": P["stem"]} if ui else \
@@ -3727,6 +4628,7 @@ def run_submit(body: dict) -> dict:
     fixed = int(fixed) if str(fixed or "").strip().isdigit() else None
     batch = 1 if mode == "same" else max(1, min(int(body.get("batch", 1) or 1), 20))
     front = bool(body.get("front"))
+    P["ref_sent"] = ensure_ref_uploads(P)      # 差し替えた参照画像を ComfyUI へ
     restored = restore_refs(P)
     results, all_changes = [], []
     for n in range(batch):
@@ -3734,8 +4636,10 @@ def run_submit(body: dict) -> dict:
         pr, changed = apply_seed(pr, mode, fixed)
         all_changes += changed
         ui = _ui_for(P, changed)
-        extra = {"workflow": json.loads(ui)} if ui else None
-        res = STATE.comfy.submit(pr, extra_pnginfo=extra, front=front)
+        extra = {"workflow": json.loads(ui)} if ui else {}
+        if P.get("record"):
+            extra["souki"] = P["record"]          # どの絵から・誰に・どの服で（台帳でつなぐ）
+        res = STATE.comfy.submit(pr, extra_pnginfo=extra or None, front=front)
         results.append(res)
         if not res["ok"]:
             break
@@ -3743,7 +4647,8 @@ def run_submit(body: dict) -> dict:
            "seed_changes": all_changes, "results": results,
            "save_changes": P["save_changes"], "save_name": P.get("save_name"),
            "edits": P["edits"], "from": P.get("from"), "to": P.get("to"), "source": P["filename"],
-           "restored": restored, "kigae": P.get("kigae")}
+           "restored": restored, "kigae": P.get("kigae"), "lora": P.get("lora"),
+           "ref_changes": P.get("ref_changes"), "ref_sent": P.get("ref_sent")}
     if any(r.get("timeout") for r in results):
         out["timeout"] = True
     if body.get("open_workflow"):       # 受け付けられなかったときも、画面で直せるように開く
@@ -3751,9 +4656,67 @@ def run_submit(body: dict) -> dict:
     return out
 
 
+def api_swap_batch(body: dict) -> dict:
+    """まとめて差し替え: 差し替え先を何人か選んで、1 人ずつ投入する。
+    outfit_mode: "keep"（全員元の絵のまま）/ "usual"（それぞれのいつもの服）/ "same"（全員同じ登録服）
+    same_seed: 全員同じ seed（同じ構図のまま見比べる）。参照画像の枠の指定（refs）は全員に同じく効く。"""
+    iid = int(body.get("image_id") or 0)
+    targets = list(dict.fromkeys(str(t).strip() for t in (body.get("targets") or []) if str(t).strip()))
+    if not targets:
+        return {"ok": False, "error": "差し替え先を選んでください"}
+    if len(targets) > 30:
+        return {"ok": False, "error": "一度に選べるのは 30 人までです"}
+    mode = str(body.get("outfit_mode") or "keep")
+    same_outfit = body.get("outfit")
+    if mode == "same" and not same_outfit:
+        return {"ok": False, "error": "全員に着せる服を選んでください"}
+    seed_mode = body.get("seed_mode", "random")
+    shared = None
+    if body.get("same_seed", True):
+        if seed_mode == "fixed" and str(body.get("seed_value") or "").strip().isdigit():
+            shared = int(body["seed_value"])
+        elif seed_mode != "same":
+            shared = random.randint(0, 2**63 - 1)
+    results = []
+    for t in targets:
+        b = {k: v for k, v in body.items() if k not in ("targets", "outfit_mode", "same_seed")}
+        b.update({"image_id": iid, "to": t, "batch": 1, "open_workflow": False})
+        note = None
+        b.pop("outfit", None)
+        b.pop("outfit_name", None)
+        if mode == "usual":
+            u = usual_outfits(t, 1)
+            if u:
+                b["outfit"] = u[0]["words"]
+            else:
+                note = "いつもの服が分からないので、服は元の絵のまま"
+        elif mode == "same":
+            b["outfit"] = same_outfit
+            if body.get("outfit_name"):
+                b["outfit_name"] = body["outfit_name"]
+        if body.get("same_seed", True):
+            if shared is None:
+                b["seed_mode"] = "same"
+            else:
+                b["seed_mode"], b["seed_value"] = "fixed", str(shared)
+        r = run_submit(b)
+        err = r.get("error")
+        if not r.get("ok") and not err:
+            bad = next((x for x in (r.get("results") or []) if not x.get("ok")), {})
+            det = bad.get("detail") or {}
+            err = (det.get("error") or {}).get("message") if isinstance(det.get("error"), dict) else det.get("raw")
+        results.append({"to": t, "ok": bool(r.get("ok")), "error": err, "note": note,
+                        "save_name": r.get("save_name"),
+                        "seed": [c["new"] for c in (r.get("seed_changes") or [])][:1],
+                        "lora": (r.get("lora") or {}).get("changes"),
+                        "refs": [c["to"] for c in (r.get("ref_changes") or [])]})
+    return {"ok": all(x["ok"] for x in results), "submitted": sum(1 for x in results if x["ok"]),
+            "results": results, "seed": shared}
+
+
 def _preview_out(P: dict) -> dict:
     P = dict(P)
-    for k in ("prompt", "ui"):
+    for k in ("prompt", "ui", "ref_uploads", "ui_ops", "record"):
         P.pop(k, None)
     return P
 
@@ -3808,7 +4771,7 @@ def start_maintenance_bg() -> None:
     threading.Thread(target=maintenance, daemon=True, name="souki-maintenance").start()
 
 
-def start_index_bg(dirs: list[str], full: bool) -> None:
+def start_index_bg(dirs: list[str], full: bool) -> bool:
     def run():
         STATE.index_status.update({"running": True, "done": 0, "total": 0})
 
@@ -3837,6 +4800,8 @@ def start_index_bg(dirs: list[str], full: bool) -> None:
             threading.Thread(target=run, daemon=True).start()
         finally:
             threading.Timer(1.0, STATE.index_lock.release).start()
+        return True
+    return False        # 続けて押されたとき（1 秒以内）は 1 回にまとめる
 
 
 PERF: dict = {}
@@ -4032,6 +4997,8 @@ class Handler(BaseHTTPRequestHandler):
                         limit=lim))
                 if path.startswith("/api/chara/instance/"):
                     return self._json(CHARA.instance_detail(con, int(path.rsplit("/", 1)[1])))
+                if path.startswith("/api/chara/lora/"):
+                    return self._json(api_chara_lora_get(int(path.rsplit("/", 1)[1])))
                 if path.startswith("/api/chara/sheet/"):
                     cid = int(path.rsplit("/", 1)[1])
                     sh = CHARA.character_sheet(con, cid)
@@ -4065,6 +5032,8 @@ class Handler(BaseHTTPRequestHandler):
             if path.startswith("/api/detail/"):
                 return self._json(api_detail(int(path.rsplit("/", 1)[1])))
 
+            if path == "/api/ref_candidates":
+                return self._json(api_ref_candidates(qs))
             if path == "/api/outfits":
                 return self._json(api_outfits(qs))
             if path == "/api/outfit_of":
@@ -4133,6 +5102,7 @@ class Handler(BaseHTTPRequestHandler):
                 if not P.get("ok"):
                     return self._send(400, (P.get("error") or "").encode("utf-8"),
                                       "text/plain; charset=utf-8")
+                ensure_ref_uploads(P)
                 ui = _ui_for(P)
                 if not ui:
                     return self._send(
@@ -4227,10 +5197,14 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json(api_swap_preview(body))
             if u.path == "/api/swap/submit":
                 return self._json(api_swap_submit(body))
+            if u.path == "/api/swap/batch":
+                return self._json(api_swap_batch(body))
             if u.path == "/api/traits":
                 return self._json(api_set_traits(body))
             if u.path == "/api/similar":
                 return self._json(api_similar(body))
+            if u.path == "/api/chara/lora":
+                return self._json(api_chara_lora_set(body))
             if u.path == "/api/chara/action":
                 return self._json(api_chara_action(body))
             if u.path == "/api/chara/undo":
@@ -4247,8 +5221,8 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json(api_settings(body))
             if u.path == "/api/reindex":
                 dirs = body.get("dirs") or STATE.cfg.get("output_dirs") or []
-                start_index_bg(dirs, bool(body.get("full")))
-                return self._json({"ok": True})
+                started = start_index_bg(dirs, bool(body.get("full")))
+                return self._json({"ok": True, "started": started})
             return self._send(404, b"not found", "text/plain")
         except Exception as e:
             return self._json({"error": str(e), "trace": traceback.format_exc()}, 500)

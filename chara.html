@@ -334,7 +334,7 @@ function alive(){
 alive(); setInterval(alive, 5000);
 window.addEventListener("pagehide", () => { try{ navigator.sendBeacon("/api/bye", ""); }catch(e){} });
 
-const PAGE_VERSION = "2.4.2";
+const PAGE_VERSION = "2.5.0";
 const $ = s => document.querySelector(s);
 const el = (t, c, x) => { const n = document.createElement(t); if (c) n.className = c; if (x != null) n.textContent = x; return n; };
 const fmt = n => (n == null ? "—" : Number(n).toLocaleString());
@@ -1490,6 +1490,7 @@ VIEWS.char = async (page, r) => {
   head.append(led, mg, ex, del);
   page.appendChild(head);
   page.appendChild(charInfoBox(c, sheet));
+  page.appendChild(loraBox(c));
   page.appendChild(outfitBox(c.name));
 
   // タブ
@@ -1581,6 +1582,55 @@ VIEWS.char = async (page, r) => {
   }
   await fb.reload();
 };
+
+/* LoRA（台帳の差し替えで入れ替える）。台帳から推し量り、手で直せる */
+function loraBox(c){
+  const box = el("div", "box lorabox");
+  box.appendChild(el("h3", null, "LoRA（差し替えで入れ替える）"));
+  const body = el("div"); box.appendChild(body);
+  const load = async () => {
+    body.replaceChildren(el("div", "hint", "読み込み中…"));
+    let d;
+    try{ d = await api(`/api/chara/lora/${c.id}`); }catch(e){ body.replaceChildren(el("div", "hint", "読めませんでした")); return; }
+    body.replaceChildren();
+    const eff = d.effective || {}, auto = d.auto;
+    const how = eff.source === "manual" ? (eff.lora ? "手で決めたもの" : "手で「LoRA なし」にしています")
+      : eff.source === "auto" ? `台帳から推し量ったもの（この子の絵の ${Math.round((eff.share || 0) * 100)}% で使われています）`
+      : "LoRA なし（台帳から推し量れませんでした）";
+    body.appendChild(el("div", "hint", how + "。この子に差し替えるとき、元の子の LoRA とトリガー語をこれに入れ替えます。"
+      + "LoRA なしの子に差し替えるときは、元の子の LoRA を止めます。元の絵に LoRA のノードが無ければ、モデルのすぐ後ろに足します。"));
+    const row = el("div", "row"); row.style.marginTop = "8px"; row.style.flexWrap = "wrap"; row.style.gap = "8px";
+    const li = el("input", "txt"); li.style.flex = "2 1 260px"; li.placeholder = "LoRA のファイル名（例: chara/rulu_v1.safetensors）";
+    li.value = eff.lora || ""; li.setAttribute("list", "lora-known-" + c.id);
+    const dl = el("datalist"); dl.id = "lora-known-" + c.id;
+    for(const k of (d.known || [])){ const o = el("option"); o.value = k.name; o.label = `${k.name}（${k.n}枚）`; dl.appendChild(o); }
+    const si = el("input", "txt"); si.type = "number"; si.step = "0.05"; si.min = "-5"; si.max = "5"; si.style.width = "80px";
+    si.value = eff.strength != null ? eff.strength : 1; si.title = "強さ";
+    const ti = el("input", "txt"); ti.style.flex = "2 1 220px"; ti.placeholder = "トリガー語（カンマ区切り）";
+    ti.value = (eff.trigger || []).join(", ");
+    row.append(li, dl, el("span", "hint", "強さ"), si, el("span", "hint", "トリガー語"), ti);
+    body.appendChild(row);
+    const btns = el("div", "row"); btns.style.marginTop = "8px"; btns.style.gap = "6px";
+    const save = el("button", "btn primary", "保存");
+    save.onclick = async () => {
+      const r = await post("/api/chara/lora", {id: c.id, lora: li.value.trim(), strength: si.value, trigger: ti.value});
+      if(r && r.ok){ toast("LoRA を保存しました", "good"); load(); } else toast((r && r.error) || "保存できませんでした", "bad");
+    };
+    const none = el("button", "btn", "LoRA なしにする"); none.title = "この子に差し替えるとき、元の子の LoRA を止めます";
+    none.onclick = async () => { const r = await post("/api/chara/lora", {id: c.id, lora: "", strength: 1, trigger: ti.value}); if(r && r.ok) load(); };
+    btns.append(save, none);
+    if(eff.source === "manual"){
+      const reset = el("button", "btn ghost", "自動に戻す"); reset.title = "手で決めた LoRA を消して、台帳から推し量り直します";
+      reset.onclick = async () => { const r = await post("/api/chara/lora", {id: c.id, reset: true}); if(r && r.ok) load(); };
+      btns.appendChild(reset);
+    }
+    body.appendChild(btns);
+    if(eff.source === "manual" && auto && auto.lora)
+      body.appendChild(el("div", "hint", `台帳から推し量ると: ${auto.lora}（${auto.strength}）` + (auto.trigger && auto.trigger.length ? ` ／ トリガー語 ${auto.trigger.join(", ")}` : "")));
+  };
+  load();
+  return box;
+}
 
 /* 登録した服（台帳の差し替えで使う）。この子用と、どの子にも出す服 */
 function outfitBox(name){

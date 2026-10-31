@@ -75,7 +75,7 @@ def _fresh_vision_bytecode() -> None:
 _fresh_vision_bytecode()
 import vision as V  # noqa: E402
 
-VERSION = "2.4.2"
+VERSION = "2.5.0"
 if V.VERSION != VERSION:
     raise ImportError(
         f"vision.py の版（{V.VERSION}）が chara.py（{VERSION}）と違います。"

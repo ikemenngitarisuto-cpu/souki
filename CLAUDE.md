@@ -27,9 +27,8 @@ ComfyUI が出力した PNG に入っているワークフロー（API 形式の
 
 ## いまの状態と次の作業
 
-- 今の版は v2.4.2（docs/仕様_v2.4.md の第 1 弾＋版の控えとタスクバーの直し）。
-- 次は同じ仕様書の「第 2 弾（v2.5.0）」。仕様は作者と確定済みなので、そのとおりに作る。
-  書いていないことで迷ったら作者に聞く。
+- 今の版は v2.5.0（docs/仕様_v2.4.md の第 1 弾・第 2 弾ともに済み）。
+- 次の作業は作者と決める（仕様書にあるものは全部作った）。書いていないことで迷ったら作者に聞く。
 - 版を上げるときは souki.py・chara.py・vision.py の `VERSION`、ui.html の `UI_VERSION`、chara.html の `PAGE_VERSION` を全部そろえる
   （画面とサーバの版が違うと警告が出る）。souki.py の `BRIDGE_VERSION` はブリッジのノードを変えたときだけ上げる。
 - 利用者向けの説明 README.md も版ごとに直す。
@@ -122,6 +121,21 @@ ComfyUI が出力した PNG に入っているワークフロー（API 形式の
 - Python の控え（v2.4.2）: zip の日時が版ごとに同じだと、版の数字しか変わらない chara.py・vision.py（大きさも同じ）で
   Python が古い .pyc を使う。`fresh_bytecode`（souki.py）と `_fresh_vision_bytecode`（chara.py）が、控えを中身（ハッシュ）で
   確かめる形（CHECKED_HASH）に作り直す。make_zip.py は日時を「作った時刻」にする。
+
+## v2.5.0 で入れたしくみ（souki.py）
+
+- 差し替えの記録: 投入のとき extra_pnginfo の `souki`（`prepare` の `record`）。台帳では表 `lineage`（`lineage_rows`・`write_lineage`）。
+  元の絵は `resolve_image`（場所 → 絵柄と名前 → 名前と大きさ）で探す。`made_from`・`made_here`。参照画像の元の絵も同じ表（kind="ref"）。
+- 2 人以上の絵: `build_swap(child=…)`。2 人以上（`is_multi_prompt` か顔が 2 人以上）なら、その子の特徴語・トリガー語・
+  台帳から学んだその子の語だけ外す（体の語をまとめて外さない）。保存名は `save_name_for` がその子の名前だけ入れ替える。
+- LoRA: 表 `c_lora`（手で決めたもの）。無ければ `infer_lora`（その子の絵の 3 割以上・全体の 2 倍以上に偏る LoRA、
+  トリガー語は LoRA を使った絵の 8 割以上・全体の 3 倍以上に偏る語。髪・目・服・体の語は除く）。`character_lora` が使う方を返す。
+  入れ替えは `plan_lora_swap`（入れ替え／強さ 0 で止める／Power Lora Loader に足す／`_model_loader` のすぐ後ろに LoraLoader を足す）。
+  画面用ワークフローには `UIGraph.apply_ops`（set・power・power_add・insert_lora）で写す。新しいノードの番号は画面用の最大より大きくする。
+  Power Lora Loader は API で `lora_N: {on, lora, strength}`、画面用は widgets_values の中の dict（`PowerLoraLoaderHeaderWidget` の後ろ）。
+- 参照画像の差し替え: `slot_info`（枠の子は、控えの元の絵のキャラ）・`ref_candidates`・`plan_ref_swaps`（おまかせは文章の絵だけ）・
+  `ensure_ref_uploads`（`souki_<sha 16 桁>.png` で送る）。文章のプロンプト（`prose`）は語を入れ替えず、LoRA も触らない。
+- まとめて差し替え: `api_swap_batch`（/api/swap/batch）。1 人ずつ `run_submit`。全員同じ seed は 1 つの seed を "fixed" で使う。
 
 ## テスト
 

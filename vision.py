@@ -39,7 +39,7 @@ from PIL import Image
 
 Image.MAX_IMAGE_PIXELS = None
 
-VERSION = "2.4.2"
+VERSION = "2.5.0"
 
 APP_DIR = Path(__file__).resolve().parent
 MODEL_DIR = APP_DIR / "models"
