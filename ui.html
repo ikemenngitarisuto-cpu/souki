@@ -1,0 +1,1637 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>想起 — ComfyUI 出力台帳</title>
+<link rel="icon" href="/favicon.ico">
+<style>
+:root{
+  --ink:#0D141C; --panel:#141E28; --raise:#1C2A37; --sunk:#0A1119;
+  --rule:#29394A; --rule-soft:#1E2C3A;
+  --text:#D3DCE5; --dim:#78899A; --faint:#4E5F70;
+  --lamp:#E9A23B; --lamp-deep:#B87A20;
+  --live:#46C9B4; --fault:#DE6B6B; --warn:#E9A23B;
+  --sans:"BIZ UDPGothic","Yu Gothic UI","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  --mono:"Cascadia Mono","Consolas","BIZ UDGothic",ui-monospace,monospace;
+  --rail:264px; --drawer:440px;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  background:var(--ink); color:var(--text); font-family:var(--sans);
+  font-size:13px; line-height:1.6; overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:none}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:var(--sunk)}
+::-webkit-scrollbar-thumb{background:var(--rule);border:2px solid var(--sunk);border-radius:6px}
+::-webkit-scrollbar-thumb:hover{background:#3A4C60}
+:focus-visible{outline:2px solid var(--lamp);outline-offset:2px}
+
+/* ── 銘板ラベル: この設計の書体上の芯 ───────────────── */
+.plate{
+  font-family:var(--mono); font-size:10px; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--faint);
+  display:flex; align-items:center; gap:9px; user-select:none;
+}
+.plate::after{content:"";flex:1;height:1px;background:var(--rule-soft)}
+
+/* ── 全体骨格 ────────────────────────────────────── */
+#app{display:grid;grid-template-columns:var(--rail) 1fr;height:100vh}
+
+/* ── 左レール ────────────────────────────────────── */
+#rail{
+  background:var(--panel); border-right:1px solid var(--rule);
+  display:flex; flex-direction:column; min-height:0;
+}
+#brand{
+  padding:16px 16px 13px; border-bottom:1px solid var(--rule);
+  display:flex; align-items:baseline; gap:10px;
+}
+#brand h1{
+  margin:0; font-size:19px; font-weight:700; letter-spacing:.22em;
+  color:var(--text);
+}
+#brand span{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;color:var(--faint)}
+
+#search-wrap{padding:12px 14px;border-bottom:1px solid var(--rule-soft)}
+#q{
+  width:100%; background:var(--sunk); border:1px solid var(--rule);
+  border-radius:3px; padding:7px 9px; font-size:12.5px;
+}
+#q::placeholder{color:var(--faint)}
+#q:focus{border-color:var(--lamp-deep);outline:none}
+
+#filters{flex:1;overflow-y:auto;padding:4px 0 20px;min-height:0}
+.group{padding:14px 14px 4px}
+.group .plate{margin-bottom:8px}
+.facet{
+  display:flex; align-items:center; gap:7px; width:100%;
+  padding:3.5px 6px; border-radius:3px; text-align:left;
+  color:var(--dim); font-size:12px;
+}
+.facet:hover{background:var(--raise);color:var(--text)}
+.facet .nm{
+  flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.facet .ct{font-family:var(--mono);font-size:10px;color:var(--faint);flex:none}
+.facet.on{background:var(--raise);color:var(--text)}
+.facet.on .box{background:var(--lamp);border-color:var(--lamp)}
+.facet.neg .box{background:var(--fault);border-color:var(--fault)}
+.box{
+  width:9px;height:9px;flex:none;border:1px solid var(--rule);border-radius:2px;
+}
+.more{
+  font-family:var(--mono);font-size:10px;letter-spacing:.08em;
+  color:var(--faint);padding:5px 6px;
+}
+.more:hover{color:var(--lamp)}
+
+/* ── 右側本体 ────────────────────────────────────── */
+#main{display:flex;flex-direction:column;min-width:0;min-height:0}
+#bar{
+  height:46px;flex:none;border-bottom:1px solid var(--rule);
+  display:flex;align-items:center;gap:14px;padding:0 16px;background:var(--panel);
+}
+#chips{display:flex;gap:6px;flex:1;overflow-x:auto;align-items:center;min-width:0}
+#chips::-webkit-scrollbar{height:0}
+.chip{
+  display:flex;align-items:center;gap:6px;flex:none;
+  background:var(--raise);border:1px solid var(--rule);border-radius:3px;
+  padding:3px 6px 3px 8px;font-size:11.5px;color:var(--text);max-width:230px;
+}
+.chip.neg{border-color:#4A2C2C;color:#E8A5A5}
+.chip b{font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip i{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--faint);font-style:normal}
+.chip button{color:var(--faint);font-size:13px;line-height:1;padding:0 2px}
+.chip button:hover{color:var(--fault)}
+#clear{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--faint)}
+#clear:hover{color:var(--fault)}
+
+.tool{
+  font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--dim);border:1px solid var(--rule);border-radius:3px;
+  padding:5px 9px;flex:none;background:var(--sunk);
+}
+.tool:hover{border-color:var(--faint);color:var(--text)}
+.tool.on{border-color:var(--lamp-deep);color:var(--lamp);background:#231A0C}
+select.tool{padding:5px 6px}
+
+/* ── 状態表示 ────────────────────────────────────── */
+#status{
+  display:flex;align-items:center;gap:8px;flex:none;
+  font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--dim);
+  padding-left:14px;border-left:1px solid var(--rule-soft);
+}
+.lamp{
+  width:8px;height:8px;border-radius:50%;flex:none;
+  background:var(--faint);box-shadow:0 0 0 1px rgba(0,0,0,.5);
+}
+.lamp.ok{background:var(--live);box-shadow:0 0 7px rgba(70,201,180,.6),0 0 0 1px rgba(0,0,0,.5)}
+.lamp.partial{background:var(--warn);box-shadow:0 0 7px rgba(233,162,59,.55),0 0 0 1px rgba(0,0,0,.5)}
+.lamp.fault{background:var(--fault);box-shadow:0 0 7px rgba(222,107,107,.55),0 0 0 1px rgba(0,0,0,.5)}
+.lamp.busy{animation:blink 1.1s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:.28}50%{opacity:1}}
+
+/* ── グリッド ────────────────────────────────────── */
+/* 月ごとの分布。1万枚を順に送るのではなく、時期で飛ぶための帯。 */
+#tl{flex:none;border-bottom:1px solid var(--rule);background:var(--panel);
+  padding:8px 16px 6px;display:none}
+#tl.on{display:block}
+#tl-head{display:flex;align-items:center;gap:10px;margin-bottom:5px}
+#tl-head .plate{flex:none}
+#tl-head .plate::after{display:none}
+#tl-range{font-family:var(--mono);font-size:10px;color:var(--lamp);flex:1}
+#tl-bars{display:flex;align-items:flex-end;gap:2px;height:44px;cursor:crosshair;
+  user-select:none}
+.tlb{flex:1;min-width:3px;background:var(--rule);border-radius:1px 1px 0 0;
+  position:relative;transition:background .1s}
+.tlb:hover{background:var(--faint)}
+.tlb.sel{background:var(--lamp)}
+.tlb.edge{background:var(--lamp-deep)}
+#tl-axis{display:flex;justify-content:space-between;font-family:var(--mono);
+  font-size:9px;color:var(--faint);margin-top:3px}
+#datebox{display:flex;gap:6px;align-items:center;padding:10px 14px;
+  border-bottom:1px solid var(--rule-soft);flex-wrap:wrap}
+#datebox input{width:88px;background:var(--sunk);border:1px solid var(--rule);
+  border-radius:3px;padding:4px 6px;font-family:var(--mono);font-size:11px}
+#datebox .sep{color:var(--faint);font-size:11px}
+.qbtn{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;
+  border:1px solid var(--rule);border-radius:3px;padding:3px 6px;
+  color:var(--dim);background:var(--sunk)}
+.qbtn:hover{border-color:var(--faint);color:var(--text)}
+#grid-wrap{flex:1;overflow-y:auto;padding:16px;min-height:0}
+#grid{
+  display:grid;gap:12px;
+  grid-template-columns:repeat(auto-fill,minmax(168px,1fr));
+}
+.card{
+  position:relative;background:var(--panel);border:1px solid var(--rule-soft);
+  border-radius:4px;overflow:hidden;cursor:pointer;
+  transition:border-color .12s,transform .12s;
+}
+.card:hover{border-color:var(--faint);transform:translateY(-2px)}
+.card.sel{border-color:var(--lamp)}
+.card .ph{
+  width:100%;aspect-ratio:3/4;background:var(--sunk);
+  display:flex;align-items:center;justify-content:center;
+}
+.card img{width:100%;height:100%;object-fit:cover;display:block}
+.card .meta{
+  padding:6px 8px 7px;border-top:1px solid var(--rule-soft);
+  display:flex;align-items:center;gap:6px;
+}
+.card .fn{
+  flex:1;font-family:var(--mono);font-size:9.5px;color:var(--faint);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.card .dup{
+  font-family:var(--mono);font-size:9px;color:var(--ink);background:var(--faint);
+  padding:0 4px;border-radius:2px;flex:none;
+}
+.card .nometa{
+  position:absolute;top:6px;left:6px;font-family:var(--mono);font-size:9px;
+  letter-spacing:.08em;background:rgba(13,20,28,.86);color:var(--faint);
+  padding:2px 5px;border-radius:2px;
+}
+#empty{padding:70px 20px;text-align:center;color:var(--dim)}
+#empty .plate{justify-content:center;margin-bottom:12px}
+#empty .plate::after{display:none}
+#more-wrap{padding:18px 0 40px;text-align:center}
+
+/* ── 詳細ドロワー ────────────────────────────────── */
+#drawer{
+  position:fixed;top:0;right:0;width:var(--drawer);height:100vh;
+  background:var(--panel);border-left:1px solid var(--rule);
+  display:flex;flex-direction:column;
+  transform:translateX(100%);transition:transform .18s ease-out;
+  z-index:40;box-shadow:-18px 0 40px rgba(0,0,0,.4);
+}
+#drawer.open{transform:none}
+#dhead{
+  flex:none;padding:12px 14px;border-bottom:1px solid var(--rule);
+  display:flex;align-items:center;gap:10px;
+}
+#dhead .fn{flex:1;font-family:var(--mono);font-size:11px;color:var(--text);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#dbody{flex:1;overflow-y:auto;min-height:0}
+#dpreview{background:var(--sunk);border-bottom:1px solid var(--rule);text-align:center}
+#dpreview img{max-width:100%;max-height:300px;display:block;margin:0 auto;cursor:zoom-in}
+.sect{padding:14px}
+.sect+.sect{border-top:1px solid var(--rule-soft)}
+.sect .plate{margin-bottom:9px}
+
+.kv{display:grid;grid-template-columns:78px 1fr;gap:3px 10px;font-size:12px}
+.kv dt{font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--faint);
+  padding-top:2px;text-transform:uppercase}
+.kv dd{margin:0;font-family:var(--mono);font-size:11.5px;color:var(--text);word-break:break-all}
+
+.taglist{display:flex;flex-wrap:wrap;gap:4px}
+.tag{
+  font-size:11px;background:var(--raise);border:1px solid var(--rule-soft);
+  border-radius:3px;padding:2px 6px;color:var(--dim);
+}
+.tag:hover{border-color:var(--lamp-deep);color:var(--lamp)}
+pre.txt{
+  margin:0;background:var(--sunk);border:1px solid var(--rule-soft);border-radius:3px;
+  padding:9px;font-family:var(--mono);font-size:11px;line-height:1.65;
+  white-space:pre-wrap;word-break:break-word;max-height:190px;overflow-y:auto;color:#B9C6D2;
+}
+.copy{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--faint);
+  margin-left:auto;
+}
+.copy:hover{color:var(--lamp)}
+
+/* 結線チェック — この道具の芯 */
+#wiring{border-left:2px solid var(--rule);padding-left:11px;margin-top:2px}
+#wiring.ok{border-color:var(--live)}
+#wiring.partial{border-color:var(--warn)}
+#wiring.fault{border-color:var(--fault)}
+.wline{display:flex;gap:8px;align-items:flex-start;font-size:11.5px;padding:2px 0}
+.wline .k{font-family:var(--mono);font-size:10px;color:var(--faint);flex:none;width:64px}
+.wline .v{font-family:var(--mono);font-size:11px;word-break:break-all}
+.miss{color:var(--fault)}
+.warnv{color:var(--warn)}
+
+/* 再投入 */
+#fire{
+  flex:none;border-top:1px solid var(--rule);padding:12px 14px 14px;background:var(--raise);
+}
+.row{display:flex;gap:7px;align-items:center;margin-bottom:9px}
+.seg{display:flex;border:1px solid var(--rule);border-radius:3px;overflow:hidden;flex:1}
+.seg button{
+  flex:1;padding:6px 4px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;
+  color:var(--dim);background:var(--sunk);border-right:1px solid var(--rule);
+}
+.seg button:last-child{border-right:none}
+.seg button.on{background:var(--lamp);color:#1A1206;font-weight:700}
+#seedval{
+  width:104px;background:var(--sunk);border:1px solid var(--rule);border-radius:3px;
+  padding:6px 7px;font-family:var(--mono);font-size:11px;
+}
+#batch{
+  width:56px;background:var(--sunk);border:1px solid var(--rule);border-radius:3px;
+  padding:6px 7px;font-family:var(--mono);font-size:11px;text-align:center;
+}
+#go{
+  width:100%;padding:10px;border-radius:3px;background:var(--lamp);color:#1A1206;
+  font-weight:700;font-size:13px;letter-spacing:.1em;
+  transition:filter .12s;
+}
+#go:hover:not(:disabled){filter:brightness(1.12)}
+#go:disabled{background:var(--rule);color:var(--faint);cursor:not-allowed}
+input:disabled{opacity:.4;cursor:not-allowed}
+.hint{font-family:var(--mono);font-size:9.5px;letter-spacing:.05em;color:var(--faint);
+  margin-top:7px;line-height:1.5}
+
+/* ── 拡大表示 / トースト ─────────────────────────── */
+/* キャラ差し替え */
+#swapbox{border-top:1px solid var(--rule);background:var(--panel);
+  padding:12px 14px;display:none}
+#swapbox.on{display:block}
+#swapbox .plate{margin-bottom:8px}
+#swapsel{width:100%;background:var(--sunk);border:1px solid var(--rule);
+  border-radius:3px;padding:7px 8px;font-size:12.5px}
+#swapprev{margin-top:10px;background:var(--sunk);border:1px solid var(--rule-soft);
+  border-radius:3px;padding:9px;font-family:var(--mono);font-size:11px;
+  line-height:1.65;max-height:170px;overflow-y:auto;word-break:break-word}
+#swapprev .del{color:var(--fault);text-decoration:line-through;opacity:.75}
+#swapprev .add{color:var(--live)}
+#swapprev .keep{color:#9FB0C0}
+#swapprev .lbl{font-size:9.5px;letter-spacing:.12em;color:var(--faint);
+  display:block;margin:6px 0 3px}
+#swapgo{width:100%;margin-top:10px;padding:9px;border-radius:3px;
+  background:var(--live);color:#06201C;font-weight:700;font-size:12.5px;
+  letter-spacing:.08em}
+#swapgo:hover:not(:disabled){filter:brightness(1.12)}
+#swapgo:disabled{background:var(--rule);color:var(--faint);cursor:not-allowed}
+#swapwf{width:100%;margin-top:6px}
+#outfitsel{width:100%;background:var(--sunk);border:1px solid var(--rule);border-radius:3px;padding:7px 8px;font-size:12px}
+#outfittxt{width:100%;margin-top:6px;background:var(--sunk);border:1px solid var(--rule);border-radius:3px;padding:6px 8px;font-family:var(--mono);font-size:11px;resize:vertical}
+.swaptools{display:flex;gap:6px;justify-content:flex-end;margin-top:6px}
+#strseg button{font-size:10.5px;letter-spacing:.02em}
+.mdl-bg{position:fixed;inset:0;background:rgba(4,8,12,.6);z-index:90;display:flex;align-items:center;justify-content:center}
+.mdl{background:var(--raise);border:1px solid var(--rule);border-radius:6px;padding:18px 20px;width:min(440px,calc(100vw - 32px));box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.mdl-t{font-weight:700;font-size:14px;margin-bottom:8px}
+.mdl-d{font-size:12px;color:var(--dim);line-height:1.6;margin-bottom:10px}
+.mdl-l{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--faint);margin:10px 0 4px}
+.mdl-i{width:100%;background:var(--sunk);border:1px solid var(--rule);border-radius:3px;padding:7px 9px;font-size:12.5px;color:inherit}
+.mdl-c{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.mdl-b{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+.mdl-ok{padding:7px 16px;border-radius:3px;background:var(--lamp);color:#1A1206;font-weight:700}
+#openonly{width:100%;margin-top:7px;padding:8px}
+.toast button{pointer-events:auto;margin-top:7px;padding:4px 10px;border:1px solid var(--lamp);
+  border-radius:3px;color:var(--lamp);font-size:11px;background:transparent;cursor:pointer}
+#lightbox{
+  position:fixed;inset:0;background:rgba(6,10,14,.95);z-index:60;
+  display:none;align-items:center;justify-content:center;cursor:zoom-out;padding:24px;
+}
+#lightbox.open{display:flex}
+#lightbox img{max-width:100%;max-height:100%;object-fit:contain}
+#toasts{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:80;
+  display:flex;flex-direction:column;gap:7px;align-items:center;pointer-events:none}
+.toast{
+  background:var(--raise);border:1px solid var(--rule);border-left:3px solid var(--lamp);
+  border-radius:3px;padding:9px 15px;font-size:12px;max-width:520px;
+  box-shadow:0 8px 22px rgba(0,0,0,.5);
+}
+.toast.bad{border-left-color:var(--fault)}
+.toast.good{border-left-color:var(--live)}
+.toast .d{font-family:var(--mono);font-size:10px;color:var(--faint);margin-top:3px;
+  white-space:pre-wrap;word-break:break-word;max-height:140px;overflow-y:auto}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+@media (max-width:900px){
+  #app{grid-template-columns:1fr}
+  #rail{position:fixed;left:0;top:0;bottom:0;width:var(--rail);z-index:50;
+    transform:translateX(-100%);transition:transform .18s}
+  #rail.open{transform:none}
+  #drawer{width:100%}
+  #railbtn{display:block!important}
+}
+#railbtn{display:none}
+#vbanner{display:none;flex:none;padding:8px 16px;background:#3A1E1E;border-bottom:1px solid #6A3030;
+  color:#F2C2C2;font-size:12.5px}
+#vbanner.on{display:block}
+#kaolink .rv{display:none;margin-left:6px;font-size:9.5px;color:#1A1206;background:var(--lamp);
+  border-radius:8px;padding:0 6px;letter-spacing:0}
+#kaolink .rv.on{display:inline-block}
+#cjob{display:none;align-items:center;gap:7px}
+#cjob.on{display:flex}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <aside id="rail">
+    <div id="brand">
+      <h1>想起</h1>
+      <span>COMFYUI LEDGER</span>
+    </div>
+    <div id="datebox">
+      <input id="dfrom" placeholder="2026-01" autocomplete="off">
+      <span class="sep">〜</span>
+      <input id="dto" placeholder="2026-08" autocomplete="off">
+      <button class="qbtn" data-q="7">1週</button>
+      <button class="qbtn" data-q="30">1月</button>
+      <button class="qbtn" data-q="90">3月</button>
+      <button class="qbtn" data-q="365">1年</button>
+      <button class="qbtn" data-q="0">解除</button>
+    </div>
+    <div id="search-wrap">
+      <input id="q" type="search" placeholder="プロンプト本文・ファイル名で検索" autocomplete="off">
+    </div>
+    <div id="filters"></div>
+  </aside>
+
+  <main id="main">
+    <div id="vbanner"></div>
+    <div id="bar">
+      <button id="railbtn" class="tool">絞込</button>
+      <div id="chips"></div>
+      <button id="clear" title="絞り込みをすべて解除">RESET</button>
+      <select id="sort" class="tool">
+        <option value="new">新しい順</option>
+        <option value="old">古い順</option>
+        <option value="name">名前順</option>
+        <option value="random">ランダム</option>
+      </select>
+      <button id="dedup" class="tool" title="同じ絵柄のファイルを1枚にまとめる">重複を畳む</button>
+      <button id="reindex" class="tool" title="出力フォルダを再走査する">更新</button>
+      <a id="kaolink" class="tool" href="/chara" style="text-decoration:none" title="キャラ帳（名前付け・確認待ち）へ">キャラ<span class="rv" id="rvcount"></span></a>
+      <div id="status">
+        <span id="cjob"><span class="lamp busy"></span><span id="cjobtext"></span></span>
+        <span class="lamp" id="clamp"></span>
+        <span id="ctext">確認中</span>
+      </div>
+    </div>
+
+    <div id="tl">
+      <div id="tl-head">
+        <span class="plate">TIMELINE</span>
+        <span id="tl-range"></span>
+        <button class="qbtn" id="tl-clear">全期間</button>
+      </div>
+      <div id="tl-bars"></div>
+      <div id="tl-axis"><span></span><span></span></div>
+    </div>
+
+    <div id="grid-wrap">
+      <div id="grid"></div>
+      <div id="empty" style="display:none">
+        <div class="plate">NO RESULTS</div>
+        <div id="emptymsg">条件に合う画像がありません。</div>
+      </div>
+      <div id="more-wrap"><button id="more" class="tool" style="display:none">さらに読み込む</button></div>
+    </div>
+  </main>
+</div>
+
+<aside id="drawer" aria-hidden="true">
+  <div id="dhead">
+    <span class="lamp" id="dlamp"></span>
+    <span class="fn" id="dfn"></span>
+    <button class="tool" id="dwf" title="ワークフローを取り出す（ComfyUI にドラッグ）">WF</button>
+    <button class="tool" id="dsimilar" title="この絵に似た絵を探す">似た絵</button>
+    <button class="tool" id="dreveal" title="エクスプローラで表示">場所</button>
+    <button class="tool" id="dclose">閉じる</button>
+  </div>
+  <div id="dbody"></div>
+  <div id="swapbox">
+    <div class="plate">キャラ・服を差し替える</div>
+    <select id="swapsel"><option value="">キャラ：このまま（差し替えない）</option></select>
+    <div class="seg" id="strseg" style="display:none;margin-top:6px">
+      <button data-s="full" class="on" title="髪・目に加えて、体格・年齢・種族の語も入れ替える">体格・年齢・種族まで</button>
+      <button data-s="light" title="髪と目の語だけ入れ替える">髪と目だけ</button>
+    </div>
+    <select id="outfitsel" style="margin-top:6px"><option value="">服装：元の絵のまま</option></select>
+    <textarea id="outfittxt" rows="2" placeholder="服の語をカンマ区切りで（例: school uniform, red necktie, black thighhighs）" style="display:none"></textarea>
+    <div class="swaptools">
+      <button class="tool" id="outfitsave" style="display:none">この服を登録…</button>
+      <button class="tool" id="outfitfromimg" title="この絵のプロンプトの服の語を、名前を付けて保存します">この絵の服を登録…</button>
+    </div>
+    <div id="swapprev" style="display:none"></div>
+    <button id="swapgo" disabled>差し替えて投入</button>
+    <button class="tool" id="swapwf" disabled>差し替えて ComfyUI の画面で開く（投入しない）</button>
+  </div>
+
+  <div id="fire">
+    <div class="row">
+      <div class="seg" id="seedseg">
+        <button data-m="random" class="on">SEED ランダム</button>
+        <button data-m="same">完全再現</button>
+        <button data-m="fixed">指定</button>
+      </div>
+    </div>
+    <div class="row">
+      <input id="seedval" placeholder="seed値" disabled>
+      <input id="batch" type="number" min="1" max="20" value="1" title="投入枚数">
+      <span class="plate" style="flex:1">枚</span>
+    </div>
+    <div class="row" style="margin-bottom:6px">
+      <label style="display:flex;align-items:center;gap:7px;font-size:11.5px;
+        color:var(--dim);cursor:pointer">
+        <input type="checkbox" id="today" checked style="width:14px;height:14px">
+        保存名をひな形にそろえる（日付は今日）
+      </label>
+    </div>
+    <div class="hint" id="savehint" style="margin:-2px 0 8px"></div>
+    <div class="row" style="margin-bottom:9px">
+      <label style="display:flex;align-items:center;gap:7px;font-size:11.5px;
+        color:var(--dim);cursor:pointer">
+        <input type="checkbox" id="openwf" checked style="width:14px;height:14px">
+        投入したワークフローを ComfyUI の画面にも開く
+      </label>
+    </div>
+    <div class="row" style="margin-bottom:9px">
+      <label style="display:flex;align-items:center;gap:7px;font-size:11.5px;
+        color:var(--dim);cursor:pointer" title="今の生成が終わったら、すぐ次に回します（ComfyUI のキューの先頭に入れる）">
+        <input type="checkbox" id="front" style="width:14px;height:14px">
+        割り込み（キューの先頭へ）
+      </label>
+    </div>
+    <button id="go">ComfyUI へ投入</button>
+    <button class="tool" id="openonly">ComfyUI の画面で開く（投入しない）</button>
+    <div class="hint" id="firehint"></div>
+    <div class="hint" id="bridgehint" style="margin-top:6px;color:var(--faint)"></div>
+  </div>
+</aside>
+
+<div id="lightbox"><img id="lbimg" alt=""></div>
+<div id="toasts"></div>
+
+<script>
+"use strict";
+const $  = s => document.querySelector(s);
+const el = (t,c,x)=>{const n=document.createElement(t); if(c)n.className=c; if(x!=null)n.textContent=x; return n;};
+const SEP = "\u0001";
+
+const S = {
+  facets:null, filters:{checkpoint:[],lora:[],tag:[],nottag:[],folder:[],chara:[]},
+  dateFrom:"", dateTo:"", months:[], similarOf:null,
+  text:"", sort:"new", dedup:false,
+  offset:0, limit:120, total:0, items:[],
+  current:null, seedMode:"random", validating:false,
+  expand:{}, comfy:{online:false}, valTimer:null,
+};
+
+/* ── 通知 ────────────────────────────────────────── */
+function toast(msg, kind, detail, ms, action){
+  const t = el("div","toast"+(kind?" "+kind:""));
+  t.appendChild(el("div",null,msg));
+  if(detail) t.appendChild(el("div","d",detail));
+  if(action){
+    const b = el("button", null, action.label);
+    b.onclick = ()=>{ t.remove(); action.fn(); };
+    t.appendChild(b);
+  }
+  $("#toasts").appendChild(t);
+  setTimeout(()=>t.remove(), ms||4200);
+}
+async function api(path, opts){
+  const r = await fetch(path, opts);
+  if(!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+/* ── レール（絞り込み） ──────────────────────────── */
+const GROUPS = [
+  {key:"chara",      src:"characters",  label:"CHARACTER", cap:12},
+  {key:"checkpoint", src:"checkpoints", label:"CHECKPOINT", cap:8},
+  {key:"lora",       src:"loras",       label:"LORA",       cap:8},
+  {key:"tag",        src:"tags",        label:"TAG",        cap:16},
+  {key:"folder",     src:"folders",     label:"FOLDER",     cap:8},
+];
+
+function shortName(s){ return String(s).replace(/\.(safetensors|ckpt|pt|pth|sft|gguf)$/i,""); }
+
+function renderRail(){
+  const box = $("#filters"); box.innerHTML = "";
+  for(const g of GROUPS){
+    const list = (S.facets[g.src]||[]).filter(x=>x.v!==null && x.v!=="");
+    if(!list.length) continue;
+    const wrap = el("div","group");
+    wrap.appendChild(el("div","plate", g.label));
+    const cap = S.expand[g.key] ? list.length : g.cap;
+    for(const item of list.slice(0,cap)){
+      const on  = S.filters[g.key].includes(item.v);
+      const neg = g.key==="tag" && S.filters.nottag.includes(item.v);
+      const b = el("button","facet"+(on?" on":"")+(neg?" neg":""));
+      b.appendChild(el("span","box"));
+      b.appendChild(el("span","nm", g.key==="chara" ? String(item.label||item.v)
+                        : g.key==="folder" ? (item.v||"(直下)") : shortName(item.v)));
+      b.appendChild(el("span","ct", String(item.n)));
+      b.title = String(g.key==="chara"
+                ? (item.label||item.v) + (item.parts > 1
+                    ? `（${item.parts} クラスタをまとめています）` : "")
+                : item.v)
+              + (g.key==="tag" ? "  （右クリックで除外）" : "");
+      b.onclick = ()=>{ toggle(g.key, item.v); };
+      if(g.key==="tag"){
+        b.oncontextmenu = e=>{ e.preventDefault(); toggle("nottag", item.v); };
+      }
+      wrap.appendChild(b);
+    }
+    if(list.length > g.cap){
+      const m = el("button","more", S.expand[g.key] ? "− 折りたたむ" : `+ 残り ${list.length-g.cap} 件`);
+      m.onclick = ()=>{ S.expand[g.key] = !S.expand[g.key]; renderRail(); };
+      wrap.appendChild(m);
+    }
+    box.appendChild(wrap);
+  }
+}
+
+function toggle(key, val){
+  const arr = S.filters[key];
+  const i = arr.indexOf(val);
+  if(i >= 0) arr.splice(i,1); else arr.push(val);
+  if(key==="tag"){ const j=S.filters.nottag.indexOf(val); if(j>=0) S.filters.nottag.splice(j,1); }
+  if(key==="nottag"){ const j=S.filters.tag.indexOf(val); if(j>=0) S.filters.tag.splice(j,1); }
+  reload();
+}
+
+function renderChips(){
+  const c = $("#chips"); c.innerHTML = "";
+  const add = (key,label,neg,tkey,tval)=>{
+    const ch = el("div","chip"+(neg?" neg":""));
+    ch.appendChild(el("i", null, neg?"NOT":key.slice(0,4).toUpperCase()));
+    ch.appendChild(el("b", null, shortName(label) || "(直下)"));
+    const x = el("button",null,"×");
+    x.onclick=()=>toggle(tkey||key, tval!==undefined?tval:label);
+    ch.appendChild(x); c.appendChild(ch);
+  };
+  const charaName = v => String(v);
+  for(const k of ["chara","checkpoint","lora","tag","folder"])
+    S.filters[k].forEach(v=>add(k, k==="chara" ? charaName(v) : v, false, k, v));
+  S.filters.nottag.forEach(v=>add("nottag",v,true,"nottag",v));
+  if(S.similarOf){
+    const ch = el("div","chip");
+    ch.appendChild(el("i",null,"SIM"));
+    ch.appendChild(el("b",null,S.similarOf+" に似た絵"));
+    const x = el("button",null,"×"); x.onclick=()=>reload();
+    ch.appendChild(x); c.appendChild(ch);
+  }
+  if(S.dateFrom || S.dateTo){
+    const ch = el("div","chip");
+    ch.appendChild(el("i",null,"DATE"));
+    ch.appendChild(el("b",null,`${S.dateFrom||"最初"} 〜 ${S.dateTo||"最後"}`));
+    const x = el("button",null,"×");
+    x.onclick=()=>{ S.dateFrom=""; S.dateTo="";
+      $("#dfrom").value=""; $("#dto").value=""; reload(); };
+    ch.appendChild(x); c.appendChild(ch);
+  }
+  const any = Object.values(S.filters).some(a=>a.length) || !!S.text
+            || !!S.dateFrom || !!S.dateTo || !!S.similarOf;
+  $("#clear").style.display = any ? "block" : "none";
+  if(S.text){
+    const ch = el("div","chip");
+    ch.appendChild(el("i",null,"TEXT")); ch.appendChild(el("b",null,S.text));
+    const x = el("button",null,"×");
+    x.onclick=()=>{ S.text=""; $("#q").value=""; reload(); };
+    ch.appendChild(x); c.appendChild(ch);
+  }
+}
+
+/* ── 検索・グリッド ──────────────────────────────── */
+function buildQuery(offset){
+  const p = new URLSearchParams();
+  for(const k of ["checkpoint","lora","tag","nottag","folder","chara"])
+    if(S.filters[k].length) p.set(k, S.filters[k].join(SEP));
+  if(S.text) p.set("text", S.text);
+  if(S.dateFrom) p.set("date_from", S.dateFrom);
+  if(S.dateTo) p.set("date_to", S.dateTo);
+  p.set("sort", S.sort);
+  if(S.dedup) p.set("dedup","1");
+  p.set("limit", S.limit); p.set("offset", offset);
+  return p.toString();
+}
+
+function tlParams(){
+  const p = new URLSearchParams();
+  for(const k of ["checkpoint","lora","tag","nottag","folder","chara"])
+    if(S.filters[k].length) p.set(k, S.filters[k].join(SEP));
+  if(S.text) p.set("text", S.text);
+  return p.toString();
+}
+
+async function loadTimeline(){
+  let d;
+  try{ d = await api("/api/timeline?"+tlParams()); }
+  catch(e){ return; }
+  S.months = d.months || [];
+  renderTimeline();
+}
+
+function renderTimeline(){
+  const box = $("#tl"), bars = $("#tl-bars");
+  if(S.months.length < 2){ box.classList.remove("on"); return; }
+  box.classList.add("on");
+  bars.innerHTML = "";
+  const max = Math.max(...S.months.map(m=>m.n)) || 1;
+  for(const m of S.months){
+    const b = el("div","tlb");
+    b.style.height = Math.max(3, Math.round(m.n / max * 44)) + "px";
+    b.dataset.ym = m.ym;
+    b.title = `${m.ym}  ${m.n.toLocaleString()} 枚`;
+    const inRange = (!S.dateFrom || m.ym >= S.dateFrom.slice(0,7))
+                 && (!S.dateTo   || m.ym <= S.dateTo.slice(0,7));
+    if(S.dateFrom || S.dateTo) b.classList.toggle("sel", inRange);
+    bars.appendChild(b);
+  }
+  const ax = $("#tl-axis").children;
+  ax[0].textContent = S.months[0].ym;
+  ax[1].textContent = S.months[S.months.length-1].ym;
+  const tot = S.months.reduce((a,m)=>a+m.n,0);
+  $("#tl-range").textContent = (S.dateFrom || S.dateTo)
+    ? `${S.dateFrom||"最初"} 〜 ${S.dateTo||"最後"}`
+    : `全 ${tot.toLocaleString()} 枚`;
+}
+
+/* 帯の上をドラッグして期間を選ぶ */
+(function(){
+  const bars = $("#tl-bars");
+  let on = false, a = null;
+  const ymOf = e =>{
+    const t = document.elementFromPoint(e.clientX, e.clientY);
+    return t && t.classList && t.classList.contains("tlb") ? t.dataset.ym : null;
+  };
+  bars.addEventListener("mousedown", e=>{
+    const ym = ymOf(e); if(!ym) return;
+    on = true; a = ym; e.preventDefault(); paint(ym);
+  });
+  window.addEventListener("mousemove", e=>{ if(on){ const b=ymOf(e); if(b) paint(b); } });
+  window.addEventListener("mouseup", e=>{
+    if(!on) return; on = false;
+    const b = ymOf(e) || a;
+    S.dateFrom = a < b ? a : b; S.dateTo = a < b ? b : a;
+    reload();
+  });
+  function paint(b){
+    const lo = a < b ? a : b, hi = a < b ? b : a;
+    for(const el2 of bars.children)
+      el2.classList.toggle("sel", el2.dataset.ym >= lo && el2.dataset.ym <= hi);
+  }
+})();
+
+$("#tl-clear").addEventListener("click", ()=>{
+  S.dateFrom = ""; S.dateTo = "";
+  $("#dfrom").value = ""; $("#dto").value = ""; reload();
+});
+for(const b of document.querySelectorAll(".qbtn[data-q]")){
+  b.addEventListener("click", ()=>{
+    const days = +b.dataset.q;
+    if(!days){ S.dateFrom=""; S.dateTo=""; }
+    else{
+      const now = new Date(), from = new Date(now.getTime() - days*86400000);
+      const f = d => d.toISOString().slice(0,10);
+      S.dateFrom = f(from); S.dateTo = f(now);
+    }
+    $("#dfrom").value = S.dateFrom; $("#dto").value = S.dateTo;
+    reload();
+  });
+}
+for(const id of ["#dfrom","#dto"]){
+  $(id).addEventListener("change", ()=>{
+    S.dateFrom = $("#dfrom").value.trim();
+    S.dateTo = $("#dto").value.trim();
+    reload();
+  });
+}
+
+async function reload(){
+  S.offset = 0; S.items = [];
+  $("#grid").innerHTML = "";
+  renderChips(); renderRail();
+  S.similarOf = null;
+  await loadPage();
+  loadTimeline();
+}
+
+async function loadPage(){
+  let d;
+  try{ d = await api("/api/search?"+buildQuery(S.offset)); }
+  catch(e){ toast("検索に失敗しました", "bad", String(e)); return; }
+  S.total = d.total;
+  S.items = S.items.concat(d.items);
+  appendCards(d.items);
+  S.offset += d.items.length;
+
+  $("#empty").style.display = S.total ? "none" : "block";
+  $("#emptymsg").textContent = S.facets.total
+    ? "条件に合う画像がありません。左の絞り込みを外してみてください。"
+    : "台帳が空です。出力フォルダの指定を、キャラ帳の「設定」→「出力フォルダ」で確かめてから「更新」を押してください。";
+  const more = $("#more");
+  more.style.display = S.offset < S.total ? "inline-block" : "none";
+  more.textContent = `さらに読み込む （${S.offset} / ${S.total.toLocaleString()}）`;
+  validateVisible(d.items);
+}
+
+function appendCards(items){
+  const g = $("#grid");
+  const frag = document.createDocumentFragment();
+  for(const it of items){
+    const card = el("div","card"); card.dataset.id = it.id;
+    const ph = el("div","ph");
+    const img = el("img"); img.loading="lazy"; img.alt=it.filename;
+    img.src = "/thumb/"+it.id;
+    img.onerror = ()=>{ img.remove(); ph.appendChild(el("div","plate","NO THUMB")); };
+    ph.appendChild(img); card.appendChild(ph);
+
+    if(!it.has_api) card.appendChild(el("div","nometa","メタ無し"));
+
+    const m = el("div","meta");
+    const lamp = el("span","lamp"); lamp.dataset.lamp = it.id;
+    if(!it.has_api) lamp.title = "ワークフロー情報なし";
+    m.appendChild(lamp);
+    m.appendChild(el("span","fn", it.filename));
+    if(it.dup_count > 1) m.appendChild(el("span","dup","×"+it.dup_count));
+    card.appendChild(m);
+
+    card.onclick = ()=>openDrawer(it.id);
+    frag.appendChild(card);
+  }
+  g.appendChild(frag);
+}
+
+/* ── 結線チェック（環境検証） ────────────────────── */
+const VCACHE = new Map();
+
+async function validateVisible(items){
+  if(!S.comfy.online) return;
+  const need = items.filter(i=>i.has_api && !VCACHE.has(i.id)).map(i=>i.id);
+  for(const it of items){
+    if(VCACHE.has(it.id)) paintLamp(it.id, VCACHE.get(it.id));
+  }
+  if(!need.length) return;
+  for(const l of document.querySelectorAll(".lamp[data-lamp]"))
+    if(need.includes(+l.dataset.lamp)) l.classList.add("busy");
+  for(let i=0;i<need.length;i+=120){
+    const chunk = need.slice(i,i+120);
+    try{
+      const r = await api("/api/validate",{method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({ids:chunk})});
+      if(!r.online){ S.comfy.online=false; break; }
+      if(r.pending){
+        // ComfyUI 側の情報がまだ揃っていない。表示は止めず、後で改めて尋ねる。
+        for(const l of document.querySelectorAll(".lamp.busy[data-lamp]"))
+          l.classList.remove("busy");
+        clearTimeout(S.valTimer);
+        S.valTimer = setTimeout(()=>validateVisible(S.items.slice(0,240)), 4000);
+        return;
+      }
+      for(const [id,v] of Object.entries(r.results)){
+        VCACHE.set(+id, v); paintLamp(+id, v);
+      }
+    }catch(e){ break; }
+  }
+  for(const l of document.querySelectorAll(".lamp.busy[data-lamp]")) l.classList.remove("busy");
+}
+
+const LAMPTEXT = {
+  ok:"この環境で再現できます",
+  partial:"モデルファイルが見つかりません",
+  fault:"必要なノードがありません",
+  nometa:"ワークフロー情報なし",
+};
+
+function paintLamp(id, v){
+  for(const l of document.querySelectorAll(`.lamp[data-lamp="${id}"]`)){
+    l.classList.remove("busy","ok","partial","fault");
+    if(v.status && v.status!=="nometa") l.classList.add(v.status);
+    l.title = LAMPTEXT[v.status] || "";
+  }
+}
+
+/* ── 詳細ドロワー ────────────────────────────────── */
+async function openDrawer(id){
+  for(const c of document.querySelectorAll(".card.sel")) c.classList.remove("sel");
+  const card = document.querySelector(`.card[data-id="${id}"]`);
+  if(card) card.classList.add("sel");
+
+  let d;
+  try{ d = await api("/api/detail/"+id); }
+  catch(e){ toast("詳細を読めませんでした","bad",String(e)); return; }
+  S.current = d;
+  $("#drawer").classList.add("open");
+  $("#drawer").setAttribute("aria-hidden","false");
+  $("#dfn").textContent = d.filename;
+  $("#dfn").title = d.path;
+  renderDetail(d);
+
+  // 画像を替えたら差し替え欄を初期化する。前の選択が残っていると
+  // 別の絵に前のキャラを当てかねない。
+  showSaveHint(d);
+  $("#swapsel").value = "";
+  $("#outfitsel").value = ""; $("#outfittxt").value = "";
+  $("#swapprev").style.display = "none";
+  $("#swapgo").disabled = true; $("#swapwf").disabled = true;
+  OUT.img = null; loadOutfits();
+  if(!swapChars.length) loadChars(); else $("#swapbox").classList.add("on");
+
+  let v = VCACHE.get(id);
+  if(!v && d.has_api && S.comfy.online){
+    try{
+      const r = await api("/api/validate",{method:"POST",
+        headers:{"Content-Type":"application/json"},body:JSON.stringify({ids:[id]})});
+      v = r.results && r.results[String(id)];
+      if(v){ VCACHE.set(id,v); paintLamp(id,v); }
+    }catch(e){}
+  }
+  if(!d.has_api) v = {status:"nometa"};
+  renderWiring(v);
+  updateFire(d, v);
+}
+
+function fmtDate(ts){
+  const dt = new Date(ts*1000), p = n=>String(n).padStart(2,"0");
+  return `${dt.getFullYear()}-${p(dt.getMonth()+1)}-${p(dt.getDate())} ${p(dt.getHours())}:${p(dt.getMinutes())}`;
+}
+
+function section(label, node, extra){
+  const s = el("div","sect");
+  const pl = el("div","plate", label);
+  if(extra) pl.appendChild(extra);
+  s.appendChild(pl); s.appendChild(node);
+  return s;
+}
+
+function copyBtn(text, label){
+  const b = el("button","copy", label||"COPY");
+  b.onclick = e=>{
+    e.stopPropagation();
+    navigator.clipboard.writeText(text)
+      .then(()=>toast("コピーしました","good"))
+      .catch(()=>toast("コピーできませんでした","bad"));
+  };
+  return b;
+}
+
+function renderDetail(d){
+  const b = $("#dbody"); b.innerHTML = "";
+
+  const pv = el("div"); pv.id = "dpreview";
+  const im = el("img"); im.src = "/full/"+d.id; im.alt = d.filename;
+  im.onclick = ()=>{ $("#lbimg").src = im.src; $("#lightbox").classList.add("open"); };
+  pv.appendChild(im); b.appendChild(pv);
+
+  // 結線チェック — 「今これを再現できるか」が最初に来る
+  const w = el("div"); w.id = "wiring";
+  b.appendChild(section("WIRING CHECK", w));
+
+  // 生成条件
+  const dl = el("dl","kv");
+  const put = (k,v)=>{ if(v==null||v==="") return;
+    dl.appendChild(el("dt",null,k)); dl.appendChild(el("dd",null,String(v))); };
+  put("MODEL", d.checkpoint ? shortName(d.checkpoint) : null);
+  put("SEED", d.seed);
+  put("STEPS", d.steps);
+  put("CFG", d.cfg);
+  put("SAMPLER", d.sampler ? d.sampler + (d.scheduler? " / "+d.scheduler : "") : null);
+  put("SIZE", d.width && d.height ? `${d.width} × ${d.height}` : null);
+  put("DATE", d.mtime ? fmtDate(d.mtime) : null);
+  put("FOLDER", d.folder || "(直下)");
+  b.appendChild(section("GENERATION", dl));
+
+  if(d.loras && d.loras.length){
+    const box = el("div","kv");
+    for(const l of d.loras){
+      box.appendChild(el("dt",null,(l.strength!=null? l.strength.toFixed(2):"—")));
+      box.appendChild(el("dd",null,shortName(l.name)));
+    }
+    b.appendChild(section("LORA", box));
+  }
+
+  if(d.tags && d.tags.length){
+    const tl = el("div","taglist");
+    for(const t of d.tags){
+      const tb = el("button","tag", t);
+      tb.title = "クリックでこのタグに絞り込む";
+      tb.onclick = ()=>{ if(!S.filters.tag.includes(t)) toggle("tag", t); };
+      tl.appendChild(tb);
+    }
+    b.appendChild(section(`TAG (${d.tags.length})`, tl));
+  }
+
+  if(d.positive){
+    const p = el("pre","txt", d.positive);
+    b.appendChild(section("POSITIVE", p, copyBtn(d.positive)));
+  }
+  if(d.negative){
+    const p = el("pre","txt", d.negative);
+    b.appendChild(section("NEGATIVE", p, copyBtn(d.negative)));
+  }
+
+  if(d.siblings && d.siblings.length){
+    const sl = el("div","taglist");
+    for(const s of d.siblings.slice(0,24)){
+      const sb = el("button","tag", s.filename);
+      sb.onclick = ()=>openDrawer(s.id);
+      sl.appendChild(sb);
+    }
+    b.appendChild(section(`同じ絵柄 (${d.siblings.length})`, sl));
+  }
+}
+
+function wline(k, v, cls){
+  const r = el("div","wline");
+  r.appendChild(el("span","k", k));
+  r.appendChild(el("span","v"+(cls?" "+cls:""), v));
+  return r;
+}
+
+function renderWiring(v){
+  const w = $("#wiring");
+  if(!w) return;
+  w.innerHTML = ""; w.className = "";
+  if(!v){
+    w.appendChild(wline("状態","ComfyUI に接続していないため未検証","warnv"));
+    return;
+  }
+  if(v.status && v.status!=="nometa") w.classList.add(v.status);
+  if(v.status==="nometa"){
+    w.appendChild(wline("状態","API形式のワークフローが埋め込まれていません"));
+    w.appendChild(wline("","このファイルは再投入できません","warnv"));
+    return;
+  }
+  if(v.status==="ok"){
+    w.appendChild(wline("状態","そのまま再現できます"));
+    return;
+  }
+  for(const n of (v.missing_nodes||[]))
+    w.appendChild(wline("欠落ノード", n, "miss"));
+  for(const m of (v.missing_models||[]))
+    w.appendChild(wline("欠落モデル", m.value, "warnv"));
+  if(v.status==="fault")
+    w.appendChild(wline("", "カスタムノードを入れ直すと再現できます"));
+  else
+    w.appendChild(wline("", "モデルの場所が変わっています。投入すると失敗します"));
+}
+
+function updateFire(d, v){
+  const go = $("#go"), hint = $("#firehint");
+  const lamp = $("#dlamp");
+  lamp.className = "lamp" + (v && v.status && v.status!=="nometa" ? " "+v.status : "");
+  lamp.title = v ? (LAMPTEXT[v.status]||"") : "未検証";
+  $("#openonly").disabled = !d.has_api;
+
+  if(!d.has_api){
+    go.disabled = true; hint.textContent = "ワークフロー情報がないため投入できません。";
+    return;
+  }
+  // 生成中は ComfyUI の返事が遅れることがあるので、つながらなくても押せるようにする
+  if(go.textContent !== "投入中…") go.disabled = false;
+  const st = (d.seed_targets||[]);
+  const cs = S.comfyState || (S.comfy.online ? "ok" : "down");
+  const warn = cs === "slow" ? "ComfyUI の返事が遅れています（生成中かも）。投入はそのまま試せます。\n"
+    : cs === "down" && !S.comfy.checking ? "ComfyUI につながっていません（押すと投入を試します）。\n" : "";
+  hint.textContent = warn + (st.length
+    ? `seed 差し替え対象: ${st.map(s=>s.class_type+"."+s.key).join(", ")}`
+    : "seed を持つノードが見つかりません。完全再現のみ可能です。");
+  hint.style.whiteSpace = "pre-line";
+  if(!st.length && S.seedMode!=="same") setSeedMode("same");
+}
+
+function closeDrawer(){
+  $("#drawer").classList.remove("open");
+  $("#drawer").setAttribute("aria-hidden","true");
+  for(const c of document.querySelectorAll(".card.sel")) c.classList.remove("sel");
+  S.current = null;
+}
+
+/* ── 再投入 ──────────────────────────────────────── */
+function setSeedMode(m){
+  S.seedMode = m;
+  for(const b of document.querySelectorAll("#seedseg button"))
+    b.classList.toggle("on", b.dataset.m === m);
+  const sv = $("#seedval");
+  sv.disabled = m !== "fixed";
+  if(m === "fixed" && S.current && S.current.seed && !sv.value) sv.value = S.current.seed;
+  $("#batch").disabled = (m === "same");
+  if(m === "same") $("#batch").value = 1;
+}
+
+/* ── 状態ポーリング ──────────────────────────────── */
+let indexing = false;
+async function pollStatus(){
+  try{
+    const s = await api("/api/status");
+    const was = S.comfy.online;
+    S.comfy = s.comfy;
+    const lamp = $("#clamp"), t = $("#ctext");
+    lamp.classList.remove("ok","fault","busy");
+    const cs = s.comfy.state || (s.comfy.online ? "ok" : "down");
+    const q = (s.comfy.running || 0) + (s.comfy.pending || 0);
+    if(cs === "ok"){
+      lamp.classList.add("ok");
+      t.textContent = q ? `COMFYUI  キュー ${q}` : "COMFYUI  待機中";
+      lamp.title = "";
+    }else if(cs === "slow"){
+      lamp.classList.add("ok", "busy");
+      t.textContent = "COMFYUI  返事待ち（生成中かも）";
+      lamp.title = "ComfyUI の返事が遅れています。生成中（モデルの読み込み中など）によくあります。投入はできます";
+    }else if(s.comfy.checking){
+      lamp.classList.add("busy");
+      t.textContent = "COMFYUI  確かめています";
+    }else{
+      lamp.classList.add("fault");
+      t.textContent = "COMFYUI  未接続";
+      lamp.title = "ComfyUI につながりません。投入ボタンは押せます（届かなければ理由を出します）";
+    }
+    const changed = cs !== S.comfyState;
+    S.comfyState = cs;
+    if(S.current && changed) updateFire(S.current, VCACHE.get(S.current.id));
+    if(!was && s.comfy.online && S.items.length) validateVisible(S.items);
+    if(!was && s.comfy.online) bridgeStatus();
+
+    // キャラの解析の進み具合と、確認待ちの数
+    const ch = s.chara || {};
+    const aj = ch.analysis || {};
+    const cj = $("#cjob");
+    if(aj.running){
+      const pct = aj.total ? Math.floor(aj.done / aj.total * 100) : 0;
+      $("#cjobtext").textContent = `キャラ解析 ${pct}%`;
+      cj.title = `${aj.stage || ""} ${aj.done}/${aj.total}`;
+      cj.classList.add("on");
+    }else cj.classList.remove("on");
+    const rv = $("#rvcount");
+    rv.textContent = ch.review ? String(ch.review) : "";
+    rv.classList.toggle("on", !!ch.review);
+    rv.title = ch.review ? `確認待ち ${ch.review} 枚` : "";
+
+    const ix = s.index;
+    if(ix.running){
+      indexing = true;
+      $("#reindex").classList.add("on");
+      $("#reindex").textContent = ix.total ? `走査中 ${ix.done}/${ix.total}` : "走査中…";
+    }else if(indexing){
+      indexing = false;
+      $("#reindex").classList.remove("on");
+      $("#reindex").textContent = "更新";
+      const l = ix.last || {};
+      if(l.error) toast("走査に失敗しました","bad",l.error);
+      else{
+        toast(`走査完了 — 新規/更新 ${l.scanned||0} 件`, "good",
+              `ワークフロー有 ${l.with_api||0} / メタ無し ${l.no_meta||0}` +
+              (l.removed? ` / 削除 ${l.removed}` : ""));
+        VCACHE.clear(); await boot(true);
+      }
+    }
+  }catch(e){}
+}
+
+/* ── 起動 ────────────────────────────────────────── */
+async function boot(keep){
+  try{ S.facets = await api("/api/facets"); }
+  catch(e){ toast("台帳を読めませんでした","bad",String(e)); return; }
+  renderRail();
+  if(!keep){
+    $("#sort").value = S.sort;
+  }
+  await reload();
+}
+
+let qtimer = null;
+$("#q").addEventListener("input", e=>{
+  clearTimeout(qtimer);
+  qtimer = setTimeout(()=>{ S.text = e.target.value.trim(); reload(); }, 280);
+});
+$("#sort").addEventListener("change", e=>{ S.sort = e.target.value; reload(); });
+$("#dedup").addEventListener("click", e=>{
+  S.dedup = !S.dedup; e.target.classList.toggle("on", S.dedup); reload();
+});
+$("#clear").addEventListener("click", ()=>{
+  for(const k in S.filters) S.filters[k] = [];
+  S.text = ""; $("#q").value = "";
+  S.dateFrom = ""; S.dateTo = "";
+  $("#dfrom").value = ""; $("#dto").value = "";
+  reload();
+});
+$("#more").addEventListener("click", loadPage);
+$("#reindex").addEventListener("click", async ()=>{
+  if(indexing) return;
+  try{
+    await api("/api/reindex",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"});
+    toast("出力フォルダを走査しています…");
+    $("#reindex").classList.add("on");
+  }catch(e){ toast("走査を開始できませんでした","bad",String(e)); }
+});
+$("#dclose").addEventListener("click", closeDrawer);
+$("#dwf").addEventListener("click", ()=>{
+  if(!S.current) return;
+  if(!S.current.has_api){ toast("この画像にはワークフローがありません","bad"); return; }
+  // ComfyUI には外から「これを開け」と指示する手段がないので、
+  // ファイルとして取り出して画面にドラッグしてもらう。これが最も確実。
+  const a = document.createElement("a");
+  a.href = "/workflow/" + S.current.id + ".json";
+  a.download = "";
+  document.body.appendChild(a); a.click(); a.remove();
+  toast("ワークフローを取り出しました", "good",
+        "ComfyUI の画面にドラッグすると開きます（今のタブのままで大丈夫です）", 8000);
+});
+
+$("#dsimilar").addEventListener("click", async ()=>{
+  if(!S.current) return;
+  const btn = $("#dsimilar"); btn.disabled = true; btn.textContent = "探索中…";
+  try{
+    const r = await api("/api/similar",{method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({image_id:S.current.id, limit:120})});
+    if(!r.ok){ toast(r.error||"探せませんでした","bad"); return; }
+    S.similarOf = S.current.filename;
+    S.items = r.items; S.total = r.items.length; S.offset = r.items.length;
+    $("#grid").innerHTML = ""; appendCards(r.items);
+    $("#more").style.display = "none";
+    $("#empty").style.display = r.items.length ? "none" : "block";
+    closeDrawer();
+    $("#grid-wrap").scrollTop = 0;
+    toast(`「${S.similarOf}」に似た絵 ${r.items.length} 枚`, "good",
+          r.by === "face" ? "顔のベクトルで比較しました"
+                          : "絵柄のハッシュで比較しました");
+    renderChips();
+    validateVisible(r.items);
+  }catch(e){ toast("探せませんでした","bad"); }
+  btn.disabled = false; btn.textContent = "似た絵";
+});
+
+$("#dreveal").addEventListener("click", async ()=>{
+  if(!S.current) return;
+  const r = await api("/api/reveal/"+S.current.id);
+  if(!r.ok) toast(r.error||"開けませんでした","bad");
+});
+$("#railbtn").addEventListener("click", ()=> $("#rail").classList.toggle("open"));
+for(const b of document.querySelectorAll("#seedseg button"))
+  b.addEventListener("click", ()=> setSeedMode(b.dataset.m));
+$("#go").addEventListener("click", fire);
+$("#lightbox").addEventListener("click", ()=> $("#lightbox").classList.remove("open"));
+
+document.addEventListener("keydown", e=>{
+  if(e.key === "Escape"){
+    if($("#lightbox").classList.contains("open")) $("#lightbox").classList.remove("open");
+    else if(S.current) closeDrawer();
+    return;
+  }
+  const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
+  if(e.key === "/" && !typing){ e.preventDefault(); $("#q").focus(); return; }
+  if(!S.current || typing) return;
+  if(e.key === "Enter"){ e.preventDefault(); if(!$("#go").disabled) fire(); return; }
+  if(e.key === "ArrowRight" || e.key === "ArrowLeft"){
+    const i = S.items.findIndex(x=>x.id === S.current.id);
+    const j = i + (e.key === "ArrowRight" ? 1 : -1);
+    if(j >= 0 && j < S.items.length){
+      e.preventDefault();
+      openDrawer(S.items[j].id);
+      const c = document.querySelector(`.card[data-id="${S.items[j].id}"]`);
+      if(c) c.scrollIntoView({block:"nearest"});
+    }
+  }
+});
+
+$("#grid-wrap").addEventListener("scroll", e=>{
+  const t = e.target;
+  if(t.scrollHeight - t.scrollTop - t.clientHeight < 500 &&
+     S.offset < S.total && $("#more").style.display !== "none"){
+    $("#more").style.display = "none";
+    loadPage();
+  }
+});
+
+/* ── キャラの差し替え ──────────────────────────────
+   服・表情・構図はそのままに、キャラの特徴語だけを入れ替える。
+   何が外れて何が入るかを必ず見せてから投入する。 */
+let swapChars = [];
+async function loadChars(){
+  try{
+    const d = await api("/api/characters");
+    swapChars = d.characters || [];
+  }catch(e){ swapChars = []; }
+  const sel = $("#swapsel");
+  sel.innerHTML = '<option value="">キャラ：このまま（差し替えない）</option>';
+  for(const c of swapChars){
+    const o = el("option", null, `${c.name}（${c.n}枚）`);
+    o.value = c.name; sel.appendChild(o);
+  }
+  $("#swapbox").classList.toggle("on", swapChars.length > 0);
+}
+
+/* ── 差し替え・服装・強さ ────────────────────────── */
+const OUT = {usual: [], saved: [], key: null, img: null};
+S.strength = "full";
+
+function currentOutfit(){
+  const v = $("#outfitsel").value;
+  if(!v) return null;
+  if(v === "custom"){
+    const w = $("#outfittxt").value.split(/[,\n、]/).map(x=>x.trim()).filter(Boolean);
+    return w.length ? w : null;
+  }
+  if(v.startsWith("u:")){ const o = OUT.usual[+v.slice(2)]; return o ? o.words.slice() : null; }
+  if(v.startsWith("s:")){ const o = OUT.saved.find(x => String(x.id) === v.slice(2)); return o ? o.words.slice() : null; }
+  return null;
+}
+function swapParams(){
+  const p = {};
+  const v = $("#swapsel").value;
+  const o = currentOutfit();
+  if(v) p.to = v; else if(o) p.keep_char = true;
+  if(o) p.outfit = o;
+  if(v) p.strength = S.strength;
+  return p;
+}
+function hasSwap(){ const p = swapParams(); return !!(p.to || p.keep_char); }
+function baseParams(){ return {template: $("#today").checked, today: $("#today").checked, front: $("#front").checked}; }
+function seedParams(){ return {seed_mode: S.seedMode, seed_value: $("#seedval").value, batch: +$("#batch").value || 1}; }
+const postJSON = (path, body) => api(path, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)});
+
+/* 小さな確認窓 */
+function modal(title, build){
+  return new Promise(res => {
+    const bg = el("div", "mdl-bg"), box = el("div", "mdl");
+    box.appendChild(el("div", "mdl-t", title));
+    const done = (v) => { bg.remove(); document.removeEventListener("keydown", key, true); res(v); };
+    const key = (e) => { if(e.key === "Escape"){ e.stopPropagation(); done(null); } };
+    document.addEventListener("keydown", key, true);
+    build(box, done);
+    bg.appendChild(box); document.body.appendChild(bg);
+    bg.addEventListener("pointerdown", e => { if(e.target === bg) done(null); });
+    const f = box.querySelector("input,textarea"); if(f) setTimeout(()=>f.focus(), 30);
+  });
+}
+function mdlBtns(box, okLabel, onOk, done){
+  const r = el("div", "mdl-b");
+  const c = el("button", "tool", "やめる"); c.onclick = () => done(null);
+  const ok = el("button", "mdl-ok", okLabel); ok.onclick = onOk;
+  r.append(c, ok); box.appendChild(r);
+  return ok;
+}
+/* 保存名に入れるキャラの名前を聞く */
+function askName(cands){
+  return modal("保存名に入れるキャラの名前", (box, done) => {
+    box.appendChild(el("div", "mdl-d", cands && cands.length > 1
+      ? "この絵には何人か写っています。保存名に入れる子を選ぶか、名前を入れてください。"
+      : "この絵のキャラがまだ決まっていません（未分類・確認待ち）。保存名に入れる名前を入れてください。"));
+    if(cands && cands.length){
+      const row = el("div", "mdl-c");
+      for(const c of cands){ const b = el("button", "tool", c); b.onclick = () => done(c); row.appendChild(b); }
+      if(cands.length > 1){ const b = el("button", "tool", cands.join("と")); b.onclick = () => done(cands.join("と")); row.appendChild(b); }
+      box.appendChild(row);
+    }
+    const inp = el("input", "mdl-i"); inp.placeholder = "名前"; inp.setAttribute("list", "mdl-names");
+    const dl = el("datalist"); dl.id = "mdl-names";
+    for(const c of swapChars){ const o = el("option"); o.value = c.name; dl.appendChild(o); }
+    box.append(inp, dl);
+    const ok = () => { const v = inp.value.trim(); if(v) done(v); else inp.focus(); };
+    inp.addEventListener("keydown", e => { if(e.key === "Enter"){ e.preventDefault(); ok(); } });
+    mdlBtns(box, "これで投入", ok, done);
+  });
+}
+async function withName(call){
+  let r = await call({});
+  if(r && r.need_name && !r.ok){
+    const nm = await askName(r.candidates || []);
+    if(!nm) return null;
+    r = await call({save_name: nm});
+  }
+  return r;
+}
+/* 服を登録する */
+function askOutfitSave(words, chara){
+  return modal("服を登録する", (box, done) => {
+    box.appendChild(el("div", "mdl-d", "名前を付けて保存すると、差し替えの「服装」から選べます。"));
+    const nm = el("input", "mdl-i"); nm.placeholder = "名前（例: 制服・私服・水着）";
+    const tx = el("textarea", "mdl-i"); tx.rows = 4; tx.value = (words || []).join(", ");
+    const sc = el("div", "seg"); let scope = chara ? "char" : "all";
+    const draw = () => { sc.innerHTML = "";
+      if(chara){ const b = el("button", scope === "char" ? "on" : "", `${chara} だけ`); b.onclick = () => { scope = "char"; draw(); }; sc.appendChild(b); }
+      const b2 = el("button", scope === "all" ? "on" : "", "どの子にも"); b2.onclick = () => { scope = "all"; draw(); }; sc.appendChild(b2); };
+    draw();
+    box.append(el("div", "mdl-l", "名前"), nm, el("div", "mdl-l", "服の語（カンマ区切り）"), tx, el("div", "mdl-l", "出す相手"), sc);
+    mdlBtns(box, "登録", async () => {
+      const name = nm.value.trim(), w = tx.value.split(/[,\n、]/).map(x=>x.trim()).filter(Boolean);
+      if(!name || !w.length){ toast("名前と服の語を入れてください", "bad"); return; }
+      const r = await postJSON("/api/outfits", {name, words: w, character: scope === "char" ? chara : null});
+      if(r.ok){ toast(`服「${name}」を登録しました`, "good"); done(true); } else toast(r.error || "登録できませんでした", "bad");
+    }, done);
+  });
+}
+
+async function loadOutfits(){
+  if(!S.current) return;
+  if(OUT.img !== S.current.id){
+    try{ OUT.cur = await api(`/api/outfit_of?id=${S.current.id}`); }catch(e){ OUT.cur = {words: [], character: null}; }
+    OUT.img = S.current.id;
+  }
+  const who = $("#swapsel").value || (OUT.cur && OUT.cur.character) || "";
+  const keep = $("#outfitsel").value;
+  try{
+    const d = await api(`/api/outfits?chara=${encodeURIComponent(who)}`);
+    OUT.usual = d.usual || []; OUT.saved = d.saved || [];
+  }catch(e){ OUT.usual = []; OUT.saved = []; }
+  const sel = $("#outfitsel");
+  sel.innerHTML = "";
+  const o0 = el("option", null, "服装：元の絵のまま"); o0.value = ""; sel.appendChild(o0);
+  if(OUT.usual.length){
+    const g = el("optgroup"); g.label = `${who} のいつもの服（台帳から）`;
+    OUT.usual.forEach((u, i) => { const o = el("option", null, `${u.words.slice(0, 5).join(", ")}${u.words.length > 5 ? " …" : ""}（${u.n}枚）`); o.value = "u:" + i; o.title = u.words.join(", "); g.appendChild(o); });
+    sel.appendChild(g);
+  }
+  if(OUT.saved.length){
+    const g = el("optgroup"); g.label = "登録した服";
+    for(const s of OUT.saved){ const o = el("option", null, s.name + (s.character ? `（${s.character}）` : "")); o.value = "s:" + s.id; o.title = s.words.join(", "); g.appendChild(o); }
+    sel.appendChild(g);
+  }
+  const oc = el("option", null, "自分で書く…"); oc.value = "custom"; sel.appendChild(oc);
+  if([...sel.options].some(o => o.value === keep)) sel.value = keep;
+  paintSwapTools();
+}
+function paintSwapTools(){
+  const v = $("#outfitsel").value;
+  $("#outfittxt").style.display = v === "custom" ? "block" : "none";
+  $("#outfitsave").style.display = (v === "custom" || v.startsWith("u:")) ? "" : "none";
+  $("#strseg").style.display = $("#swapsel").value ? "flex" : "none";
+  const any = hasSwap();
+  $("#swapgo").textContent = $("#swapsel").value ? "差し替えて投入" : "服を替えて投入";
+  $("#swapwf").textContent = ($("#swapsel").value ? "差し替えて" : "服を替えて") + " ComfyUI の画面で開く（投入しない）";
+  if(!any){ $("#swapgo").disabled = true; $("#swapwf").disabled = true; }
+}
+
+function renderSwapPreview(r){
+  const box = $("#swapprev");
+  box.innerHTML = ""; box.style.display = "block";
+  if(!r.ok){
+    box.appendChild(el("div","del", r.error || "差し替えできません"));
+    $("#swapgo").disabled = true; $("#swapwf").disabled = true;
+    return;
+  }
+  const head = el("div");
+  const what = r.to && r.from !== r.to ? `${r.from ? r.from + " → " : ""}${r.to}` : `${r.to || "キャラはこのまま"}（服だけ）`;
+  head.innerHTML = `<span class="lbl"></span>`;
+  head.firstChild.textContent = `${what}　（書き換える欄 ${r.edits.length} 個）`;
+  box.appendChild(head);
+  const e = r.edits[0] || {removed: [], added: [], after: ""};
+  const line = el("div");
+  for(const t of e.removed){ line.appendChild(el("span","del", t.trim())); line.appendChild(document.createTextNode(" ")); }
+  for(const t of e.added){ line.appendChild(el("span","add", "+ " + t)); line.appendChild(document.createTextNode(" ")); }
+  box.appendChild(el("span","lbl","入れ替え"));
+  box.appendChild(line);
+  if(e.learned && e.learned.length){
+    box.appendChild(el("span","lbl","台帳から判断して外した語"));
+    box.appendChild(el("div","del", e.learned.join(", ")));
+  }
+  box.appendChild(el("span","lbl","結果"));
+  box.appendChild(el("div","keep", e.after));
+  const sv = (r.save_changes || []).find(c => c.kind === "save");
+  box.appendChild(el("span","lbl","保存名"));
+  box.appendChild(el("div", r.need_name ? "del" : "add",
+    r.need_name ? "投入するときに、保存名に入れるキャラの名前を聞きます" : sv ? sv.after : (r.save_changes || []).length ? r.save_changes[0].after : "元の保存名のまま"));
+  $("#swapgo").disabled = false; $("#swapwf").disabled = false;
+}
+
+async function showSaveHint(d){
+  const h = $("#savehint");
+  h.textContent = "";
+  if(!d || !(+d.has_api)) return;
+  if(!$("#today").checked){ h.textContent = "元の保存名のまま投入します（日付も当時のまま）"; return; }
+  const id = d.id;
+  try{
+    const r = await postJSON("/api/swap/preview", {image_id: id, template: true});
+    if(!S.current || S.current.id !== id) return;
+    const sv = (r.save_changes || []).find(c => c.kind === "save");
+    h.textContent = r.need_name ? "保存名: 投入するときに、入れるキャラの名前を聞きます"
+      : sv ? "保存名: " + sv.after : "保存の欄が見つからないので、元のまま投入します";
+  }catch(e){ h.textContent = ""; }
+}
+$("#today") && $("#today").addEventListener("change", ()=>{ if(S.current) showSaveHint(S.current); if(hasSwap()) swapPreview(); });
+
+let _swapT = 0;
+async function swapPreview(){
+  clearTimeout(_swapT);
+  paintSwapTools();
+  if(!S.current || !hasSwap()){
+    $("#swapprev").style.display = "none";
+    return;
+  }
+  const id = S.current.id;
+  try{
+    const r = await postJSON("/api/swap/preview", Object.assign({image_id: id}, swapParams(), baseParams()));
+    if(S.current && S.current.id === id) renderSwapPreview(r);
+  }catch(e){ toast("下見に失敗しました","bad"); }
+}
+$("#swapsel").addEventListener("change", async () => { await loadOutfits(); swapPreview(); });
+$("#outfitsel").addEventListener("change", () => { paintSwapTools(); if($("#outfitsel").value === "custom") $("#outfittxt").focus(); swapPreview(); });
+$("#outfittxt").addEventListener("input", () => { clearTimeout(_swapT); _swapT = setTimeout(swapPreview, 500); });
+for(const b of document.querySelectorAll("#strseg button")) b.addEventListener("click", () => {
+  S.strength = b.dataset.s;
+  for(const x of document.querySelectorAll("#strseg button")) x.classList.toggle("on", x === b);
+  swapPreview();
+});
+$("#outfitsave").addEventListener("click", async () => {
+  const w = currentOutfit(); if(!w){ toast("登録する服の語がありません", "bad"); return; }
+  if(await askOutfitSave(w, $("#swapsel").value || (OUT.cur && OUT.cur.character))) loadOutfits();
+});
+$("#outfitfromimg").addEventListener("click", async () => {
+  if(!S.current) return;
+  const d = await api(`/api/outfit_of?id=${S.current.id}`);
+  if(!d.words.length){ toast("この絵のプロンプトに服の語が見つかりませんでした", "bad"); return; }
+  if(await askOutfitSave(d.words, d.character)) loadOutfits();
+});
+
+/* 投入の結果を知らせる（普通の投入も差し替えも） */
+function showSubmitResult(r){
+  if(!r) return;
+  if(r.ok){
+    const seeds = (r.seed_changes||[]).map(c=>c.new).join(", ");
+    const d2 = [];
+    if(r.to && r.from !== r.to && r.edits && r.edits.length) d2.push(`${r.from ? r.from + " → " : ""}${r.to}`);
+    d2.push(S.seedMode==="same" ? "seed はそのまま（完全再現）" : (seeds ? "seed: "+seeds : ""));
+    const sv = (r.save_changes || []).find(c => c.kind === "save") || (r.save_changes || [])[0];
+    if(sv) d2.push(`保存名: ${sv.after}`);
+    toast(`${r.submitted} 件を投入しました` + ($("#front").checked ? "（キューの先頭へ）" : ""), "good", d2.filter(Boolean).join("\n"));
+    pollStatus();
+  }else if(r.error && !r.results){
+    toast("投入できません","bad", r.error);
+  }else{
+    const bad = (r.results||[]).find(x=>!x.ok) || {};
+    const det = bad.detail || {};
+    let msg = det.error ? (det.error.message || JSON.stringify(det.error)) : (det.raw||"");
+    if(det.node_errors && Object.keys(det.node_errors).length)
+      msg += "\n" + JSON.stringify(det.node_errors, null, 1).slice(0,700);
+    toast(r.timeout ? "ComfyUI から返事がありません" : `ComfyUI が受け付けませんでした（${r.submitted} 件は投入済み）`, "bad", msg, 14000);
+  }
+  if(r.workflow) setTimeout(()=>openResult(r.workflow), 400);
+}
+
+async function fire(){
+  if(!S.current) return;
+  const go = $("#go"); go.disabled = true;
+  const label = go.textContent; go.textContent = "投入中…";
+  try{
+    const id = S.current.id;
+    const r = await withName(extra => postJSON("/api/requeue", Object.assign(
+      {id, open_workflow: $("#openwf").checked}, seedParams(), baseParams(), extra)));
+    showSubmitResult(r);
+  }catch(e){ toast("投入に失敗しました","bad",String(e)); }
+  go.textContent = label; go.disabled = !(S.current && S.current.has_api);
+}
+
+$("#swapgo").addEventListener("click", async ()=>{
+  if(!S.current || !hasSwap()) return;
+  const b = $("#swapgo"); b.disabled = true; const lb = b.textContent;
+  b.textContent = "投入中…";
+  try{
+    const id = S.current.id;
+    const r = await withName(extra => postJSON("/api/swap/submit", Object.assign(
+      {image_id: id, open_workflow: $("#openwf").checked}, swapParams(), seedParams(), baseParams(), extra)));
+    showSubmitResult(r);
+  }catch(e){ toast("投入に失敗しました","bad",String(e)); }
+  b.textContent = lb; b.disabled = false;
+});
+
+$("#swapwf").addEventListener("click", ()=>{ if(S.current && hasSwap()) openInComfy($("#swapwf"), true); });
+$("#openonly").addEventListener("click", ()=>openInComfy($("#openonly"), false));
+try{ const v = localStorage.getItem("souki.openwf"); if(v !== null) $("#openwf").checked = v === "1"; }catch(e){}
+$("#openwf").addEventListener("change", ()=>{ try{ localStorage.setItem("souki.openwf", $("#openwf").checked ? "1" : "0"); }catch(e){} });
+
+/* ── ComfyUI の画面で開く（ComfyUI 側の受け口 souki_bridge 経由） ── */
+const BRIDGE = {st: null};
+async function bridgeStatus(){
+  try{ BRIDGE.st = await api("/api/comfy/bridge"); }catch(e){ BRIDGE.st = null; }
+  const h = $("#bridgehint"), st = BRIDGE.st;
+  if(!h) return st;
+  if(!st || !st.online){ h.textContent = ""; return st; }
+  if(st.installed && !st.outdated){
+    h.textContent = "手直しは ComfyUI の画面で。開いたワークフローはそのまま編集して回せます。";
+  }else{
+    h.innerHTML = "";
+    h.append(st.installed ? "ComfyUI の受け口が古い版です。" : "ComfyUI の画面で開くには、ComfyUI に受け口を入れます（1 回だけ）。");
+    const b = el("button", "tool", st.installed ? "受け口を入れ直す" : "受け口を入れる");
+    b.style.marginLeft = "6px"; b.onclick = installBridge;
+    h.appendChild(b);
+  }
+  return st;
+}
+async function installBridge(dir){
+  try{
+    const r = await api("/api/comfy/bridge/install", {method:"POST",
+      headers:{"Content-Type":"application/json"}, body: JSON.stringify(dir ? {dir} : {})});
+    if(r.ok){
+      toast("ComfyUI に受け口を入れました", "good",
+        `${r.dir}\nComfyUI を一度再起動すると使えるようになります（ブラウザの ComfyUI の画面も読み直してください）。`, 14000);
+    }else if(r.need_dir){
+      const d = prompt("ComfyUI の custom_nodes フォルダの場所を入れてください\n例: C:\\ComfyUI_windows_portable\\ComfyUI\\custom_nodes");
+      if(d) return installBridge(d.trim());
+    }else{
+      toast("受け口を入れられませんでした", "bad", r.error || "", 10000);
+    }
+  }catch(e){ toast("受け口を入れられませんでした", "bad", String(e)); }
+  bridgeStatus();
+}
+function openResult(w){
+  if(w.ok && w.how === "bridge"){
+    if(w.clients > 0){
+      toast("ComfyUI の画面に開きました", "good",
+        `新しいタブ「${w.name}」として開いています。ComfyUI のタブに切り替えて、手直しして回してください。`, 8000);
+    }else{
+      const st = BRIDGE.st || {};
+      if(st.url) window.open(st.url, "souki_comfyui");
+      toast("ComfyUI の画面を開きます", "good",
+        "ComfyUI の画面が開いていなかったので、新しく開きます。開くとワークフローが読み込まれます（2 分以内）。", 9000);
+    }
+    return;
+  }
+  if(w.no_bridge){
+    const saved = w.saved && w.saved.ok;
+    toast("ComfyUI に受け口が入っていません", "bad",
+      "受け口を入れると、ComfyUI の画面に直接開けるようになります（1 回だけ・ComfyUI の再起動が要ります）。"
+      + (saved ? `\n今回は ComfyUI のワークフロー一覧に保存しました（${w.saved.name}）。` : ""),
+      14000, {label: "受け口を入れる", fn: ()=>installBridge()});
+    return;
+  }
+  toast("ComfyUI の画面に開けませんでした", "bad", w.error || "", 9000);
+}
+async function openInComfy(btn, withSwap){
+  if(!S.current) return;
+  if(!S.current.has_api){ toast("この画像にはワークフローがありません","bad"); return; }
+  if(!BRIDGE.st) await bridgeStatus();
+  btn.disabled = true;
+  try{
+    const id = S.current.id;
+    const r = await withName(extra => postJSON("/api/comfy/open", Object.assign(
+      {id}, withSwap ? swapParams() : {}, baseParams(), extra)));
+    if(r) openResult(r);
+  }catch(e){ toast("ComfyUI の画面に開けませんでした", "bad", String(e)); }
+  btn.disabled = false;
+}
+
+const UI_VERSION = "2.3.0";
+async function checkVersion(){
+  try{
+    const v = await api("/api/version");
+    const msgs = [];
+    if(v.version !== UI_VERSION)
+      msgs.push(`画面（${UI_VERSION}）とサーバ（${v.version}）の版が違います。起動.bat の窓を閉じて開き直し、ブラウザで Ctrl+F5 を押してください。`);
+    if(v.chara_error) msgs.push("キャラ判定は使えません: " + v.chara_error);
+    $("#vbanner").textContent = msgs.join("　");
+    $("#vbanner").classList.toggle("on", msgs.length > 0);
+  }catch(e){}
+}
+
+const _p = new URLSearchParams(location.search);
+if(_p.get("chara")) S.filters.chara = [_p.get("chara")];
+if(_p.get("image")) setTimeout(()=>openDrawer(+_p.get("image")), 400);
+checkVersion();
+
+setSeedMode("random");
+pollStatus();
+setInterval(pollStatus, 4000);
+boot(false);
+loadChars();
+</script>
+</body>
+</html>
