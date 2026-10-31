@@ -27,8 +27,8 @@ ComfyUI が出力した PNG に入っているワークフロー（API 形式の
 
 ## いまの状態と次の作業
 
-- 今の版は v2.3.0。
-- 次は docs/仕様_v2.4.md の「第 1 弾（v2.4.0）」、そのあと「第 2 弾（v2.5.0）」。仕様は作者と確定済みなので、そのとおりに作る。
+- 今の版は v2.4.0（docs/仕様_v2.4.md の第 1 弾）。
+- 次は同じ仕様書の「第 2 弾（v2.5.0）」。仕様は作者と確定済みなので、そのとおりに作る。
   書いていないことで迷ったら作者に聞く。
 - 版を上げるときは souki.py・chara.py・vision.py の `VERSION`、ui.html の `UI_VERSION`、chara.html の `PAGE_VERSION` を全部そろえる
   （画面とサーバの版が違うと警告が出る）。souki.py の `BRIDGE_VERSION` はブリッジのノードを変えたときだけ上げる。
@@ -100,13 +100,29 @@ ComfyUI が出力した PNG に入っているワークフロー（API 形式の
   （subprocess.Popen に DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP）。Edge が無いときは webbrowser.open。
 - 窓の大きさと位置は保存して次に使う。黒い窓を出さないよう pythonw で動かす。
 
+## v2.4.0 で入れたしくみ（souki.py）
+
+- プロンプトのたどり方は `Tracer`（`read_prompts`）。窓は `{node, key, line, title, text, role}`。
+  role は窓の名前（_meta.title）から（`window_role`）。ネガティブ側にも出てくる欄は書き換えの対象から外す。
+- 差し替えは `build_swap`（窓ごと）。キャラの窓があれば、ほかの窓からは元の子の語だけ外す。
+- 着替工房の番号は「お休みの行（// #）を除いた、上から何番目の服か」（1 から）として扱っている。
+- 保存名は `save_nodes` / `apply_save_template`（線の保存名は API で文字に、画面用は線を外す）。`{服}` 対応。
+- 画面用ワークフローの書き換えは `UIGraph`（名前つきの値・サブグラフの入口・線を外す）。
+- 参照画像: 表 `refs`・`ref_files`、控えは data/refs/<sha 先頭2>/<sha>.<拡張子>。`capture_refs`・`restore_refs`。
+- 台帳の読み直し: `reparse_ledger`。`PARSE_VERSION` を上げると、次の起動で 1 回読み直す。
+- 専用の窓: `serve --app`（起動.bat が pythonw で呼ぶ）。画面は 5 秒ごとに /api/alive、閉じるとき /api/bye。
+  `Alive`・`watch_window` が、知らせが途絶えたら仕事の終わりを待って止める。窓の大きさは config.json の "window"。
+
 ## テスト
 
-- 前の作業場所にあったテスト（偽の ComfyUI を立てて API と画面を確かめるもの）は失われたので、tests/ に作り直す。
+- `python -m unittest discover -s tests -v`（リポの一番上で）。一時フォルダに部品を写し、偽の ComfyUI（tests/fake_comfy.py）と
+  想起を立てて API を確かめる。画面は tests/ui_check.js（node の playwright）。`SOUKI_KEEP_TMP=1` で一時フォルダを残す。
+- zip は `python tests/tools/make_zip.py`（dist/souki_v<版>.zip）。
 - ComfyUI 本体は無いので、/prompt・/upload/image・/view・/object_info・/internal/folder_paths・/souki/* に答える小さな偽サーバを書き、
   `python souki.py serve --port …` を立てて API を確かめる。画面は Playwright で確かめる（クラウドの作業場所には Chromium と一緒に入っている）。
 - tests/fixtures/
   - kigae_special.ui.json / kigae_special.api.json … 着替工房の専用ノード版（画面用／API 形式）
   - kigae_standard.ui.json / kigae_standard.api.json … 着替工房の標準ノード版
   - API 形式は画面用から変換したもの（MarkdownNote などフロント専用のノードは除いてある）。中の文は見本の文。
-- Qwen-Image 2.1 の分は、公式テンプレートから同じように作る（サブグラフの中は `"外:中"` の番号に平らにする）。
+  - qwen21_edit.ui.json / qwen21_edit.api.json … Qwen-Image 2.1 の公式テンプレート（Image Edit）。
+    API 形式は tests/tools/ui_to_api.py で作った（サブグラフの中は `"外:中"` の番号に平らにする）。

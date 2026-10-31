@@ -230,6 +230,12 @@ select.tool{padding:5px 6px}
 .kv dd{margin:0;font-family:var(--mono);font-size:11.5px;color:var(--text);word-break:break-all}
 
 .taglist{display:flex;flex-wrap:wrap;gap:4px}
+.refs{display:flex;flex-wrap:wrap;gap:8px}
+.ref{width:118px;display:flex;flex-direction:column;gap:3px;font-size:11px}
+.ref img{width:118px;height:118px;object-fit:contain;background:var(--sunk);border:1px solid var(--rule);cursor:zoom-in}
+.ref-none{width:118px;height:118px;display:flex;align-items:center;justify-content:center;background:var(--sunk);border:1px dashed var(--rule);color:var(--warn)}
+.ref-slot{font-weight:600}
+.ref-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.8}
 .tag{
   font-size:11px;background:var(--raise);border:1px solid var(--rule-soft);
   border-radius:3px;padding:2px 6px;color:var(--dim);
@@ -836,7 +842,7 @@ async function validateVisible(items){
 
 const LAMPTEXT = {
   ok:"この環境で再現できます",
-  partial:"モデルファイルが見つかりません",
+  partial:"モデルファイルか参照画像が見つかりません",
   fault:"必要なノードがありません",
   nometa:"ワークフロー情報なし",
 };
@@ -959,6 +965,22 @@ function renderDetail(d){
     b.appendChild(section(`TAG (${d.tags.length})`, tl));
   }
 
+  if(d.refs && d.refs.length){
+    // 参照画像（Qwen-Image 2.1 などの image_1, image_2 …）
+    const rl = el("div","refs");
+    for(const r of d.refs){
+      const c = el("div","ref");
+      if(r.url){ const im = el("img"); im.src = r.url; im.alt = r.filename; im.loading = "lazy";
+        im.onclick = ()=>{ $("#lbimg").src = r.url; $("#lightbox").classList.add("open"); }; c.appendChild(im); }
+      else c.appendChild(el("div","ref-none","控えなし"));
+      c.appendChild(el("div","ref-slot", r.slot));
+      c.appendChild(el("div","ref-name", r.filename));
+      if(r.src_image_id){ const a = el("button","tag", "元の絵を開く"); a.title = r.src_filename || ""; a.onclick = ()=>openDrawer(r.src_image_id); c.appendChild(a); }
+      rl.appendChild(c);
+    }
+    b.appendChild(section(`参照画像 (${d.refs.length})`, rl));
+  }
+
   if(d.positive){
     const p = el("pre","txt", d.positive);
     b.appendChild(section("POSITIVE", p, copyBtn(d.positive)));
@@ -1008,10 +1030,15 @@ function renderWiring(v){
     w.appendChild(wline("欠落ノード", n, "miss"));
   for(const m of (v.missing_models||[]))
     w.appendChild(wline("欠落モデル", m.value, "warnv"));
+  const kept = new Set(((S.current && S.current.refs) || []).filter(x => x.kept).map(x => x.filename));
+  for(const m of (v.missing_images||[]))
+    w.appendChild(wline("参照画像", `${m.slot}: ${m.value}` + (kept.has(m.value) ? "（投入するとき控えから戻します）" : "（控えがありません）"), kept.has(m.value) ? "warnv" : "miss"));
   if(v.status==="fault")
     w.appendChild(wline("", "カスタムノードを入れ直すと再現できます"));
-  else
+  else if((v.missing_models||[]).length)
     w.appendChild(wline("", "モデルの場所が変わっています。投入すると失敗します"));
+  else if((v.missing_images||[]).some(m => !kept.has(m.value)))
+    w.appendChild(wline("", "参照画像を ComfyUI の input に置き直すと再現できます"));
 }
 
 function updateFire(d, v){
@@ -1281,6 +1308,8 @@ function swapParams(){
   const o = currentOutfit();
   if(v) p.to = v; else if(o) p.keep_char = true;
   if(o) p.outfit = o;
+  const ov = $("#outfitsel").value;
+  if(o && ov.startsWith("s:")){ const so = OUT.saved.find(x => String(x.id) === ov.slice(2)); if(so) p.outfit_name = so.name; }
   if(v) p.strength = S.strength;
   return p;
 }
@@ -1412,24 +1441,27 @@ function renderSwapPreview(r){
   const head = el("div");
   const what = r.to && r.from !== r.to ? `${r.from ? r.from + " → " : ""}${r.to}` : `${r.to || "キャラはこのまま"}（服だけ）`;
   head.innerHTML = `<span class="lbl"></span>`;
-  head.firstChild.textContent = `${what}　（書き換える欄 ${r.edits.length} 個）`;
+  head.firstChild.textContent = `${what}　（書き換える窓 ${r.edits.length} 個）`;
   box.appendChild(head);
-  const e = r.edits[0] || {removed: [], added: [], after: ""};
-  const line = el("div");
-  for(const t of e.removed){ line.appendChild(el("span","del", t.trim())); line.appendChild(document.createTextNode(" ")); }
-  for(const t of e.added){ line.appendChild(el("span","add", "+ " + t)); line.appendChild(document.createTextNode(" ")); }
-  box.appendChild(el("span","lbl","入れ替え"));
-  box.appendChild(line);
-  if(e.learned && e.learned.length){
-    box.appendChild(el("span","lbl","台帳から判断して外した語"));
-    box.appendChild(el("div","del", e.learned.join(", ")));
+  if(!r.edits.length) box.appendChild(el("div","keep","プロンプトは変わりません"));
+  for(const e of r.edits){
+    // 窓（文字の欄）ごとに、外す語・入れる語・結果を出す
+    if(r.edits.length > 1 || e.title) box.appendChild(el("span","lbl", "窓：" + (e.title || e.class_type || e.node)));
+    const line = el("div");
+    for(const t of e.removed){ line.appendChild(el("span","del", t.trim())); line.appendChild(document.createTextNode(" ")); }
+    for(const t of e.added){ line.appendChild(el("span","add", "+ " + t)); line.appendChild(document.createTextNode(" ")); }
+    box.appendChild(line);
+    if(e.learned && e.learned.length){
+      box.appendChild(el("span","lbl","台帳から判断して外した語"));
+      box.appendChild(el("div","del", e.learned.join(", ")));
+    }
+    box.appendChild(el("div","keep", e.after));
   }
-  box.appendChild(el("span","lbl","結果"));
-  box.appendChild(el("div","keep", e.after));
-  const sv = (r.save_changes || []).find(c => c.kind === "save");
+  if(r.kigae) box.appendChild(el("div","keep", `着替工房：服の ${r.kigae.no} 番の行だけ出し直します`));
+  const svs = (r.save_changes || []).filter(c => c.kind === "save");
   box.appendChild(el("span","lbl","保存名"));
   box.appendChild(el("div", r.need_name ? "del" : "add",
-    r.need_name ? "投入するときに、保存名に入れるキャラの名前を聞きます" : sv ? sv.after : (r.save_changes || []).length ? r.save_changes[0].after : "元の保存名のまま"));
+    r.need_name ? "投入するときに、保存名に入れるキャラの名前を聞きます" : svs.length ? svs.map(c => c.after).join("\n") : (r.save_changes || []).length ? r.save_changes[0].after : "元の保存名のまま"));
   $("#swapgo").disabled = false; $("#swapwf").disabled = false;
 }
 
@@ -1443,8 +1475,10 @@ async function showSaveHint(d){
     const r = await postJSON("/api/swap/preview", {image_id: id, template: true});
     if(!S.current || S.current.id !== id) return;
     const sv = (r.save_changes || []).find(c => c.kind === "save");
+    const svs = (r.save_changes || []).filter(c => c.kind === "save");
     h.textContent = r.need_name ? "保存名: 投入するときに、入れるキャラの名前を聞きます"
-      : sv ? "保存名: " + sv.after : "保存の欄が見つからないので、元のまま投入します";
+      : svs.length ? "保存名: " + svs.map(c => c.after).join("　／　") : "保存の欄が見つからないので、元のまま投入します";
+    if(r.kigae) h.textContent += `（着替工房：服の ${r.kigae.no} 番の行だけ）`;
   }catch(e){ h.textContent = ""; }
 }
 $("#today") && $("#today").addEventListener("change", ()=>{ if(S.current) showSaveHint(S.current); if(hasSwap()) swapPreview(); });
@@ -1492,6 +1526,7 @@ function showSubmitResult(r){
     d2.push(S.seedMode==="same" ? "seed はそのまま（完全再現）" : (seeds ? "seed: "+seeds : ""));
     const sv = (r.save_changes || []).find(c => c.kind === "save") || (r.save_changes || [])[0];
     if(sv) d2.push(`保存名: ${sv.after}`);
+    for(const x of (r.restored || [])) d2.push(x.ok ? `参照画像 ${x.slot} を控えから ComfyUI に戻しました（${x.file}）` : `参照画像 ${x.slot}: ${x.error || "戻せませんでした"}`);
     toast(`${r.submitted} 件を投入しました` + ($("#front").checked ? "（キューの先頭へ）" : ""), "good", d2.filter(Boolean).join("\n"));
     pollStatus();
   }else if(r.error && !r.results){
@@ -1579,7 +1614,7 @@ function openResult(w){
         `新しいタブ「${w.name}」として開いています。ComfyUI のタブに切り替えて、手直しして回してください。`, 8000);
     }else{
       const st = BRIDGE.st || {};
-      if(st.url) window.open(st.url, "souki_comfyui");
+      if(st.url) openWindow(st.url);
       toast("ComfyUI の画面を開きます", "good",
         "ComfyUI の画面が開いていなかったので、新しく開きます。開くとワークフローが読み込まれます（2 分以内）。", 9000);
     }
@@ -1609,13 +1644,25 @@ async function openInComfy(btn, withSwap){
   btn.disabled = false;
 }
 
-const UI_VERSION = "2.3.0";
+/* ── 専用の窓: 開いていることをサーバに知らせる（窓を閉じたら想起も終わる） ── */
+function openWindow(url){
+  postJSON("/api/open_window", {url}).then(r => { if(!r || !r.ok) window.open(url, "_blank"); })
+    .catch(() => window.open(url, "_blank"));
+}
+function alive(){
+  const g = {x: window.screenX, y: window.screenY, w: window.outerWidth, h: window.outerHeight};
+  fetch("/api/alive", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(g), keepalive: true}).catch(()=>{});
+}
+alive(); setInterval(alive, 5000);
+window.addEventListener("pagehide", () => { try{ navigator.sendBeacon("/api/bye", ""); }catch(e){} });
+
+const UI_VERSION = "2.4.0";
 async function checkVersion(){
   try{
     const v = await api("/api/version");
     const msgs = [];
     if(v.version !== UI_VERSION)
-      msgs.push(`画面（${UI_VERSION}）とサーバ（${v.version}）の版が違います。起動.bat の窓を閉じて開き直し、ブラウザで Ctrl+F5 を押してください。`);
+      msgs.push(`画面（${UI_VERSION}）とサーバ（${v.version}）の版が違います。想起の窓を閉じてから 起動.bat を開き直し、Ctrl+F5 を押してください。`);
     if(v.chara_error) msgs.push("キャラ判定は使えません: " + v.chara_error);
     $("#vbanner").textContent = msgs.join("　");
     $("#vbanner").classList.toggle("on", msgs.length > 0);

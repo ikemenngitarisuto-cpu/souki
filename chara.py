@@ -48,7 +48,7 @@ from PIL import Image
 
 import vision as V
 
-VERSION = "2.3.0"
+VERSION = "2.4.0"
 if V.VERSION != VERSION:
     raise ImportError(
         f"vision.py の版（{V.VERSION}）が chara.py（{VERSION}）と違います。"

@@ -326,7 +326,15 @@ table.t td.num{font-family:var(--mono)}
 
 <script>
 "use strict";
-const PAGE_VERSION = "2.3.0";
+/* 専用の窓: 開いていることをサーバに知らせる（窓を閉じたら想起も終わる） */
+function alive(){
+  const g = {x: window.screenX, y: window.screenY, w: window.outerWidth, h: window.outerHeight};
+  fetch("/api/alive", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(g), keepalive: true}).catch(()=>{});
+}
+alive(); setInterval(alive, 5000);
+window.addEventListener("pagehide", () => { try{ navigator.sendBeacon("/api/bye", ""); }catch(e){} });
+
+const PAGE_VERSION = "2.4.0";
 const $ = s => document.querySelector(s);
 const el = (t, c, x) => { const n = document.createElement(t); if (c) n.className = c; if (x != null) n.textContent = x; return n; };
 const fmt = n => (n == null ? "—" : Number(n).toLocaleString());
@@ -410,7 +418,7 @@ async function checkVersion(){
     const v = await api("/api/version");
     const msgs = [];
     if(v.version !== PAGE_VERSION)
-      msgs.push(`画面（${PAGE_VERSION}）とサーバ（${v.version}）の版が違います。起動.bat の窓を閉じて開き直し、ブラウザで Ctrl+F5 を押してください。`);
+      msgs.push(`画面（${PAGE_VERSION}）とサーバ（${v.version}）の版が違います。想起の窓を閉じてから 起動.bat を開き直し、Ctrl+F5 を押してください。`);
     if(v.chara_error)
       msgs.push(`キャラ判定の部品を読み込めませんでした: ${v.chara_error}　— 起動.bat から起動してください。`);
     else if(v.chara && v.chara !== v.version)
@@ -1033,7 +1041,7 @@ async function openFace(iid){
   }
   const bs = el("div", "row");
   const sim = el("button", "btn", "似た顔を探す"); sim.onclick = () => { closeDrawer(); location.hash = "#/similar/" + iid; };
-  const led = el("a", "btn ghost", "台帳で開く"); led.href = "/?image=" + d.image_id; led.target = "_blank";
+  const led = el("a", "btn ghost", "台帳で開く"); led.href = "/?image=" + d.image_id;
   bs.append(sim, led);
   b.appendChild(bs);
   $("#drawer").classList.add("open"); $("#drawer").setAttribute("aria-hidden", "false");
@@ -1462,7 +1470,7 @@ VIEWS.char = async (page, r) => {
   head.append(back, nm, el("span", "sub", `確定 ${fmt(c.confirmed)} ・ 自動 ${fmt(c.auto)}`));
   const sp = el("div"); sp.style.flex = "1"; head.appendChild(sp);
   head.appendChild(staleLink());
-  const led = el("a", "tool", "台帳でこの子の絵を見る"); led.href = "/?chara=" + encodeURIComponent(c.name); led.target = "_blank";
+  const led = el("a", "tool", "台帳でこの子の絵を見る"); led.href = "/?chara=" + encodeURIComponent(c.name);
   const mg = el("button", "tool", "統合…");
   mg.title = "同じ子が 2 人に分かれているとき、別のキャラへまとめます";
   mg.onclick = async () => {

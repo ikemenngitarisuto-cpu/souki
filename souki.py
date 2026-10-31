@@ -46,7 +46,7 @@ except ImportError:
     sys.stderr.write("Pillow が必要です:  pip install Pillow\n")
     raise
 
-VERSION = "2.3.0"
+VERSION = "2.4.0"
 APP_NAME = "想起"
 APP_DIR = Path(__file__).resolve().parent
 DATA_DIR = APP_DIR / "data"
@@ -154,6 +154,29 @@ CREATE TABLE IF NOT EXISTS meta (
     val TEXT
 );
 
+-- 参照画像: どの絵の、どの枠（image_1 …）に、どのファイルを入れたか
+CREATE TABLE IF NOT EXISTS refs (
+    image_id  INTEGER NOT NULL,
+    slot      TEXT NOT NULL,
+    node      TEXT,
+    filename  TEXT NOT NULL,
+    sha       TEXT
+);
+CREATE INDEX IF NOT EXISTS ix_refs_image ON refs(image_id);
+CREATE INDEX IF NOT EXISTS ix_refs_sha   ON refs(sha);
+-- 参照画像の控え（data/refs。中身が同じものは 1 つ）
+CREATE TABLE IF NOT EXISTS ref_files (
+    sha          TEXT PRIMARY KEY,
+    ext          TEXT,
+    size         INTEGER,
+    width        INTEGER,
+    height       INTEGER,
+    dhash        TEXT,
+    src_image_id INTEGER,
+    first_name   TEXT,
+    saved_at     REAL
+);
+
 CREATE TABLE IF NOT EXISTS outfits (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
@@ -232,33 +255,349 @@ def find_sampler_nodes(prompt: dict) -> list[str]:
     return out
 
 
-def _collect_text(prompt: dict, nid, seen: set, depth: int = 0) -> list[str]:
-    """ノードから遡って、実際に書かれたテキストを集める。"""
-    if depth > 12:
-        return []
-    key = str(nid)
-    if key in seen:
-        return []
-    seen.add(key)
-    node = prompt.get(key)
-    if not isinstance(node, dict):
-        return []
-    inputs = node.get("inputs") or {}
-    found = []
-    for k in TEXT_KEYS:
+# --- プロンプトのたどり方 ---------------------------------------------------
+#
+# サンプラの positive / negative から線をさかのぼって、人が書いた文字の欄
+# （＝「窓」）を集める。窓は {node, key, line, title, text, role} の形。
+#   node  … API 形式のノード番号（サブグラフの中は "外:中"）
+#   key   … そのノードの入力の名前
+#   line  … 着替工房の服の窓のように、1 行だけを指すときの行番号（それ以外は None）
+#   role  … 窓の名前から読んだ役目（"chara" / "outfit" / None）
+# 同時に、実際にモデルへ入る文（つないだ・置き換えたあとの文）も組み立てる。
+
+# 文字が入っている欄の名前
+STR_KEYS = ("text", "text_g", "text_l", "prompt", "string", "positive", "wildcard_text",
+            "value", "populated_text", "text_positive", "string_a", "string_b", "string_c",
+            "string_d", "text_a", "text_b", "text_c", "text_d", "text1", "text2", "text3",
+            "text4", "source")
+# 決して読まない欄（区切り・正規表現・置き換え先・システムプロンプト・ネガティブ）
+SKIP_KEYS = {"delimiter", "separator", "sep", "regex_pattern", "pattern", "replace",
+             "replacement", "replace_with", "find", "search", "substring", "system_prompt",
+             "negative", "negative_prompt", "text_negative", "neg", "clean_whitespace",
+             "case_insensitive", "multiline", "dotall", "count"}
+# 文字を運ばない線（ここから先はたどらない）
+NON_TEXT_KEYS = {"clip", "model", "vae", "image", "images", "pixels", "latent", "latent_image",
+                 "samples", "mask", "control_net", "upscale_model", "clip_vision",
+                 "clip_vision_output", "style_model", "audio", "video", "noise", "guider",
+                 "sigmas", "sampler", "seed", "noise_seed", "width", "height", "batch_size"}
+KIGAE_CLASS = "KigaeKoboPrompt"
+KIGAE_WINDOWS = ("品質・画風", "キャラ", "服", "ポーズ・表情", "背景・構図")
+CHARA_WORDS = ("キャラ", "character", "chara", "人物", "容姿", "見た目")
+OUTFIT_WORDS = ("服", "衣装", "outfit", "cloth", "costume", "コスチューム", "wear")
+PROSE_CLASSES = ("TextEncodeQwenImage", "TextEncodeQwen")
+_LABEL_RE = re.compile(r"^\s*【([^】]*)】\s*")
+
+
+def node_title(node: dict) -> str:
+    t = ((node or {}).get("_meta") or {}).get("title")
+    return str(t) if t else ""
+
+
+def window_role(title: str) -> str | None:
+    t = (title or "").lower()
+    if not t:
+        return None
+    if any(w in t for w in ("ネガ", "negative")):
+        return "negative"
+    if any(w.lower() in t for w in OUTFIT_WORDS):
+        return "outfit"
+    if any(w.lower() in t for w in CHARA_WORDS):
+        return "chara"
+    return None
+
+
+def kigae_lines(text: str) -> list:
+    """服の窓の行。[(行番号, ラベル, 中身)]。// や # で始まる行・空の行は除く。"""
+    out = []
+    for i, ln in enumerate(str(text or "").split("\n")):
+        s = ln.strip()
+        if not s or s.startswith("//") or s.startswith("#"):
+            continue
+        m = _LABEL_RE.match(s)
+        label = m.group(1).strip() if m else ""
+        body = s[m.end():].strip() if m else s
+        out.append((i, label, body))
+    return out
+
+
+KIGAE_FILE_RE = re.compile(r"^(\d{1,3})_")
+
+
+def kigae_number_from_filename(filename: str | None) -> int | None:
+    """着替工房/01_メイド_00001_.png の 01。"""
+    if not filename:
+        return None
+    m = KIGAE_FILE_RE.match(Path(str(filename)).name)
+    return int(m.group(1)) if m else None
+
+
+def _switch_side(inputs: dict):
+    """切り替えノードの、いま有効な側の欄の名前。決まらなければ None。"""
+    for k in ("switch", "boolean", "condition", "select", "on"):
         v = inputs.get(k)
-        if isinstance(v, str) and v.strip():
-            found.append(v.strip())
-    if found:
-        return found
-    # テキストが直接なければ、リンクをたどる
-    for v in inputs.values():
-        if is_link(v):
-            found += _collect_text(prompt, v[0], seen, depth + 1)
-    return found
+        if isinstance(v, bool) or (isinstance(v, (int, float)) and not is_link(v)):
+            if "on_true" in inputs or "on_false" in inputs:
+                return "on_true" if bool(v) else "on_false"
+            if "true" in inputs or "false" in inputs:
+                return "true" if bool(v) else "false"
+    return None
 
 
-def extract_workflow_info(prompt: dict) -> dict:
+class Tracer:
+    """1 つの API 形式ワークフローを読むための道具。"""
+
+    def __init__(self, prompt: dict, filename: str | None = None):
+        self.p = prompt
+        self.filename = filename
+        self.kigae_no = kigae_number_from_filename(filename)
+        self.prose = False
+
+    # -- 着替工房の専用ノード ------------------------------------------------
+    def kigae_selected(self, nid: str):
+        """その絵の服の行 (行番号, ラベル, 中身, 番号) か None（全部の行）。"""
+        inputs = (self.p.get(nid) or {}).get("inputs") or {}
+        lines = kigae_lines(inputs.get("服") if isinstance(inputs.get("服"), str) else "")
+        no = self.kigae_no
+        mode = str(inputs.get("服の出し方") or "")
+        if no is None and "番号" in mode:
+            v = inputs.get("番号")
+            no = int(v) if isinstance(v, (int, float)) and not is_link(v) else None
+        if no is None or not lines:
+            return None
+        if 1 <= no <= len(lines):
+            i, label, body = lines[no - 1]
+            return (i, label, body, no)
+        return None
+
+    def _kigae(self, nid: str, node: dict, seen, depth):
+        inputs = node.get("inputs") or {}
+        title = node_title(node)
+        parts, segs = [], []
+        sel = self.kigae_selected(nid)
+        for k in KIGAE_WINDOWS:
+            v = inputs.get(k)
+            role = "chara" if k == "キャラ" else "outfit" if k == "服" else None
+            if is_link(v):
+                t, s = self.trace(v, seen, depth + 1)
+                for x in s:
+                    x.setdefault("role", role)
+                segs += s
+                if t:
+                    parts.append(t)
+                continue
+            if not isinstance(v, str):
+                continue
+            if k == "服":
+                if sel is not None:
+                    i, label, body, no = sel
+                    segs.append({"node": nid, "key": k, "line": i, "label": label, "no": no,
+                                 "title": f"{title or KIGAE_CLASS}：{k}", "text": body,
+                                 "role": role})
+                    if body:
+                        parts.append(body)
+                else:
+                    for i, label, body in kigae_lines(v):
+                        segs.append({"node": nid, "key": k, "line": i, "label": label,
+                                     "title": f"{title or KIGAE_CLASS}：{k}", "text": body,
+                                     "role": role})
+                        if body:
+                            parts.append(body)
+                continue
+            segs.append({"node": nid, "key": k, "line": None,
+                         "title": f"{title or KIGAE_CLASS}：{k}", "text": v, "role": role})
+            if v.strip():
+                parts.append(v.strip())
+        return ", ".join(parts), segs
+
+    # -- 本体 -----------------------------------------------------------------
+    def trace(self, link, seen=None, depth: int = 0):
+        """線 [ノード番号, 出口番号] の先にある文を (組み立てた文, 窓の一覧) で返す。"""
+        if seen is None:
+            seen = set()
+        if not is_link(link) or depth > 40:
+            return "", []
+        nid, slot = str(link[0]), int(link[1])
+        if (nid, slot) in seen:
+            return "", []
+        seen.add((nid, slot))
+        node = self.p.get(nid)
+        if not isinstance(node, dict):
+            return "", []
+        ct = str(node.get("class_type", ""))
+        inputs = node.get("inputs") or {}
+        title = node_title(node)
+
+        if ct == KIGAE_CLASS:
+            return self._kigae(nid, node, seen, depth) if slot == 0 else ("", [])
+
+        def take(key):
+            v = inputs.get(key)
+            if is_link(v):
+                t, s = self.trace(v, seen, depth + 1)
+                return t, s
+            if isinstance(v, str):
+                return v.strip(), [{"node": nid, "key": key, "line": None, "title": title,
+                                    "text": v, "role": window_role(title), "class_type": ct}]
+            return "", []
+
+        # 切り替え: 有効な側だけ
+        side = _switch_side(inputs)
+        if side:
+            return take(side)
+
+        # プロンプトとネガティブを 1 つで持つノード（TextEncodeQwenImage21 など）
+        if "negative_prompt" in inputs and ("prompt" in inputs or "positive_prompt" in inputs):
+            if any(c.lower() in ct.lower() for c in PROSE_CLASSES):
+                self.prose = True
+            if slot == 1:
+                return take("negative_prompt")
+            return take("prompt" if "prompt" in inputs else "positive_prompt")
+
+        # positive / negative を通すノード（ControlNet など）は、出口で読み分ける
+        if is_link(inputs.get("positive")) and is_link(inputs.get("negative")):
+            return take("negative" if slot == 1 else "positive")
+
+        # 文字を作り替えるノード
+        lc = ct.lower()
+        if "concat" in lc or "join" in lc:
+            keys = [k for k in inputs if k not in SKIP_KEYS and k not in NON_TEXT_KEYS
+                    and (is_link(inputs[k]) or isinstance(inputs[k], str))]
+            delim = inputs.get("delimiter", inputs.get("separator", ", "))
+            delim = delim if isinstance(delim, str) else ", "
+            delim = delim.replace("\\n", "\n")
+            texts, segs = [], []
+            for k in keys:
+                t, s = take(k)
+                segs += s
+                if t:
+                    texts.append(t)
+            return delim.join(texts), segs
+        if "regex" in lc and ("replace" in lc or "sub" in lc):
+            t, segs = take("string") if "string" in inputs else take("text")
+            pat, rep = inputs.get("regex_pattern", inputs.get("pattern")), inputs.get("replace", "")
+            if isinstance(pat, str) and isinstance(rep, str):
+                flags = 0
+                if inputs.get("case_insensitive"):
+                    flags |= re.IGNORECASE
+                if inputs.get("multiline"):
+                    flags |= re.MULTILINE
+                if inputs.get("dotall"):
+                    flags |= re.DOTALL
+                try:
+                    cnt = inputs.get("count")
+                    t = re.sub(pat, rep.replace("\\n", "\n"), t, count=int(cnt or 0), flags=flags)
+                except Exception:
+                    pass
+            return t, segs
+        if "replace" in lc and isinstance(inputs.get("find"), str):
+            t, segs = take("string") if "string" in inputs else take("text")
+            rep = inputs.get("replace")
+            if isinstance(rep, str) and inputs["find"]:
+                t = t.replace(inputs["find"], rep)
+            return t, segs
+        if "textgenerate" in lc or "llm" in lc or "enhanc" in lc:
+            # 生成した文はファイルに残らないので、元にした人の文を読む
+            for k in ("prompt", "text", "string"):
+                if k in inputs:
+                    return take(k)
+            return "", []
+
+        # ふつうのノード: 文字の欄があればそれ、なければ線をたどる
+        texts, segs, hit = [], [], False
+        for k in STR_KEYS:
+            v = inputs.get(k)
+            if isinstance(v, str):
+                hit = True
+                segs.append({"node": nid, "key": k, "line": None, "title": title, "text": v,
+                             "role": window_role(title), "class_type": ct})
+                if v.strip():
+                    texts.append(v.strip())
+        if hit:
+            return "\n".join(texts), segs
+        for k, v in inputs.items():
+            if not is_link(v) or k in SKIP_KEYS or k in NON_TEXT_KEYS:
+                continue
+            if k.startswith(("images.", "image_", "image")):
+                continue
+            t, s = self.trace(v, seen, depth + 1)
+            segs += s
+            if t:
+                texts.append(t)
+        return "\n".join(texts), segs
+
+    # -- サンプラから ---------------------------------------------------------
+    def roots(self) -> list:
+        """positive / negative を受けるノード（サンプラ・ガイダ）。steps が多い順。"""
+        out = []
+        for nid, node in self.p.items():
+            if not isinstance(node, dict):
+                continue
+            lc = str(node.get("class_type", "")).lower()
+            inputs = node.get("inputs") or {}
+            if not ("sampler" in lc or "guider" in lc):
+                continue
+            pos = inputs.get("positive", inputs.get("conditioning"))
+            if is_link(pos):
+                score = sum(1 for k in ("steps", "cfg", "sampler_name") if k in inputs)
+                out.append((score, nid))
+        out.sort(key=lambda x: -x[0])
+        return [n for _, n in out]
+
+    def read(self) -> dict:
+        """positive・negative の文と窓。"""
+        pos_text = neg_text = None
+        pos, neg = [], []
+        seen_p, seen_n = set(), set()
+        for nid in self.roots():
+            inputs = self.p[nid].get("inputs") or {}
+            pl = inputs.get("positive", inputs.get("conditioning"))
+            t, s = self.trace(pl, set())
+            if pos_text is None and t:
+                pos_text = t
+            for x in s:
+                k = (x["node"], x["key"], x.get("line"))
+                if k not in seen_p:
+                    seen_p.add(k)
+                    pos.append(x)
+            nl = inputs.get("negative")
+            if is_link(nl):
+                t, s = self.trace(nl, set())
+                if neg_text is None and t:
+                    neg_text = t
+                for x in s:
+                    k = (x["node"], x["key"], x.get("line"))
+                    if k not in seen_n:
+                        seen_n.add(k)
+                        neg.append(x)
+        # ネガティブにも入っている窓は、書き換えの対象にしない
+        neg_keys = {(x["node"], x["key"], x.get("line")) for x in neg}
+        neg_fields = {(x["node"], x["key"]) for x in neg}
+        pos = [x for x in pos if (x["node"], x["key"], x.get("line")) not in neg_keys
+               and (x["node"], x["key"]) not in neg_fields and x.get("role") != "negative"]
+        return {"positive": pos_text, "negative": neg_text, "pos": pos, "neg": neg,
+                "neg_fields": neg_fields, "prose": self.prose}
+
+
+def read_prompts(prompt: dict, filename: str | None = None) -> dict:
+    return Tracer(prompt, filename).read()
+
+
+PROSE_SPLIT = re.compile(r"[,、\n]")
+
+
+def looks_like_prose(text: str | None) -> bool:
+    """文章で書いたプロンプトか（タグの並びではないか）。"""
+    if not text:
+        return False
+    chunks = [c.strip() for c in PROSE_SPLIT.split(text) if c.strip()]
+    if not chunks:
+        return False
+    words = [len(c.split()) for c in chunks]
+    long = sum(1 for w in words if w >= 5)
+    return long / len(chunks) >= 0.5 or bool(re.search(r"[.!?。]\s", text + " ")) and long >= 1
+
+
+def extract_workflow_info(prompt: dict, filename: str | None = None) -> dict:
     """API形式ワークフローから台帳に載せる情報を抜き出す。"""
     info = {
         "checkpoint": None,
@@ -272,6 +611,8 @@ def extract_workflow_info(prompt: dict) -> dict:
         "loras": [],
         "node_types": [],
         "model_files": [],
+        "prose": False,
+        "refs": [],
     }
 
     node_types, model_files = set(), set()
@@ -333,32 +674,29 @@ def extract_workflow_info(prompt: dict) -> dict:
             if isinstance(v, (int, float)) and info["seed"] is None:
                 info["seed"] = str(int(v))
 
-        pos = inputs.get("positive")
-        neg = inputs.get("negative")
-        if is_link(pos):
-            t = _collect_text(prompt, pos[0], set())
-            if t:
-                info["positive"] = "\n".join(t)
-        if is_link(neg):
-            t = _collect_text(prompt, neg[0], set())
-            if t:
-                info["negative"] = "\n".join(t)
+    rd = read_prompts(prompt, filename)
+    if rd["positive"]:
+        info["positive"] = rd["positive"]
+    if rd["negative"]:
+        info["negative"] = rd["negative"]
 
-    # サンプラが無い / 拾えなかった場合は CLIPTextEncode を順に見る
+    # サンプラが無い / 拾えなかった場合は CLIPTextEncode を順に見る（ネガティブは選ばない）
     if not info["positive"]:
         texts = []
         for nid, node in prompt.items():
             if not isinstance(node, dict):
                 continue
             if "cliptextencode" in str(node.get("class_type", "")).lower():
+                if (str(nid), "text") in rd["neg_fields"] or window_role(node_title(node)) == "negative":
+                    continue
                 v = (node.get("inputs") or {}).get("text")
                 if isinstance(v, str) and v.strip():
                     texts.append((nid, v.strip()))
         if texts:
             texts.sort(key=lambda x: str(x[0]))
             info["positive"] = texts[0][1]
-            if len(texts) > 1 and not info["negative"]:
-                info["negative"] = texts[1][1]
+    info["prose"] = bool(rd["prose"] or looks_like_prose(info["positive"]))
+    info["refs"] = find_ref_images(prompt)
 
     if info["seed"] is None:
         for nid, node in prompt.items():
@@ -373,6 +711,59 @@ def extract_workflow_info(prompt: dict) -> dict:
                 break
 
     return info
+
+
+# --- 参照画像（Qwen-Image 2.1 などの image_1, image_2 …） --------------------
+
+REF_KEY_RE = re.compile(r"^(?:images\.)?(image_?\d+)$")
+LOAD_IMAGE_KEYS = ("image", "image_path", "filename")
+
+
+def _trace_image(prompt: dict, link, depth: int = 0):
+    """画像の線をさかのぼって、Load Image のノードとファイル名を探す。"""
+    if not is_link(link) or depth > 12:
+        return None
+    nid = str(link[0])
+    node = prompt.get(nid)
+    if not isinstance(node, dict):
+        return None
+    ct = str(node.get("class_type", ""))
+    inputs = node.get("inputs") or {}
+    if "loadimage" in ct.lower():
+        for k in LOAD_IMAGE_KEYS:
+            v = inputs.get(k)
+            if isinstance(v, str) and v:
+                return {"node": nid, "key": k, "file": v, "class_type": ct}
+        return None
+    for k in ("image", "images", "pixels", "image1", "source"):
+        if is_link(inputs.get(k)):
+            return _trace_image(prompt, inputs[k], depth + 1)
+    return None
+
+
+def find_ref_images(prompt: dict) -> list:
+    """参照画像の枠（image_1 …）と、そこへ入れた絵のファイル名。"""
+    out, seen = [], set()
+    for nid, node in prompt.items():
+        if not isinstance(node, dict):
+            continue
+        inputs = node.get("inputs") or {}
+        if not ("negative_prompt" in inputs and "prompt" in inputs):
+            continue
+        for k, v in inputs.items():
+            m = REF_KEY_RE.match(k)
+            if not m or not is_link(v):
+                continue
+            hit = _trace_image(prompt, v)
+            if not hit:
+                continue
+            slot = m.group(1).replace("image", "image_").replace("__", "_")
+            if slot in seen:
+                continue
+            seen.add(slot)
+            out.append(dict(hit, slot=slot, encoder=str(nid)))
+    out.sort(key=lambda r: int(re.sub(r"\D", "", r["slot"]) or 0))
+    return out
 
 
 # --------------------------------------------------------------------------
@@ -511,7 +902,7 @@ def scan_file(path: Path, root: Path, want_thumb: bool) -> dict | None:
         "cfg": None, "seed": None,
         "prompt_json": None, "workflow_json": None,
         "node_types": None, "model_files": None,
-        "loras": [], "tags": [], "_thumb": None,
+        "loras": [], "tags": [], "refs": [], "_thumb": None,
         "indexed_at": time.time(),
     }
     if rec["folder"] == ".":
@@ -537,14 +928,16 @@ def scan_file(path: Path, root: Path, want_thumb: bool) -> dict | None:
         if prompt:
             rec["has_api"] = 1
             rec["prompt_json"] = json.dumps(prompt, ensure_ascii=False, separators=(",", ":"))
-            info = extract_workflow_info(prompt)
+            info = extract_workflow_info(prompt, path.name)
             for k in ("checkpoint", "positive", "negative", "sampler",
                       "scheduler", "steps", "cfg", "seed"):
                 rec[k] = info[k]
             rec["loras"] = info["loras"]
             rec["node_types"] = json.dumps(info["node_types"], ensure_ascii=False)
             rec["model_files"] = json.dumps(info["model_files"], ensure_ascii=False)
-            rec["tags"] = normalize_tags(info["positive"])
+            # 文章で書いたプロンプトはタグ一覧に入れない（検索欄では探せる）
+            rec["tags"] = [] if info["prose"] else normalize_tags(info["positive"])
+            rec["refs"] = info["refs"]
     return rec
 
 
@@ -761,6 +1154,7 @@ def run_index(dirs: list[str], full: bool = False, workers: int = 6,
             cur.execute(f"DELETE FROM images WHERE id IN ({qm})", ids)
             cur.execute(f"DELETE FROM loras  WHERE image_id IN ({qm})", ids)
             cur.execute(f"DELETE FROM tags   WHERE image_id IN ({qm})", ids)
+            cur.execute(f"DELETE FROM refs   WHERE image_id IN ({qm})", ids)
             if chara_mod is not None:
                 chara_mod.purge_images(con, ids)
             for iid in ids:
@@ -804,6 +1198,7 @@ def _flush(con, cur, batch: list[dict], known: dict) -> list[int]:
             fresh.append(iid)
         cur.execute("DELETE FROM loras WHERE image_id=?", (iid,))
         cur.execute("DELETE FROM tags  WHERE image_id=?", (iid,))
+        write_refs(cur, iid, rec.get("refs") or [])
         if rec["loras"]:
             cur.executemany(
                 "INSERT INTO loras(image_id,name,strength) VALUES(?,?,?)",
@@ -824,6 +1219,226 @@ def _flush(con, cur, batch: list[dict], known: dict) -> list[int]:
                 pass
     con.commit()
     return fresh
+
+
+# --------------------------------------------------------------------------
+# 参照画像の控え（data/refs）
+# --------------------------------------------------------------------------
+
+REF_DIR = DATA_DIR / "refs"
+
+
+def write_refs(cur, iid: int, refs: list) -> None:
+    """その絵の参照画像の記録を書き直す。控えの印（sha）は、同じ枠・同じファイル名なら残す。"""
+    old = {(r[0], r[1]): r[2] for r in cur.execute(
+        "SELECT slot, filename, sha FROM refs WHERE image_id=?", (iid,))}
+    cur.execute("DELETE FROM refs WHERE image_id=?", (iid,))
+    for r in refs or []:
+        cur.execute("INSERT INTO refs(image_id, slot, node, filename, sha) VALUES(?,?,?,?,?)",
+                    (iid, r["slot"], r.get("node"), r["file"], old.get((r["slot"], r["file"]))))
+
+
+def ref_file_path(sha: str, ext: str | None = None) -> Path:
+    return REF_DIR / sha[:2] / f"{sha}{ext or '.png'}"
+
+
+def comfy_input_dirs(cfg: dict) -> list[Path]:
+    out = []
+    if cfg.get("comfy_input"):
+        out.append(Path(cfg["comfy_input"]))
+    for root in comfy_roots(cfg):
+        out.append(root / "input")
+    return [d for d in out if d.is_dir()]
+
+
+def _split_input_name(name: str) -> tuple[str, str]:
+    """LoadImage の値（"sub/a.png [input]" など）を (subfolder, filename) に。"""
+    n = re.sub(r"\s*\[(input|output|temp)\]\s*$", "", str(name or "")).replace("\\", "/")
+    if "/" in n:
+        sub, fn = n.rsplit("/", 1)
+        return sub, fn
+    return "", n
+
+
+def read_input_file(cfg: dict, base: str, name: str) -> bytes | None:
+    """ComfyUI の input にある絵を読む。フォルダから直接、だめなら /view で。"""
+    sub, fn = _split_input_name(name)
+    for d in comfy_input_dirs(cfg):
+        p = d / sub / fn if sub else d / fn
+        try:
+            if p.is_file():
+                return p.read_bytes()
+        except OSError:
+            pass
+    try:
+        qs = urllib.parse.urlencode({"filename": fn, "subfolder": sub, "type": "input"})
+        with urllib.request.urlopen(f"{base.rstrip('/')}/view?{qs}", timeout=20) as r:
+            if r.status == 200:
+                return r.read()
+    except Exception:
+        pass
+    return None
+
+
+def capture_refs(cfg: dict, base: str, image_ids=None, limit: int = 400) -> dict:
+    """控えのない参照画像を ComfyUI の input から写しておく。中身が同じものは 1 つ。
+    台帳の絵と同じ絵なら「元の絵」としてつなぐ。"""
+    import hashlib
+    con = connect()
+    try:
+        if image_ids:
+            qm = ",".join("?" * len(image_ids))
+            names = [r[0] for r in con.execute(
+                f"SELECT DISTINCT filename FROM refs WHERE sha IS NULL AND image_id IN ({qm})",
+                list(image_ids))]
+        else:
+            names = [r[0] for r in con.execute(
+                "SELECT DISTINCT filename FROM refs WHERE sha IS NULL LIMIT ?", (limit,))]
+        got = missing = 0
+        for name in names:
+            data = read_input_file(cfg, base, name)
+            if not data:
+                missing += 1
+                continue
+            sha = hashlib.sha256(data).hexdigest()
+            row = con.execute("SELECT sha FROM ref_files WHERE sha=?", (sha,)).fetchone()
+            if not row:
+                ext = Path(_split_input_name(name)[1]).suffix.lower() or ".png"
+                w = h = dh = None
+                try:
+                    with Image.open(io.BytesIO(data)) as im:
+                        w, h = im.size
+                        im.load()
+                        dh = useful_hash(dhash(im))
+                except Exception:
+                    pass
+                fp = ref_file_path(sha, ext)
+                fp.parent.mkdir(parents=True, exist_ok=True)
+                fp.write_bytes(data)
+                src = None
+                if dh:
+                    r = con.execute("SELECT id FROM images WHERE dhash=? AND width=? AND height=? "
+                                    "ORDER BY mtime LIMIT 1", (dh, w, h)).fetchone()
+                    src = r[0] if r else None
+                con.execute("INSERT OR REPLACE INTO ref_files(sha, ext, size, width, height, dhash, "
+                            "src_image_id, first_name, saved_at) VALUES(?,?,?,?,?,?,?,?,?)",
+                            (sha, ext, len(data), w, h, dh, src, name, time.time()))
+            con.execute("UPDATE refs SET sha=? WHERE filename=? AND sha IS NULL", (sha, name))
+            got += 1
+        con.commit()
+        return {"captured": got, "missing": missing}
+    finally:
+        con.close()
+
+
+def link_ref_sources() -> int:
+    """控えのうち、まだ元の絵が分かっていないものを台帳と突き合わせる（新しく台帳に載った絵）。"""
+    con = connect()
+    try:
+        n = 0
+        for sha, dh, w, h in list(con.execute(
+                "SELECT sha, dhash, width, height FROM ref_files WHERE src_image_id IS NULL "
+                "AND dhash IS NOT NULL")):
+            r = con.execute("SELECT id FROM images WHERE dhash=? AND width=? AND height=? "
+                            "ORDER BY mtime LIMIT 1", (dh, w, h)).fetchone()
+            if r:
+                con.execute("UPDATE ref_files SET src_image_id=? WHERE sha=?", (r[0], sha))
+                n += 1
+        con.commit()
+        return n
+    finally:
+        con.close()
+
+
+def image_refs(image_id: int) -> list:
+    rows = q("SELECT r.slot, r.node, r.filename, r.sha, f.ext, f.width, f.height, f.src_image_id "
+             "FROM refs r LEFT JOIN ref_files f ON f.sha=r.sha WHERE r.image_id=?", (image_id,))
+    rows.sort(key=lambda r: int(re.sub(r"\D", "", r["slot"]) or 0))
+    for r in rows:
+        r["kept"] = bool(r["sha"] and r["ext"] and ref_file_path(r["sha"], r["ext"]).exists())
+        r["url"] = f"/ref/{r['sha']}" if r["kept"] else None
+        if r["src_image_id"]:
+            s = q("SELECT filename FROM images WHERE id=?", (r["src_image_id"],))
+            r["src_filename"] = s[0]["filename"] if s else None
+    return rows
+
+
+# --------------------------------------------------------------------------
+# 台帳の読み直し（読み取り方を直した版で、保存してあるワークフローから）
+# --------------------------------------------------------------------------
+
+PARSE_VERSION = "2.4.0"      # 読み取り方を変えたら上げる。上がっていれば起動時に 1 回読み直す
+
+
+def reparse_ledger(progress=None, force: bool = False) -> dict:
+    """保存してあるワークフロー（prompt_json）から、ポジティブ・ネガティブ・タグ・参照画像を
+    読み直す。画像ファイルは読まない。直った絵は、キャラ帳の特徴語も読み直す。"""
+    con = connect()
+    cur = con.cursor()
+    st = {"checked": 0, "changed": 0, "multi": 0, "skipped": False}
+    try:
+        row = cur.execute("SELECT val FROM meta WHERE key='parse_version'").fetchone()
+        if row and row[0] == PARSE_VERSION and not force:
+            st["skipped"] = True
+            return st
+        total = cur.execute("SELECT COUNT(*) FROM images WHERE prompt_json IS NOT NULL").fetchone()[0]
+        last, changed = 0, []
+        while True:
+            rows = list(cur.execute(
+                "SELECT id, filename, prompt_json, positive, negative FROM images "
+                "WHERE prompt_json IS NOT NULL AND id>? ORDER BY id LIMIT 500", (last,)))
+            if not rows:
+                break
+            for r in rows:
+                last = r["id"]
+                st["checked"] += 1
+                try:
+                    info = extract_workflow_info(json.loads(r["prompt_json"]), r["filename"])
+                except Exception:
+                    continue
+                write_refs(cur, r["id"], info["refs"])
+                if (info["positive"] == r["positive"] and info["negative"] == r["negative"]
+                        and not info["prose"]):
+                    continue
+                tags = [] if info["prose"] else normalize_tags(info["positive"])
+                cur.execute("UPDATE images SET positive=?, negative=? WHERE id=?",
+                            (info["positive"], info["negative"], r["id"]))
+                cur.execute("DELETE FROM tags WHERE image_id=?", (r["id"],))
+                cur.executemany("INSERT INTO tags(image_id,tag) VALUES(?,?)",
+                                [(r["id"], t) for t in tags])
+                if info["positive"] != r["positive"] or info["negative"] != r["negative"]:
+                    changed.append((r["id"], tags))
+            con.commit()
+            if progress:
+                progress(st["checked"], total)
+        st["changed"] = len(changed)
+        chara_mod = load_chara()
+        if chara_mod is not None and changed:
+            chara_mod.connect().close()
+            for iid, tags in changed:
+                words = chara_mod.identity_slots(tags)
+                words["multi"] = chara_mod.multi_hint(tags)
+                cur.execute("UPDATE c_analysis SET words=? WHERE image_id=?",
+                            (json.dumps(words, ensure_ascii=False), iid))
+                if words["multi"]:
+                    # 「2 人以上」と分かった絵は 1 人扱いをやめる（逆は変えない）
+                    cur.execute("UPDATE c_instances SET solo=0 WHERE image_id=? AND solo=1", (iid,))
+                    st["multi"] += cur.rowcount if cur.rowcount and cur.rowcount > 0 else 0
+            con.commit()
+            try:
+                chara_mod.ENGINE.invalidate()
+                chara_mod.request_engine()
+            except Exception:
+                pass
+        if changed:
+            _TRAITS_CACHE.clear()
+            _CHARTAGS_CACHE.update({"tags": None, "at": 0.0})
+            _USUAL_CACHE.clear()
+        cur.execute("INSERT OR REPLACE INTO meta(key,val) VALUES('parse_version',?)", (PARSE_VERSION,))
+        con.commit()
+        return st
+    finally:
+        con.close()
 
 
 # --------------------------------------------------------------------------
@@ -964,6 +1579,45 @@ class ComfyClient:
         except Exception as e:
             return {"ok": False, "offline": True, "error": f"ComfyUI に届きません: {e}"}
 
+    def has_input(self, name: str) -> bool | None:
+        """ComfyUI の input にその絵があるか。分からなければ None。"""
+        sub, fn = _split_input_name(name)
+        qs = urllib.parse.urlencode({"filename": fn, "subfolder": sub, "type": "input"})
+        req = urllib.request.Request(f"{self.base}/view?{qs}", method="GET")
+        try:
+            with urllib.request.urlopen(req, timeout=10) as r:
+                return r.status == 200
+        except urllib.error.HTTPError as e:
+            return False if e.code == 404 else None
+        except Exception:
+            return None
+
+    def upload_image(self, name: str, data: bytes) -> dict:
+        """ComfyUI の input に絵を送る（POST /upload/image）。同じ名前で戻す。"""
+        sub, fn = _split_input_name(name)
+        boundary = "----souki" + "%016x" % random.getrandbits(64)
+        parts = []
+
+        def field(k, v):
+            parts.append(f"--{boundary}\r\nContent-Disposition: form-data; name=\"{k}\"\r\n\r\n{v}\r\n"
+                         .encode("utf-8"))
+        field("type", "input")
+        field("subfolder", sub)
+        field("overwrite", "false")
+        ctype = mimetypes.guess_type(fn)[0] or "application/octet-stream"
+        parts.append((f"--{boundary}\r\nContent-Disposition: form-data; name=\"image\"; "
+                      f"filename=\"{fn}\"\r\nContent-Type: {ctype}\r\n\r\n").encode("utf-8"))
+        parts.append(data)
+        parts.append(f"\r\n--{boundary}--\r\n".encode("utf-8"))
+        req = urllib.request.Request(self.base + "/upload/image", data=b"".join(parts), method="POST",
+                                     headers={"Content-Type": f"multipart/form-data; boundary={boundary}"})
+        try:
+            with urllib.request.urlopen(req, timeout=60) as r:
+                d = json.loads(r.read().decode("utf-8") or "{}")
+                return {"ok": True, "name": d.get("name"), "subfolder": d.get("subfolder")}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
     def submit(self, prompt: dict, client_id: str = "souki", extra_pnginfo: dict | None = None,
                front: bool = False) -> dict:
         """投入する。extra_pnginfo に画面用のワークフローを入れると、できた PNG にも残る
@@ -1057,14 +1711,25 @@ def validate_prompt(prompt: dict, obj: dict) -> dict:
                 if entry not in missing_models:
                     missing_models.append(entry)
 
+    # 参照画像（Load Image の絵）が ComfyUI の input にあるか
+    missing_images = []
+    for r in find_ref_images(prompt):
+        norm = enum_set(obj, r["class_type"], r["key"])
+        if norm is None:
+            continue
+        if r["file"].replace("\\", "/") not in norm:
+            entry = {"node": r["class_type"], "slot": r["slot"], "value": r["file"]}
+            if entry not in missing_images:
+                missing_images.append(entry)
+
     if missing_nodes:
         status = "fault"
-    elif missing_models:
+    elif missing_models or missing_images:
         status = "partial"
     else:
         status = "ok"
     return {"status": status, "missing_nodes": missing_nodes,
-            "missing_models": missing_models}
+            "missing_models": missing_models, "missing_images": missing_images}
 
 
 def seed_targets(prompt: dict) -> list[dict]:
@@ -1384,6 +2049,8 @@ def api_detail(iid: int) -> dict:
     else:
         r["seed_targets"] = []
     r.pop("workflow_json", None)   # 大きいので詳細では返さない
+    r["refs"] = image_refs(iid)
+    r["prose"] = bool(r.get("has_api")) and not r["tags"] and looks_like_prose(r.get("positive"))
     return r
 
 
@@ -2054,47 +2721,10 @@ def character_distinguishing_tags() -> dict:
     return out
 
 
-def find_positive_nodes(prompt: dict) -> list:
-    """書き換えるべきプロンプト欄を探す。
-
-    サンプラの positive 入力から遡って、文字列を持つノードに行き着いた
-    ところが本体。ネガティブ側は触らない。"""
-    out, seen = [], set()
-
-    def walk(nid, depth=0):
-        key = str(nid)
-        if depth > 12 or key in seen:
-            return
-        seen.add(key)
-        node = prompt.get(key)
-        if not isinstance(node, dict):
-            return
-        inputs = node.get("inputs") or {}
-        hit = False
-        for k in ("text", "text_g", "text_l", "prompt", "string", "wildcard_text"):
-            v = inputs.get(k)
-            if isinstance(v, str) and v.strip():
-                out.append((key, k)); hit = True
-        if hit:
-            return
-        for v in inputs.values():
-            if is_link(v):
-                walk(v[0], depth + 1)
-
-    for nid in find_sampler_nodes(prompt):
-        pos = (prompt[nid].get("inputs") or {}).get("positive")
-        if is_link(pos):
-            walk(pos[0])
-    if not out:
-        for nid, node in prompt.items():
-            if not isinstance(node, dict):
-                continue
-            if "cliptextencode" in str(node.get("class_type", "")).lower():
-                v = (node.get("inputs") or {}).get("text")
-                if isinstance(v, str) and v.strip():
-                    out.append((str(nid), "text"))
-                    break
-    return out
+def find_positive_nodes(prompt: dict, filename: str | None = None) -> list:
+    """書き換える窓（ポジティブ側だけ）。ネガティブには決して触らない。
+    たどれないときは空（最初の CLIPTextEncode に逃げない）。"""
+    return read_prompts(prompt, filename)["pos"]
 
 
 def body_tags_in(text: str) -> list:
@@ -2177,31 +2807,6 @@ def retarget_save_date(prompt: dict, when=None) -> dict:
     return {"prompt": prompt, "changed": changed}
 
 
-def apply_edits_to_ui(ui_json: str, edits=None, save_changes=None) -> str:
-    """画面用ワークフローに、差し替えた文字列を反映する。
-    画面側のノードは widgets_values に値を持つので、そこを置き換える。"""
-    swaps = {e["before"]: e["after"] for e in (edits or [])}
-    for c in (save_changes or []):
-        swaps[c["before"]] = c["after"]
-    if not swaps:
-        return ui_json
-    try:
-        g = json.loads(ui_json)
-        for nd in g.get("nodes", []):
-            wv = nd.get("widgets_values")
-            if isinstance(wv, list):
-                for i, v in enumerate(wv):
-                    if isinstance(v, str) and v in swaps:
-                        wv[i] = swaps[v]
-            elif isinstance(wv, dict):
-                for k, v in list(wv.items()):
-                    if isinstance(v, str) and v in swaps:
-                        wv[k] = swaps[v]
-        return json.dumps(g, ensure_ascii=False)
-    except Exception:
-        return ui_json
-
-
 def source_character(image_id: int) -> str | None:
     """その絵に写っているキャラ（いちばん大きく写っている子）。"""
     if not chara_ok() or not chara_ready_tables():
@@ -2212,9 +2817,21 @@ def source_character(image_id: int) -> str | None:
     return rows[0]["name"] if rows else None
 
 
+def _field_lines_set(value: str, line: int, text: str) -> str:
+    lines = str(value or "").split("\n")
+    if 0 <= line < len(lines):
+        lines[line] = text
+    return "\n".join(lines)
+
+
 def build_swap(image_id: int, to_name: str, extra_remove=None, extra_add=None,
-               outfit=None, strength: str = "full", keep_char: bool = False) -> dict:
+               outfit=None, strength: str = "full", keep_char: bool = False,
+               outfit_name: str | None = None) -> dict:
     """キャラ（と服）を入れ替えたプロンプトを作る。
+
+    窓（文字の欄）ごとに入れ替える。キャラの語はキャラの窓へ、服は服の窓へ。
+    名前で決まらないときは、元の語があった窓に入れる。同じ語を 2 つの窓に入れない。
+    ネガティブの欄には決して触らない。
 
     outfit: None なら服はそのまま。語の並びなら、元の服の語（髪飾りも含む）を外してそれを入れる。
     strength: "full" は体格・年齢・種族まで、"light" は髪と目だけ入れ替える。
@@ -2224,9 +2841,13 @@ def build_swap(image_id: int, to_name: str, extra_remove=None, extra_add=None,
     if not rows or not rows[0]["prompt_json"]:
         return {"ok": False, "error": "この画像にはワークフローがありません"}
     prompt = json.loads(rows[0]["prompt_json"])
-    nodes = find_positive_nodes(prompt)
-    if not nodes:
-        return {"ok": False, "error": "書き換えるプロンプト欄が見つかりませんでした"}
+    rd = read_prompts(prompt, rows[0]["filename"])
+    segs = rd["pos"]
+    if not segs:
+        return {"ok": False, "error": "書き換える欄が見つかりません（ネガティブの欄には触りません）。"
+                                      "ComfyUI の画面で開いて、手で直してください"}
+    if rd["prose"] or looks_like_prose(rd["positive"]):
+        return {"ok": False, "error": "文章で書いたプロンプトなので、語の入れ替えはしません"}
 
     src = source_character(image_id)
     if not keep_char and src and src == to_name:
@@ -2252,43 +2873,143 @@ def build_swap(image_id: int, to_name: str, extra_remove=None, extra_add=None,
                              f"キャラ画面で特徴を設定してください"}
     new_outfit = [w.strip() for w in (outfit or []) if w and w.strip()] if outfit is not None else None
 
-    edits = []
-    learned = character_distinguishing_tags() if not keep_char else {}
-    for nid, key in nodes:
-        before = prompt[nid]["inputs"][key]
-        text, removed, added, auto = before, [], [], []
-        if not keep_char:
-            # 元キャラの特徴だけでなく、その本文に書かれている造形の語を
-            # すべて外す。表記ゆれ（silver hair / long silver hair /
-            # silver_hair）で消し残ると、新旧の特徴が混ざるため。
-            # 除外は3段構え。
-            #   1. 元キャラのキャラシート（完全一致）
-            #   2. 語の中身から造形と判る語（表記ゆれに強い）
-            #   3. 台帳から学んだ「特定の子に偏っている語」（語リストの漏れを補う）
-            auto = [t for t in normalize_tags(before)
+    n = len(segs)
+    texts = [s["text"] for s in segs]
+    removed = [[] for _ in segs]
+    added = [[] for _ in segs]
+    learned_by = [[] for _ in segs]
+    roles = [s.get("role") for s in segs]
+
+    def others_tags(skip):
+        out = set()
+        for j in range(n):
+            if j != skip:
+                out.update(normalize_tags(texts[j]))
+        return out
+
+    if not keep_char:
+        # 元キャラの特徴だけでなく、その本文に書かれている造形の語をすべて外す。
+        # 表記ゆれ（silver hair / long silver hair / silver_hair）で消し残ると、
+        # 新旧の特徴が混ざるため。除外は 3 段構え。
+        #   1. 元キャラのキャラシート（完全一致）
+        #   2. 語の中身から造形と判る語（表記ゆれに強い）
+        #   3. 台帳から学んだ「特定の子に偏っている語」（語リストの漏れを補う）
+        learned = character_distinguishing_tags()
+        has_chara_window = any(r == "chara" for r in roles)
+        rm_at = []
+        for i, s in enumerate(segs):
+            if roles[i] == "outfit":
+                rm_at.append([])           # 服の窓からはキャラの語を外さない
+                continue
+            if has_chara_window and roles[i] != "chara":
+                # キャラの窓があるときは、ほかの窓（品質・ポーズなど）からは元の子の語だけ外す
+                rm_at.append(list(dict.fromkeys(rm)))
+                continue
+            auto = [t for t in normalize_tags(texts[i])
                     if t in learned and learned[t] != to_name and not is_outfit_tag(t)]
-            body = body_tags_in(before)
+            body = body_tags_in(texts[i])
             if light:
                 auto = [t for t in auto if is_hair_eye_tag(t)]
                 body = [t for t in body if is_hair_eye_tag(t)]
-            rm_here = list(dict.fromkeys(rm + body + auto))
-            r = swap_in_text(text, rm_here, add)
-            text, removed, added = r["text"], r["removed"], r["added"]
-        if new_outfit is not None:
-            r2 = swap_in_text(text, outfit_tags_in(text), new_outfit)
-            text = r2["text"]
-            removed += r2["removed"]
-            added += r2["added"]
-        prompt[nid]["inputs"][key] = text
-        edits.append({"node": nid, "class_type": prompt[nid].get("class_type"),
-                      "before": before, "after": text,
-                      "removed": removed, "added": added,
-                      "learned": [t for t in auto if t not in
-                                  [x.lower() for x in rm]]})
+            rm_at.append(list(dict.fromkeys(rm + body + auto)))
+            learned_by[i] = [t for t in auto if t not in [x.lower() for x in rm]]
+        # 入れる窓: キャラの窓 → 元の語があった窓 → 最初の窓（服の窓は除く）
+        target = next((i for i in range(n) if roles[i] == "chara"), None)
+        if target is None:
+            for i in range(n):
+                if rm_at[i] and swap_in_text(texts[i], rm_at[i], [])["removed"]:
+                    target = i
+                    break
+        if target is None:
+            target = next((i for i in range(n) if roles[i] != "outfit"), 0)
+        for i in range(n):
+            if i == target:
+                continue
+            r = swap_in_text(texts[i], rm_at[i], [])
+            texts[i], removed[i] = r["text"], removed[i] + r["removed"]
+        have = others_tags(target)
+        r = swap_in_text(texts[target], rm_at[target], [a for a in add if a.strip().lower() not in have])
+        texts[target] = r["text"]
+        removed[target] += r["removed"]
+        added[target] += r["added"]
+
+    kigae = None
+    for s in segs:
+        if s.get("no"):
+            kigae = {"node": s["node"], "no": s["no"], "label": s.get("label") or ""}
+            break
+    label_out = kigae["label"] if kigae else ""
+    if new_outfit is not None:
+        oidx = [i for i in range(n) if roles[i] == "outfit"]
+        if len([i for i in oidx if segs[i].get("line") is not None]) > 1:
+            return {"ok": False, "error": "どの服の行で描いた絵か分からないので、服を替えられません"
+                                          "（一覧の絵など）。1 枚ずつの絵から替えてください"}
+        if oidx:
+            t = oidx[0]
+            for i in range(n):
+                if i == t:
+                    continue
+                r2 = swap_in_text(texts[i], outfit_tags_in(texts[i]), [])
+                texts[i], removed[i] = r2["text"], removed[i] + r2["removed"]
+            old = [c.strip() for c in texts[t].split(",") if c.strip()]
+            have = others_tags(t)
+            keep_new = [w for w in new_outfit if w.lower() not in have]
+            removed[t] += [w for w in old if w.lower() not in {x.lower() for x in keep_new}]
+            added[t] += [w for w in keep_new if w.lower() not in {x.lower() for x in old}]
+            texts[t] = ", ".join(keep_new)
+        else:
+            t = None
+            for i in range(n):
+                if outfit_tags_in(texts[i]):
+                    t = i
+                    break
+            if t is None:
+                t = next((i for i in range(n) if roles[i] == "chara"), 0)
+            for i in range(n):
+                if i == t:
+                    continue
+                r2 = swap_in_text(texts[i], outfit_tags_in(texts[i]), [])
+                texts[i], removed[i] = r2["text"], removed[i] + r2["removed"]
+            have = others_tags(t)
+            r2 = swap_in_text(texts[t], outfit_tags_in(texts[t]),
+                              [w for w in new_outfit if w.lower() not in have])
+            texts[t] = r2["text"]
+            removed[t] += r2["removed"]
+            added[t] += r2["added"]
+        label_out = (outfit_name or "").strip() or (new_outfit[0] if new_outfit else "")
+
+    # 窓ごとの変更を、欄ごとの変更にまとめる
+    edits, fields = [], {}
+    for i, s in enumerate(segs):
+        if texts[i] == s["text"] and not removed[i] and not added[i]:
+            continue
+        key = (s["node"], s["key"])
+        node = prompt[s["node"]]
+        if key not in fields:
+            fields[key] = {"node": s["node"], "key": s["key"],
+                           "class_type": node.get("class_type"),
+                           "title": s.get("title") or node_title(node),
+                           "role": s.get("role"),
+                           "before": node["inputs"][s["key"]], "after": node["inputs"][s["key"]],
+                           "removed": [], "added": [], "learned": []}
+            edits.append(fields[key])
+        f = fields[key]
+        if s.get("line") is not None:
+            lab = label_out if (new_outfit is not None and s.get("role") == "outfit") else s.get("label")
+            line = (f"【{lab}】" if lab else "") + texts[i]
+            f["after"] = _field_lines_set(f["after"], s["line"], line)
+        else:
+            f["after"] = texts[i]
+        f["removed"] += removed[i]
+        f["added"] += added[i]
+        f["learned"] += learned_by[i]
+    for f in edits:
+        prompt[f["node"]]["inputs"][f["key"]] = f["after"]
     to = src if keep_char else to_name
     return {"ok": True, "prompt": prompt, "edits": edits,
             "from": src, "to": to, "keep_char": keep_char,
-            "to_tags": tgt["tags"], "from_tags": rm,
+            "to_tags": tgt["tags"], "from_tags": rm, "kigae": kigae,
+            "outfit_label": label_out if (new_outfit is not None or kigae) else "",
             "filename": rows[0]["filename"]}
 
 
@@ -2496,13 +3217,15 @@ def safe_name(name: str) -> str:
     return re.sub(r'[\\/:*?"<>|]', "_", str(name or "").strip())
 
 
-def image_characters(image_id: int) -> list:
-    """その絵に写っているキャラ（大きく写っている順、確定と自動）。"""
+def image_characters(image_id: int, order: str = "size") -> list:
+    """その絵に写っているキャラ（確定と自動）。
+    order="size" は大きく写っている順、"lr" は左から順（保存名に並べるとき）。"""
     if not chara_ok() or not chara_ready_tables():
         return []
+    od = "(i.x1+i.x2) ASC" if order == "lr" else "(i.x2-i.x1)*(i.y2-i.y1) DESC"
     rows = q("SELECT c.name FROM c_instances i JOIN c_assign a ON a.instance_id=i.id "
              "AND a.state IN ('confirmed','auto') JOIN c_characters c ON c.id=a.character_id "
-             "WHERE i.image_id=? ORDER BY (i.x2-i.x1)*(i.y2-i.y1) DESC", (image_id,))
+             f"WHERE i.image_id=? ORDER BY {od}", (image_id,))
     out = []
     for r in rows:
         if r["name"] not in out:
@@ -2510,33 +3233,61 @@ def image_characters(image_id: int) -> list:
     return out
 
 
+def save_nodes(prompt: dict) -> list:
+    """保存の欄（filename_prefix）を持つノード。文字でも線でもよい。
+    ひな形の名前や日付が入っているものを先に、あとは番号順。"""
+    out = []
+    for nid, node in prompt.items():
+        if not isinstance(node, dict):
+            continue
+        v = (node.get("inputs") or {}).get("filename_prefix")
+        if isinstance(v, str) or is_link(v):
+            dated = isinstance(v, str) and bool(DATE_IN_PATH.search(v) or "%date:" in v)
+            out.append((0 if dated else 1, _id_key(nid), str(nid)))
+    out.sort()
+    return [n for _, _, n in out]
+
+
+def _id_key(nid) -> tuple:
+    return tuple(int(x) if x.isdigit() else 0 for x in str(nid).split(":"))
+
+
 def has_save_prefix(prompt: dict) -> bool:
-    return any(isinstance(n, dict) and isinstance((n.get("inputs") or {}).get("filename_prefix"), str)
-               for n in prompt.values())
+    return bool(save_nodes(prompt))
 
 
-def apply_save_template(prompt: dict, name: str, old_names=()) -> list:
+def _fill_outfit(tpl: str, outfit: str) -> str:
+    """ひな形の {服} を服の名前にする。空なら、まわりの区切りごと消す。"""
+    if "{服}" not in tpl:
+        return tpl
+    o = safe_name(outfit or "")
+    if o:
+        return tpl.replace("{服}", o)
+    t = re.sub(r"[_\-\s]*\{服\}", "", tpl)
+    return t.replace("{服}", "")
+
+
+def apply_save_template(prompt: dict, name: str, old_names=(), outfit: str = "") -> list:
     """保存名をひな形で書き直す。戻り値は変えた所（API 用の値と、画面用の値）。
 
     元の名前が「…illu名前_up」のような形なら、後ろの付け足し（_up）は残す
-    （拡大前と拡大後で 2 つ保存しているワークフローで、名前がぶつからないように）。"""
-    tpl = save_template()
+    （拡大前と拡大後で 2 つ保存しているワークフローで、名前がぶつからないように）。
+    保存の欄が 2 つ以上あって名前がぶつかるときは、2 つ目以降に元の名前の最後の部分を
+    付け足す（例: …illuルル_一覧）。線でつながった保存名も、線を外して名前を入れる。"""
+    tpl = _fill_outfit(save_template(), outfit)
     head, tail = (tpl.split("{キャラ}", 1) + [""])[:2] if "{キャラ}" in tpl else (tpl, "")
     marker = re.split(r"%[^%]*%", head)[-1]
     if "/" in marker:
         marker = marker.rsplit("/", 1)[-1]
     nm = safe_name(name)
     olds = sorted({safe_name(o) for o in old_names if o}, key=len, reverse=True)
-    changes = []
-    for nid, node in prompt.items():
-        if not isinstance(node, dict):
-            continue
+    changes, used = [], []
+    for i, nid in enumerate(save_nodes(prompt)):
+        node = prompt[nid]
         inputs = node.get("inputs") or {}
         v = inputs.get("filename_prefix")
-        if not isinstance(v, str):
-            continue
         suffix = ""
-        if marker and marker in v:
+        if isinstance(v, str) and marker and marker in v:
             rest = v[v.rfind(marker) + len(marker):]
             for o in olds:
                 if rest.startswith(o):
@@ -2545,11 +3296,21 @@ def apply_save_template(prompt: dict, name: str, old_names=()) -> list:
             else:
                 suffix = re.match(r"[^_\-]*(.*)$", rest).group(1)
         ui_after = head + nm + suffix + tail
+        if ui_after in used:
+            last = v.rsplit("/", 1)[-1] if isinstance(v, str) else ""
+            last = DATE_IN_PATH.sub("", last)
+            for o in olds + ([marker] if marker else []):
+                last = last.replace(o, "")
+            last = last.strip("_- ")
+            extra = last or str(i + 1)
+            ui_after = head + nm + suffix + "_" + safe_name(extra) + tail
+        used.append(ui_after)
         after = expand_dates(ui_after)
         inputs["filename_prefix"] = after
         changes.append({"node": str(nid), "class_type": node.get("class_type"),
                         "key": "filename_prefix", "before": v, "after": after,
-                        "ui_after": ui_after, "kind": "save", "marker": marker})
+                        "ui_after": ui_after, "kind": "save", "marker": marker,
+                        "linked": is_link(v), "title": node_title(node)})
     # ほかの保存先の欄（フォルダ名など）は、日付だけ今日にする
     rr = retarget_save_date({k: {"class_type": n.get("class_type"),
                                  "inputs": {kk: vv for kk, vv in (n.get("inputs") or {}).items()
@@ -2565,57 +3326,220 @@ def apply_save_template(prompt: dict, name: str, old_names=()) -> list:
 # 画面用ワークフロー — 差し替え・保存名・seed を反映する
 # --------------------------------------------------------------------------
 
+CONTROL_VALUES = ("fixed", "increment", "decrement", "randomize")
+WIDGET_TYPES = {"INT", "FLOAT", "STRING", "BOOLEAN", "COMBO"}
+
+
+class UIGraph:
+    """画面用ワークフローを、API 形式のノード番号と欄の名前で書き換える道具。
+
+    - 値は widgets_values（並び順）と widgets_values_named（名前つき）の両方に入れる
+    - サブグラフの中のノード（"459:458"）は、その欄がサブグラフの入口から来ていれば
+      外側のノード（459）の値を直す（seed など）。中のノードの値も一緒に直す
+    - unlink=True なら、その欄に入っている線を外してから値を入れる（線でつながった保存名）"""
+
+    def __init__(self, g: dict):
+        self.g = g
+        self.subs = {sg.get("id"): sg for sg in (g.get("definitions") or {}).get("subgraphs", [])
+                     if isinstance(sg, dict)}
+
+    @staticmethod
+    def _links(container) -> dict:
+        out = {}
+        for l in container.get("links") or []:
+            if isinstance(l, dict):
+                out[l.get("id")] = (l.get("origin_id"), l.get("origin_slot"),
+                                    l.get("target_id"), l.get("target_slot"))
+            elif isinstance(l, list) and len(l) >= 5:
+                out[l[0]] = (l[1], l[2], l[3], l[4])
+        return out
+
+    @staticmethod
+    def _find(nodes, nid):
+        for nd in nodes or []:
+            if isinstance(nd, dict) and str(nd.get("id")) == str(nid):
+                return nd
+        return None
+
+    def widget_names(self, nd) -> list | None:
+        """widgets_values の並びに対応する欄の名前（control_after_generate は "~"）。"""
+        wv = nd.get("widgets_values")
+        if not isinstance(wv, list):
+            return None
+        if nd.get("type") in self.subs:
+            sg = self.subs[nd["type"]]
+            names = [i.get("name") for i in sg.get("inputs", [])
+                     if str(i.get("type")) in WIDGET_TYPES or isinstance(i.get("type"), list)]
+            return names if len(names) == len(wv) else None
+        names = [i.get("name") for i in nd.get("inputs", []) or [] if i.get("widget")]
+        if not names:
+            named = nd.get("widgets_values_named")
+            if isinstance(named, dict) and len(named) == len(wv):
+                return list(named.keys())
+            return None
+        out, vi = [], 0
+        for n in names:
+            if vi >= len(wv):
+                return None
+            out.append(n)
+            vi += 1
+            if (vi < len(wv) and wv[vi] in CONTROL_VALUES and isinstance(wv[vi - 1], (int, float))
+                    and not isinstance(wv[vi - 1], bool)):
+                out.append("~")
+                vi += 1
+        return out if vi == len(wv) else None
+
+    def _unlink(self, container, nd, key) -> None:
+        for inp in nd.get("inputs", []) or []:
+            if inp.get("name") != key or inp.get("link") is None:
+                continue
+            lid = inp["link"]
+            inp["link"] = None
+            links = container.get("links") or []
+            src = None
+            for l in list(links):
+                if (isinstance(l, dict) and l.get("id") == lid) or (isinstance(l, list) and l and l[0] == lid):
+                    src = (l.get("origin_id"), l.get("origin_slot")) if isinstance(l, dict) else (l[1], l[2])
+                    links.remove(l)
+            if src:
+                o = self._find(container.get("nodes"), src[0])
+                if o:
+                    outs = o.get("outputs") or []
+                    if 0 <= int(src[1]) < len(outs) and isinstance(outs[int(src[1])].get("links"), list):
+                        outs[int(src[1])]["links"] = [x for x in outs[int(src[1])]["links"] if x != lid]
+
+    def _set_on(self, nd, key, value, before=None) -> bool:
+        hit = False
+        named = nd.get("widgets_values_named")
+        if isinstance(named, dict) and key in named:
+            named[key] = value
+            hit = True
+        wv = nd.get("widgets_values")
+        if isinstance(wv, dict) and key in wv:
+            wv[key] = value
+            return True
+        if isinstance(wv, list):
+            names = self.widget_names(nd)
+            if names and key in names:
+                wv[names.index(key)] = value
+                return True
+            if before is not None:
+                for i, v in enumerate(wv):
+                    if v == before and type(v) is type(before):
+                        wv[i] = value
+                        return True
+        return hit
+
+    def set(self, api_id, key, value, before=None, unlink=False) -> bool:
+        parts = str(api_id).split(":")
+        container, nd = self.g, self._find(self.g.get("nodes"), parts[0])
+        chain = [(container, nd)]
+        for p in parts[1:]:
+            if not nd or nd.get("type") not in self.subs:
+                return False
+            container = self.subs[nd["type"]]
+            nd = self._find(container.get("nodes"), p)
+            chain.append((container, nd))
+        if not nd:
+            return False
+        return self._set_chain(chain, key, value, before, unlink)
+
+    def _set_chain(self, chain, key, value, before, unlink) -> bool:
+        container, nd = chain[-1]
+        ok = False
+        if len(chain) > 1:
+            # サブグラフの入口から来ている欄なら、外側のノードの値を直す
+            lt = self._links(container)
+            for inp in nd.get("inputs", []) or []:
+                if inp.get("name") != key or inp.get("link") is None:
+                    continue
+                o = lt.get(inp["link"])
+                if o and o[0] == -10:
+                    sg_inputs = container.get("inputs") or []
+                    if 0 <= int(o[1]) < len(sg_inputs):
+                        outer_key = sg_inputs[int(o[1])].get("name")
+                        ok = self._set_chain(chain[:-1], outer_key, value, before, unlink) or ok
+                    if not unlink:
+                        self._set_on(nd, key, value, before)
+                        return ok
+        if unlink:
+            self._unlink(container, nd, key)
+        return self._set_on(nd, key, value, before) or ok
+
+    def swap_strings(self, swaps: dict) -> None:
+        """同じ文字列を探して置き換える（番号で見つからなかったときの予備）。"""
+        def walk(nodes):
+            for nd in nodes or []:
+                for k in ("widgets_values", "widgets_values_named"):
+                    wv = nd.get(k)
+                    items = list(enumerate(wv)) if isinstance(wv, list) else \
+                        list(wv.items()) if isinstance(wv, dict) else []
+                    for i, v in items:
+                        if isinstance(v, str) and v in swaps:
+                            wv[i] = swaps[v]
+        walk(self.g.get("nodes"))
+        for sg in self.subs.values():
+            walk(sg.get("nodes"))
+
+
 def ui_build(ui_json: str, text_edits=None, node_changes=None) -> str:
     """画面用ワークフローに、API 側で変えたことを写す。
 
-    文字列（プロンプト）は同じ文字列を探して置き換える。保存名と seed は、
-    同じ番号のノードの中で置き換える（画面側の保存名は %date:…% のままなので、
-    API 側の値とは一致しないため）。"""
+    プロンプト・保存名・seed・着替工房の番号を、同じ番号のノードの同じ欄で置き換える
+    （画面側の保存名は %date:…% のままなので、API 側の値とは一致しないため）。
+    番号で見つからないプロンプトは、同じ文字列を探して置き換える。"""
     if not ui_json:
         return ui_json
     try:
         g = json.loads(ui_json)
     except Exception:
         return ui_json
-    swaps = {e["before"]: e["after"] for e in (text_edits or []) if e.get("before") != e.get("after")}
-    nodes = {str(nd.get("id")): nd for nd in g.get("nodes", []) if isinstance(nd, dict)}
-
-    def items(wv):
-        return list(enumerate(wv)) if isinstance(wv, list) else list(wv.items()) if isinstance(wv, dict) else []
-
-    if swaps:
-        for nd in nodes.values():
-            wv = nd.get("widgets_values")
-            for k, v in items(wv):
-                if isinstance(v, str) and v in swaps:
-                    wv[k] = swaps[v]
-    for c in node_changes or []:
-        nd = nodes.get(str(c.get("node")))
-        if not nd:
+    G = UIGraph(g)
+    swaps = {}
+    for e in text_edits or []:
+        if e.get("before") == e.get("after"):
             continue
-        wv = nd.get("widgets_values")
+        if not G.set(e.get("node"), e.get("key"), e.get("after"), before=e.get("before")):
+            if isinstance(e.get("before"), str):
+                swaps[e["before"]] = e["after"]
+    if swaps:
+        G.swap_strings(swaps)
+    for c in node_changes or []:
         kind = c.get("kind")
         new = c.get("ui_after") if kind == "save" else c.get("after")
         if new is None:
             new = c.get("after")
-        hit = None
-        for k, v in items(wv):
-            if v == c.get("before") and type(v) is type(c.get("before")):
-                hit = k
-                break
-        if hit is None and kind == "save":
-            for k, v in items(wv):
-                if isinstance(v, str) and ("%date:" in v or (c.get("marker") and c["marker"] in v)):
-                    hit = k
-                    break
-        if hit is not None:
-            wv[hit] = new
+        before = c.get("before")
+        ok = G.set(c.get("node"), c.get("key"), new, before=before if not is_link(before) else None,
+                   unlink=bool(c.get("linked")))
+        if not ok and kind == "save":
+            # 名前で決まらない古い形: %date:…% や目印の入った値を探す
+            nd = G._find(g.get("nodes"), c.get("node"))
+            wv = nd.get("widgets_values") if nd else None
+            if isinstance(wv, list):
+                for i, v in enumerate(wv):
+                    if isinstance(v, str) and ("%date:" in v or (c.get("marker") and c["marker"] in v)):
+                        wv[i] = new
+                        break
     return json.dumps(g, ensure_ascii=False)
 
 
 # --------------------------------------------------------------------------
 # 投入の準備 — 普通の投入・差し替え・服だけ・ComfyUI で開く、すべてここを通る
 # --------------------------------------------------------------------------
+
+def save_name_for(image_id: int, swapped_to: str | None = None, src: str | None = None) -> list:
+    """保存名に入れる子の名前（左から順）。差し替えたときは、その子の名前だけ入れ替える。"""
+    names = image_characters(image_id, order="lr")
+    if swapped_to:
+        if src and src in names:
+            names = [swapped_to if n == src else n for n in names]
+        elif names:
+            names = [swapped_to] + names[1:] if len(names) == 1 else names + [swapped_to]
+        else:
+            names = [swapped_to]
+    return list(dict.fromkeys(n for n in names if n))
+
 
 def prepare(image_id: int, body: dict, preview: bool = False) -> dict:
     rows = q("SELECT prompt_json, workflow_json, filename FROM images WHERE id=?", (image_id,))
@@ -2631,31 +3555,52 @@ def prepare(image_id: int, body: dict, preview: bool = False) -> dict:
         outfit = [w.strip() for w in outfit.replace("\n", ",").split(",") if w.strip()]
     if outfit is not None and not isinstance(outfit, list):
         outfit = None
+    outfit_name = str(body.get("outfit_name") or "").strip() or None
     strength = "light" if body.get("strength") == "light" else "full"
     chars = image_characters(image_id)
     src = chars[0] if chars else None
     out = {"ok": True, "edits": [], "from": src, "to": to or src, "filename": row["filename"]}
+    node_changes = []
 
     if to or keep or outfit is not None:
         r = build_swap(image_id, to or src or "", body.get("remove"), body.get("add"),
-                       outfit=outfit, strength=strength, keep_char=keep or not to)
+                       outfit=outfit, strength=strength, keep_char=keep or not to,
+                       outfit_name=outfit_name)
         if not r.get("ok"):
             return r
         prompt = r["prompt"]
         out.update({"edits": r["edits"], "from": r.get("from"), "to": r.get("to"),
                     "to_tags": r.get("to_tags"), "from_tags": r.get("from_tags")})
-        swapped = bool(to) and not keep
+        swapped = bool(to) and not keep and r.get("from") != r.get("to")
+        kigae, outfit_label = r.get("kigae"), r.get("outfit_label") or ""
     else:
         prompt = json.loads(row["prompt_json"])
         swapped = False
+        kigae, outfit_label = None, ""
+        for s in read_prompts(prompt, row["filename"])["pos"]:
+            if s.get("no"):
+                kigae = {"node": s["node"], "no": s["no"], "label": s.get("label") or ""}
+                outfit_label = kigae["label"]
+                break
+
+    # 着替工房の専用ノード: その絵の服の行だけ出し直す
+    if kigae:
+        inputs = prompt[kigae["node"]]["inputs"]
+        for k, v in (("服の出し方", "番号の行だけ"), ("番号", int(kigae["no"]))):
+            if k in inputs and not is_link(inputs[k]) and inputs[k] != v:
+                node_changes.append({"node": kigae["node"], "key": k, "before": inputs[k],
+                                     "after": v, "kind": "value"})
+                inputs[k] = v
+        out["kigae"] = kigae
 
     # 保存名
     tpl_on = body.get("template", body.get("today", True))
     save_changes = []
     if tpl_on and has_save_prefix(prompt):
-        name = (to if swapped else None) or str(body.get("save_name") or "").strip() or None
-        if not name and len(chars) == 1:
-            name = chars[0]
+        name = str(body.get("save_name") or "").strip() or None
+        if not name:
+            names = save_name_for(image_id, to if swapped else None, out.get("from"))
+            name = "と".join(names) if names else None
         if not name:
             out["need_name"] = True
             out["candidates"] = chars
@@ -2664,27 +3609,65 @@ def prepare(image_id: int, body: dict, preview: bool = False) -> dict:
                 out["error"] = "保存名に入れるキャラの名前が決まっていません"
                 return out
             name = "（名前）"
-        save_changes = apply_save_template(prompt, name, chars + ([to] if to else []))
+        save_changes = apply_save_template(prompt, name, chars + ([to] if to else []),
+                                           outfit=outfit_label)
         out["save_name"] = name
     out["prompt"] = prompt
     out["save_changes"] = save_changes
+    out["node_changes"] = node_changes
     out["ui"] = row["workflow_json"]
     stem = Path(row["filename"]).stem
     out["stem"] = f"{stem}_{out['to']}" if swapped and out.get("to") else stem
+    out["image_id"] = image_id
     return out
 
 
 def _ui_for(P: dict, seed_changes=()) -> str | None:
     if not P.get("ui"):
         return None
-    nc = list(P.get("save_changes") or [])
-    nc += [{"node": c["node_id"], "before": c["current"], "after": c["new"], "kind": "seed"}
-           for c in seed_changes]
+    nc = list(P.get("save_changes") or []) + list(P.get("node_changes") or [])
+    nc += [{"node": c["node_id"], "key": c["key"], "before": c["current"], "after": c["new"],
+            "kind": "seed"} for c in seed_changes]
     return ui_build(P["ui"], P.get("edits"), nc)
+
+
+def restore_refs(P: dict) -> list:
+    """参照画像が ComfyUI の input から消えていたら、控えから戻す（/upload/image）。"""
+    prompt, iid = P.get("prompt") or {}, P.get("image_id")
+    refs = find_ref_images(prompt)
+    if not refs or not iid:
+        return []
+    try:
+        capture_refs(STATE.cfg, STATE.comfy.base, [iid])     # 控えがまだなら、今あるうちに取る
+    except Exception:
+        pass
+    kept = {r["filename"]: r for r in image_refs(iid)}
+    out = []
+    for r in refs:
+        if STATE.comfy.has_input(r["file"]) is not False:
+            continue
+        k = kept.get(r["file"])
+        if not k or not k["kept"]:
+            out.append({"slot": r["slot"], "file": r["file"], "ok": False,
+                        "error": "ComfyUI の input に無く、控えもありません"})
+            continue
+        u = STATE.comfy.upload_image(r["file"], ref_file_path(k["sha"], k["ext"]).read_bytes())
+        if u.get("ok"):
+            sub, fn = _split_input_name(r["file"])
+            got = (u.get("subfolder") + "/" if u.get("subfolder") else "") + (u.get("name") or fn)
+            if got != r["file"].replace("\\", "/"):
+                prompt[r["node"]]["inputs"][r["key"]] = got
+        out.append({"slot": r["slot"], "file": r["file"], "ok": bool(u.get("ok")),
+                    "error": u.get("error")})
+    if any(x["ok"] for x in out):
+        VALIDATE_CACHE.pop(iid, None)
+        STATE.comfy.object_info(force=True)
+    return out
 
 
 def open_prepared(P: dict) -> dict:
     """準備したワークフローを ComfyUI の画面に開く。受け口が無ければ一覧に保存する。"""
+    P["restored"] = restore_refs(P)
     ui = _ui_for(P)
     data = {"workflow": json.loads(ui), "name": P["stem"]} if ui else \
         {"api": P["prompt"], "name": P["stem"]}
@@ -2711,6 +3694,7 @@ def run_submit(body: dict) -> dict:
     fixed = int(fixed) if str(fixed or "").strip().isdigit() else None
     batch = 1 if mode == "same" else max(1, min(int(body.get("batch", 1) or 1), 20))
     front = bool(body.get("front"))
+    restored = restore_refs(P)
     results, all_changes = [], []
     for n in range(batch):
         pr = copy.deepcopy(P["prompt"])
@@ -2725,7 +3709,8 @@ def run_submit(body: dict) -> dict:
     out = {"ok": all(r["ok"] for r in results), "submitted": sum(1 for r in results if r["ok"]),
            "seed_changes": all_changes, "results": results,
            "save_changes": P["save_changes"], "save_name": P.get("save_name"),
-           "edits": P["edits"], "from": P.get("from"), "to": P.get("to"), "source": P["filename"]}
+           "edits": P["edits"], "from": P.get("from"), "to": P.get("to"), "source": P["filename"],
+           "restored": restored, "kigae": P.get("kigae")}
     if any(r.get("timeout") for r in results):
         out["timeout"] = True
     if body.get("open_workflow"):       # 受け付けられなかったときも、画面で直せるように開く
@@ -2767,6 +3752,29 @@ def api_set_traits(body: dict) -> dict:
             "error": r.get("error")}
 
 
+def maintenance() -> None:
+    """読み直しのあとの片付け: 読み取り方が新しくなっていれば台帳を読み直し（1 回だけ）、
+    参照画像の控えを取る。"""
+    try:
+        STATE.index_status["reparse"] = {"running": True, "done": 0, "total": 0}
+
+        def prog(done, total):
+            STATE.index_status["reparse"].update(done=done, total=total)
+        r = reparse_ledger(progress=prog)
+        STATE.index_status["reparse"] = dict(r, running=False)
+    except Exception as e:
+        STATE.index_status["reparse"] = {"running": False, "error": str(e)}
+    try:
+        capture_refs(STATE.cfg, STATE.comfy.base)
+        link_ref_sources()
+    except Exception:
+        pass
+
+
+def start_maintenance_bg() -> None:
+    threading.Thread(target=maintenance, daemon=True, name="souki-maintenance").start()
+
+
 def start_index_bg(dirs: list[str], full: bool) -> None:
     def run():
         STATE.index_status.update({"running": True, "done": 0, "total": 0})
@@ -2779,6 +3787,7 @@ def start_index_bg(dirs: list[str], full: bool) -> None:
             st = run_index(dirs, full=full,
                            workers=STATE.cfg.get("scan_workers", 6), progress=prog)
             STATE.index_status["last"] = st
+            maintenance()
             # 新しい絵が増えていれば、続けてキャラの解析も回す
             if chara_ok() and (st.get("scanned") or st.get("removed")):
                 st["auto_analyze"] = CHARA.maybe_auto_analyze()
@@ -3063,6 +4072,15 @@ class Handler(BaseHTTPRequestHandler):
                     "objinfo_ready": c._obj is not None,
                     "objinfo_error": c._obj_err})
 
+            if path.startswith("/ref/"):
+                sha = re.sub(r"[^0-9a-f]", "", path.rsplit("/", 1)[1])[:64]
+                row = q("SELECT ext FROM ref_files WHERE sha=?", (sha,))
+                fp = ref_file_path(sha, row[0]["ext"]) if row else None
+                if not fp or not fp.exists():
+                    return self._send(404, b"no ref", "text/plain")
+                return self._send(200, fp.read_bytes(),
+                                  mimetypes.guess_type(fp.name)[0] or "image/png")
+
             if path.startswith("/thumb/"):
                 iid = int(path.rsplit("/", 1)[1])
                 tp = thumb_path(iid)
@@ -3144,6 +4162,17 @@ class Handler(BaseHTTPRequestHandler):
         except Exception:
             body = {}
         try:
+            if u.path == "/api/alive":
+                ALIVE.ping(body)
+                return self._json({"ok": True})
+            if u.path == "/api/bye":
+                ALIVE.goodbye()
+                return self._json({"ok": True})
+            if u.path == "/api/open_window":
+                url = str(body.get("url") or "")
+                if not re.match(r"^https?://", url):
+                    return self._json({"ok": False, "error": "URL ではありません"})
+                return self._json({"ok": True, "how": open_app_window(url, remember=False)})
             if u.path == "/api/outfits":
                 return self._json(api_outfit_save(body))
             if u.path == "/api/outfits/delete":
@@ -3185,6 +4214,210 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(404, b"not found", "text/plain")
         except Exception as e:
             return self._json({"error": str(e), "trace": traceback.format_exc()}, 500)
+
+
+# --------------------------------------------------------------------------
+# 専用の窓（Edge の --app 窓。タブもアドレス欄もない）と、黒い窓を出さない動かし方
+# --------------------------------------------------------------------------
+
+EDGE_DIR = DATA_DIR / "edge"          # 想起専用の Edge の設定フォルダ
+LOG_PATH = DATA_DIR / "souki.log"
+
+
+def find_edge() -> str | None:
+    if sys.platform != "win32":
+        return None
+    for env in ("ProgramFiles(x86)", "ProgramFiles", "LOCALAPPDATA"):
+        base = os.environ.get(env)
+        if base:
+            p = Path(base) / "Microsoft" / "Edge" / "Application" / "msedge.exe"
+            if p.is_file():
+                return str(p)
+    try:
+        import winreg
+        for hive in (winreg.HKEY_LOCAL_MACHINE, winreg.HKEY_CURRENT_USER):
+            try:
+                with winreg.OpenKey(hive, r"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\msedge.exe") as k:
+                    v = winreg.QueryValue(k, None)
+                    if v and Path(v).is_file():
+                        return v
+            except OSError:
+                continue
+    except Exception:
+        pass
+    return None
+
+
+def window_geometry(cfg: dict) -> dict:
+    w = cfg.get("window") if isinstance(cfg.get("window"), dict) else {}
+    out = {"w": 1500, "h": 950}
+    for k in ("w", "h", "x", "y"):
+        v = w.get(k)
+        if isinstance(v, (int, float)):
+            out[k] = int(v)
+    out["w"] = max(640, min(out["w"], 7680))
+    out["h"] = max(480, min(out["h"], 4320))
+    return out
+
+
+def open_app_window(url: str, cfg: dict | None = None, remember: bool = True) -> str:
+    """専用の窓で開く。Edge が無ければ、いつものブラウザで開く。戻り値は "edge" か "browser"。"""
+    edge = find_edge()
+    if edge:
+        import subprocess
+        args = [edge, f"--app={url}", f"--user-data-dir={EDGE_DIR}", "--no-first-run",
+                "--no-default-browser-check"]
+        if remember and cfg is not None:
+            g = window_geometry(cfg)
+            args.append(f"--window-size={g['w']},{g['h']}")
+            if "x" in g and "y" in g:
+                args.append(f"--window-position={g['x']},{g['y']}")
+        try:
+            flags = 0x00000008 | 0x00000200      # DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP
+            subprocess.Popen(args, creationflags=flags, close_fds=True,
+                             stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                             stderr=subprocess.DEVNULL)
+            return "edge"
+        except Exception as e:
+            log(f"Edge を開けませんでした: {e}")
+    webbrowser.open(url)
+    return "browser"
+
+
+def log(msg: str) -> None:
+    try:
+        print(f"{time.strftime('%Y-%m-%d %H:%M:%S')}  {msg}", flush=True)
+    except Exception:
+        pass
+
+
+def windowless() -> bool:
+    """黒い窓なし（pythonw）で動いているか。"""
+    return sys.stdout is None or not hasattr(sys.stdout, "write") or \
+        Path(sys.executable).name.lower().startswith("pythonw")
+
+
+def to_log_file() -> None:
+    """記録を data\\souki.log に書く（大きくなったら 1 つ前を .old に回す）。"""
+    try:
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+        if LOG_PATH.exists() and LOG_PATH.stat().st_size > 2_000_000:
+            LOG_PATH.replace(LOG_PATH.with_suffix(".log.old"))
+        f = open(LOG_PATH, "a", encoding="utf-8", buffering=1)
+        sys.stdout = f
+        sys.stderr = f
+        f.write("\n" + "=" * 60 + "\n")
+    except Exception:
+        pass
+
+
+def message_box(msg: str, error: bool = True) -> None:
+    """黒い窓が無いときは、メッセージの窓で知らせる。"""
+    log(msg)
+    if sys.platform == "win32":
+        try:
+            import ctypes
+            ctypes.windll.user32.MessageBoxW(None, str(msg), APP_NAME, 0x10 if error else 0x40)
+            return
+        except Exception:
+            pass
+    try:
+        sys.__stderr__.write(msg + "\n")
+    except Exception:
+        pass
+
+
+class Alive:
+    """開いている画面の様子。画面は数秒ごとに知らせてくる。
+    専用の窓を閉じた（どの画面からも知らせが来なくなった）ら、想起も終わる。"""
+    BYE_GRACE = 10          # 閉じた知らせのあと、台帳⇄キャラ帳の切り替えを待つ秒数
+    SILENT = 150            # 知らせが無いまま待つ秒数（最小化中は知らせが間遠になるため長め）
+
+    def __init__(self):
+        self.last = 0.0
+        self.bye = 0.0
+        self.seen = False
+        self.lock = threading.Lock()
+        self.geom = None
+
+    def ping(self, body: dict | None = None) -> None:
+        with self.lock:
+            self.last = time.time()
+            self.bye = 0.0
+            self.seen = True
+        b = body or {}
+        try:
+            g = {k: int(b[k]) for k in ("x", "y", "w", "h") if isinstance(b.get(k), (int, float))}
+        except Exception:
+            g = {}
+        if len(g) == 4 and g["w"] >= 400 and g["h"] >= 300 and g != self.geom:
+            self.geom = g
+            try:
+                cfg = load_config()
+                cfg["window"] = g
+                save_config(cfg)
+                if STATE:
+                    STATE.cfg["window"] = g
+            except Exception:
+                pass
+
+    def goodbye(self) -> None:
+        with self.lock:
+            self.bye = time.time()
+
+    def closed(self) -> bool:
+        with self.lock:
+            if not self.seen:
+                return False
+            now = time.time()
+            if self.bye and now - self.bye > self.BYE_GRACE and self.bye >= self.last:
+                return True
+            return now - self.last > self.SILENT
+
+
+ALIVE = Alive()
+
+
+def busy_jobs() -> list:
+    """終わる前に待つ仕事（台帳の読み直し・キャラの解析など）。"""
+    out = []
+    if STATE and STATE.index_status.get("running"):
+        out.append("台帳の読み直し")
+    if STATE and (STATE.index_status.get("reparse") or {}).get("running"):
+        out.append("台帳の読み直し（ワークフロー）")
+    if chara_ok():
+        try:
+            if CHARA.JOB_ANALYSIS.snapshot().get("running"):
+                out.append("キャラの解析")
+            if CHARA.JOB_ENGINE.snapshot().get("running"):
+                out.append("キャラの判定")
+        except Exception:
+            pass
+    return out
+
+
+def watch_window(srv) -> None:
+    """専用の窓が閉じられたら、仕事が終わるのを待ってから終わる。"""
+    def run():
+        while True:
+            time.sleep(2)
+            if not ALIVE.closed():
+                continue
+            jobs = busy_jobs()
+            if jobs:
+                log("窓が閉じられました。終わるまで裏で続けます: " + "・".join(jobs))
+                while busy_jobs() and ALIVE.closed():
+                    time.sleep(3)
+                if not ALIVE.closed():
+                    continue           # その間にまた開かれた
+            log("窓が閉じられたので終わります")
+            try:
+                STATE.comfy.stop()
+            except Exception:
+                pass
+            srv.shutdown()
+            return
+    threading.Thread(target=run, daemon=True, name="souki-window-watch").start()
 
 
 # --------------------------------------------------------------------------
@@ -3284,13 +4517,22 @@ def cmd_serve(args) -> None:
         except Exception:
             other = None
         if other == VERSION:
-            print(f"  すでに起動しています。ブラウザで開きます: {url}")
+            # 動いているときに 起動.bat を開いたら、窓だけ開く
+            print(f"  すでに起動しています。窓を開きます: {url}")
             if not args.no_browser:
-                webbrowser.open(url)
+                if args.app:
+                    open_app_window(url, cfg)
+                else:
+                    webbrowser.open(url)
         else:
-            print(f"  !! ポート {port} を別のプログラムが使っています"
-                  + ("（前の版の想起が動いたままのようです）" if other is None else f"（版 {other}）") + "。")
-            print("     その窓を閉じてから、もう一度 起動.bat を開いてください。")
+            msg = (f"ポート {port} を別のプログラムが使っています"
+                   + ("（前の版の想起が動いたままのようです）" if other is None else f"（版 {other} の想起）")
+                   + "。\nその想起を終わらせてから（窓を閉じる・タスクマネージャーで python を終わらせる）、"
+                     "もう一度 起動.bat を開いてください。")
+            if args.app or windowless():
+                message_box(msg)
+            else:
+                print("  !! " + msg)
         return
 
     # 前の版の部品を片付ける（前の版が動いたままのときは触らない＝ここまで来ない）
@@ -3322,19 +4564,27 @@ def cmd_serve(args) -> None:
     print(f"  ComfyUI  {cfg['comfy_url']}  ... " +
           ("接続OK" if ping.get("online") else "未接続（再投入は使えません）"))
     print(f"  画面     {url}")
-    print("  終了: この窓を閉じるか Ctrl+C")
+    print("  終了: " + ("専用の窓を閉じる" if args.app else "この窓を閉じるか Ctrl+C"))
 
     # 起動したら出力フォルダを読み直す（変わったものだけ読むので速い）
     dirs = STATE.cfg.get("output_dirs") or []
     if dirs and cfg.get("index_on_start", True) and not args.no_index:
         start_index_bg(dirs, False)
+    else:
+        start_maintenance_bg()
 
+    if args.app:
+        watch_window(srv)          # 専用の窓を閉じたら終わる
     if not args.no_browser:
-        threading.Timer(0.8, lambda: webbrowser.open(url)).start()
+        if args.app:
+            threading.Timer(0.5, lambda: log("窓: " + open_app_window(url, cfg))).start()
+        else:
+            threading.Timer(0.8, lambda: webbrowser.open(url)).start()
     try:
         srv.serve_forever()
     except KeyboardInterrupt:
         print("\n終了しました。")
+    log("終了しました")
 
 
 def main() -> None:
@@ -3352,10 +4602,23 @@ def main() -> None:
     ps.add_argument("--comfy", help="ComfyUI の URL (既定 http://127.0.0.1:8188)")
     ps.add_argument("--no-browser", action="store_true")
     ps.add_argument("--no-index", action="store_true", help="起動時に出力フォルダを読み直さない")
+    ps.add_argument("--app", action="store_true",
+                    help="専用の窓（Edge）で開き、窓を閉じたら終わる（起動.bat から pythonw で使う）")
     ps.set_defaults(func=cmd_serve)
 
     args = ap.parse_args()
-    args.func(args)
+    if windowless() or getattr(args, "app", False) and sys.platform == "win32":
+        to_log_file()          # 黒い窓が無いので、記録はファイルに残す
+    try:
+        args.func(args)
+    except SystemExit:
+        raise
+    except Exception as e:
+        log(traceback.format_exc())
+        if windowless() or getattr(args, "app", False):
+            message_box(f"想起を起動できませんでした。\n\n{e}\n\n記録: {LOG_PATH}")
+        else:
+            raise
 
 
 if __name__ == "__main__":

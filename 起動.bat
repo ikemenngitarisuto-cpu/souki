@@ -23,9 +23,12 @@ findstr /x /c:"%MARK%" "%~dp0runtime\setup_ok.txt" >nul 2>&1
 if errorlevel 1 goto :fallback
 
 :run
-chcp 65001 >nul
-"%PY%" souki.py serve
-goto :end
+rem --- No black window: pythonw runs the server, Edge shows a window ---
+rem     (the log is written to data\souki.log)
+set "PYW=%~dp0runtime\venv\Scripts\pythonw.exe"
+if not exist "%PYW%" set "PYW=%PY%"
+start "" "%PYW%" souki.py serve --app
+exit /b 0
 
 rem --- Setup failed: start the ledger with any Python that has Pillow ---
 :fallback
