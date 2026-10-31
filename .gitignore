@@ -1,0 +1,11 @@
+# 利用者ごとの設定・データ（リポジトリには入れない）
+config.json
+data/
+runtime/
+models/
+export/
+_旧版/
+python_path.txt
+__pycache__/
+*.pyc
+dist/
