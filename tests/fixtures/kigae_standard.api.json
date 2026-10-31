@@ -1,0 +1,271 @@
+{
+ "2": {
+  "class_type": "PrimitiveStringMultiline",
+  "inputs": {
+   "value": "masterpiece, best quality, amazing quality, absurdres"
+  },
+  "_meta": {
+   "title": "品質・画風"
+  }
+ },
+ "3": {
+  "class_type": "PrimitiveStringMultiline",
+  "inputs": {
+   "value": "1girl, solo, long hair, silver hair, blue eyes"
+  },
+  "_meta": {
+   "title": "キャラ"
+  }
+ },
+ "4": {
+  "class_type": "PrimitiveStringMultiline",
+  "inputs": {
+   "value": "maid, maid headdress, white apron, black dress, frills"
+  },
+  "_meta": {
+   "title": "服"
+  }
+ },
+ "5": {
+  "class_type": "PrimitiveStringMultiline",
+  "inputs": {
+   "value": "standing, smile, looking at viewer"
+  },
+  "_meta": {
+   "title": "ポーズ・表情"
+  }
+ },
+ "6": {
+  "class_type": "PrimitiveStringMultiline",
+  "inputs": {
+   "value": "full body, simple background, white background"
+  },
+  "_meta": {
+   "title": "背景・構図"
+  }
+ },
+ "7": {
+  "class_type": "StringConcatenate",
+  "inputs": {
+   "string_a": [
+    "2",
+    0
+   ],
+   "string_b": [
+    "3",
+    0
+   ],
+   "delimiter": ", "
+  },
+  "_meta": {
+   "title": "つなぐ（品質・画風＋キャラ）"
+  }
+ },
+ "8": {
+  "class_type": "StringConcatenate",
+  "inputs": {
+   "string_a": [
+    "7",
+    0
+   ],
+   "string_b": [
+    "4",
+    0
+   ],
+   "delimiter": ", "
+  },
+  "_meta": {
+   "title": "つなぐ（＋服）"
+  }
+ },
+ "9": {
+  "class_type": "StringConcatenate",
+  "inputs": {
+   "string_a": [
+    "8",
+    0
+   ],
+   "string_b": [
+    "5",
+    0
+   ],
+   "delimiter": ", "
+  },
+  "_meta": {
+   "title": "つなぐ（＋ポーズ・表情）"
+  }
+ },
+ "10": {
+  "class_type": "StringConcatenate",
+  "inputs": {
+   "string_a": [
+    "9",
+    0
+   ],
+   "string_b": [
+    "6",
+    0
+   ],
+   "delimiter": ", "
+  },
+  "_meta": {
+   "title": "つなぐ（＋背景・構図）"
+  }
+ },
+ "11": {
+  "class_type": "RegexReplace",
+  "inputs": {
+   "string": [
+    "10",
+    0
+   ],
+   "regex_pattern": "\\s*[,\\n][\\s,]*",
+   "replace": ", ",
+   "case_insensitive": true,
+   "multiline": false,
+   "dotall": false,
+   "count": 0
+  },
+  "_meta": {
+   "title": "仕上げ：区切りをそろえる"
+  }
+ },
+ "12": {
+  "class_type": "RegexReplace",
+  "inputs": {
+   "string": [
+    "11",
+    0
+   ],
+   "regex_pattern": "^[\\s,]+|[\\s,]+$",
+   "replace": "",
+   "case_insensitive": true,
+   "multiline": false,
+   "dotall": false,
+   "count": 0
+  },
+  "_meta": {
+   "title": "仕上げ：前後の余分を落とす"
+  }
+ },
+ "13": {
+  "class_type": "PreviewAny",
+  "inputs": {
+   "source": [
+    "12",
+    0
+   ]
+  },
+  "_meta": {
+   "title": "できあがったプロンプト"
+  }
+ },
+ "14": {
+  "class_type": "CheckpointLoaderSimple",
+  "inputs": {
+   "ckpt_name": "illustriousPencilXL_v320.safetensors"
+  },
+  "_meta": {
+   "title": "CheckpointLoaderSimple"
+  }
+ },
+ "15": {
+  "class_type": "CLIPTextEncode",
+  "inputs": {
+   "text": [
+    "12",
+    0
+   ],
+   "clip": [
+    "14",
+    1
+   ]
+  },
+  "_meta": {
+   "title": "ポジティブ（窓をつないだもの）"
+  }
+ },
+ "16": {
+  "class_type": "CLIPTextEncode",
+  "inputs": {
+   "text": "worst quality, bad quality, low quality, lowres, bad anatomy, bad hands, extra fingers, missing fingers, signature, watermark, text",
+   "clip": [
+    "14",
+    1
+   ]
+  },
+  "_meta": {
+   "title": "ネガティブ"
+  }
+ },
+ "17": {
+  "class_type": "EmptyLatentImage",
+  "inputs": {
+   "width": 832,
+   "height": 1216,
+   "batch_size": 1
+  },
+  "_meta": {
+   "title": "EmptyLatentImage"
+  }
+ },
+ "18": {
+  "class_type": "KSampler",
+  "inputs": {
+   "seed": 20261026,
+   "steps": 30,
+   "cfg": 4,
+   "sampler_name": "euler_ancestral",
+   "scheduler": "normal",
+   "denoise": 1,
+   "model": [
+    "14",
+    0
+   ],
+   "positive": [
+    "15",
+    0
+   ],
+   "negative": [
+    "16",
+    0
+   ],
+   "latent_image": [
+    "17",
+    0
+   ]
+  },
+  "_meta": {
+   "title": "KSampler"
+  }
+ },
+ "19": {
+  "class_type": "VAEDecode",
+  "inputs": {
+   "samples": [
+    "18",
+    0
+   ],
+   "vae": [
+    "14",
+    2
+   ]
+  },
+  "_meta": {
+   "title": "VAEDecode"
+  }
+ },
+ "20": {
+  "class_type": "SaveImage",
+  "inputs": {
+   "filename_prefix": "着替工房/標準",
+   "images": [
+    "19",
+    0
+   ]
+  },
+  "_meta": {
+   "title": "SaveImage"
+  }
+ }
+}

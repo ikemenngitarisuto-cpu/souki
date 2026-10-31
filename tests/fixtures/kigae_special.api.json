@@ -1,0 +1,172 @@
+{
+ "2": {
+  "class_type": "KigaeKoboPrompt",
+  "inputs": {
+   "品質・画風": "masterpiece, best quality, amazing quality, absurdres",
+   "キャラ": "1girl, solo, long hair, silver hair, blue eyes",
+   "服": "【メイド】maid, maid headdress, white apron, black dress, frills\n【セーラー服】serafuku, sailor collar, pleated skirt, red neckerchief\n【パーカー】hoodie, denim shorts, sneakers\n【着物】kimono, floral print, obi\n// 【水着】one-piece swimsuit ← 行頭の // でお休み",
+   "ポーズ・表情": "standing, smile, looking at viewer",
+   "背景・構図": "full body, simple background, white background",
+   "服の出し方": "全部まとめて",
+   "番号": 1,
+   "保存名の頭": "着替工房/"
+  },
+  "_meta": {
+   "title": "KigaeKoboPrompt"
+  }
+ },
+ "3": {
+  "class_type": "CheckpointLoaderSimple",
+  "inputs": {
+   "ckpt_name": "illustriousPencilXL_v320.safetensors"
+  },
+  "_meta": {
+   "title": "CheckpointLoaderSimple"
+  }
+ },
+ "4": {
+  "class_type": "CLIPTextEncode",
+  "inputs": {
+   "text": [
+    "2",
+    0
+   ],
+   "clip": [
+    "3",
+    1
+   ]
+  },
+  "_meta": {
+   "title": "ポジティブ（着替工房から）"
+  }
+ },
+ "5": {
+  "class_type": "CLIPTextEncode",
+  "inputs": {
+   "text": "worst quality, bad quality, low quality, lowres, bad anatomy, bad hands, extra fingers, missing fingers, signature, watermark, text",
+   "clip": [
+    "3",
+    1
+   ]
+  },
+  "_meta": {
+   "title": "ネガティブ"
+  }
+ },
+ "6": {
+  "class_type": "EmptyLatentImage",
+  "inputs": {
+   "width": 832,
+   "height": 1216,
+   "batch_size": 1
+  },
+  "_meta": {
+   "title": "EmptyLatentImage"
+  }
+ },
+ "7": {
+  "class_type": "KSampler",
+  "inputs": {
+   "seed": 20261026,
+   "steps": 30,
+   "cfg": 4,
+   "sampler_name": "euler_ancestral",
+   "scheduler": "normal",
+   "denoise": 1,
+   "model": [
+    "3",
+    0
+   ],
+   "positive": [
+    "4",
+    0
+   ],
+   "negative": [
+    "5",
+    0
+   ],
+   "latent_image": [
+    "6",
+    0
+   ]
+  },
+  "_meta": {
+   "title": "KSampler"
+  }
+ },
+ "8": {
+  "class_type": "VAEDecode",
+  "inputs": {
+   "samples": [
+    "7",
+    0
+   ],
+   "vae": [
+    "3",
+    2
+   ]
+  },
+  "_meta": {
+   "title": "VAEDecode"
+  }
+ },
+ "9": {
+  "class_type": "PreviewAny",
+  "inputs": {
+   "source": [
+    "2",
+    3
+   ]
+  },
+  "_meta": {
+   "title": "できあがったプロンプト（全パターン）"
+  }
+ },
+ "10": {
+  "class_type": "SaveImage",
+  "inputs": {
+   "filename_prefix": [
+    "2",
+    2
+   ],
+   "images": [
+    "8",
+    0
+   ]
+  },
+  "_meta": {
+   "title": "1枚ずつ保存"
+  }
+ },
+ "11": {
+  "class_type": "KigaeKoboSheet",
+  "inputs": {
+   "列数": 0,
+   "コマの幅": 512,
+   "画像": [
+    "8",
+    0
+   ],
+   "ラベル": [
+    "2",
+    1
+   ]
+  },
+  "_meta": {
+   "title": "KigaeKoboSheet"
+  }
+ },
+ "12": {
+  "class_type": "SaveImage",
+  "inputs": {
+   "filename_prefix": "着替工房/一覧",
+   "images": [
+    "11",
+    0
+   ]
+  },
+  "_meta": {
+   "title": "一覧を保存"
+  }
+ }
+}
