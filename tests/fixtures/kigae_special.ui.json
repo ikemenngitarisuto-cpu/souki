@@ -1,0 +1,967 @@
+{
+ "id": "8832b2b0-18a1-4a04-9f70-0d1c9860f2e1",
+ "revision": 0,
+ "last_node_id": 12,
+ "last_link_id": 15,
+ "nodes": [
+  {
+   "id": 1,
+   "type": "MarkdownNote",
+   "pos": [
+    -580,
+    0
+   ],
+   "size": [
+    520,
+    640
+   ],
+   "flags": {},
+   "order": 0,
+   "mode": 0,
+   "inputs": [],
+   "outputs": [],
+   "title": "使い方",
+   "properties": {},
+   "widgets_values": [
+    "## 着替工房（専用ノード版）\n\n**書くのは「着替工房（区画プロンプト）」ノードだけ。** 窓は上から順に「, 」でつながります。\n\n### 服の窓の書き方\n- **1行に1パターン**。「全部まとめて」なら、1回の実行で全部の行を同じシードで出します\n- 行頭の **【名前】** が保存名と一覧のラベルになります（なければ最初のタグ）\n- 行頭に **//** か **#** を付けた行はお休み\n- **{red|blue}** と書くと、実行ごとにどれか1つを選びます（どの窓でも使えます）\n\n### 服の出し方\n- **全部まとめて**：服の全行を一度に出します。終わると右端に一覧が1枚できます\n- **番号の行だけ**：「番号」の行だけ出します。番号のすぐ下の「生成後の制御」を **increment** にすると、実行のたびに次の服へ進みます\n\n### そのほか\n- シードは **fixed**。服だけ書き換えて、構図が近いまま比べられます。別の構図を見たいときは KSampler の「生成後の制御」を randomize に\n- 保存先：output/着替工房/（1枚ずつ）と output/着替工房/一覧\n- 一覧が要らないときは「並べて一覧」と右の保存を選んで Ctrl+B（バイパス）\n\n設定：Euler a・CFG 4（モデル作者の推奨）／30ステップ／832×1216"
+   ],
+   "widgets_values_named": {
+    "text": "## 着替工房（専用ノード版）\n\n**書くのは「着替工房（区画プロンプト）」ノードだけ。** 窓は上から順に「, 」でつながります。\n\n### 服の窓の書き方\n- **1行に1パターン**。「全部まとめて」なら、1回の実行で全部の行を同じシードで出します\n- 行頭の **【名前】** が保存名と一覧のラベルになります（なければ最初のタグ）\n- 行頭に **//** か **#** を付けた行はお休み\n- **{red|blue}** と書くと、実行ごとにどれか1つを選びます（どの窓でも使えます）\n\n### 服の出し方\n- **全部まとめて**：服の全行を一度に出します。終わると右端に一覧が1枚できます\n- **番号の行だけ**：「番号」の行だけ出します。番号のすぐ下の「生成後の制御」を **increment** にすると、実行のたびに次の服へ進みます\n\n### そのほか\n- シードは **fixed**。服だけ書き換えて、構図が近いまま比べられます。別の構図を見たいときは KSampler の「生成後の制御」を randomize に\n- 保存先：output/着替工房/（1枚ずつ）と output/着替工房/一覧\n- 一覧が要らないときは「並べて一覧」と右の保存を選んで Ctrl+B（バイパス）\n\n設定：Euler a・CFG 4（モデル作者の推奨）／30ステップ／832×1216"
+   },
+   "color": "#432",
+   "bgcolor": "#653"
+  },
+  {
+   "id": 2,
+   "type": "KigaeKoboPrompt",
+   "pos": [
+    0,
+    0
+   ],
+   "size": [
+    480,
+    1000
+   ],
+   "flags": {},
+   "order": 1,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "品質・画風",
+     "name": "品質・画風",
+     "type": "STRING",
+     "widget": {
+      "name": "品質・画風"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "キャラ",
+     "name": "キャラ",
+     "type": "STRING",
+     "widget": {
+      "name": "キャラ"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "服",
+     "name": "服",
+     "type": "STRING",
+     "widget": {
+      "name": "服"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "ポーズ・表情",
+     "name": "ポーズ・表情",
+     "type": "STRING",
+     "widget": {
+      "name": "ポーズ・表情"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "背景・構図",
+     "name": "背景・構図",
+     "type": "STRING",
+     "widget": {
+      "name": "背景・構図"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "服の出し方",
+     "name": "服の出し方",
+     "type": "COMBO",
+     "widget": {
+      "name": "服の出し方"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "番号",
+     "name": "番号",
+     "type": "INT",
+     "widget": {
+      "name": "番号"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "保存名の頭",
+     "name": "保存名の頭",
+     "type": "STRING",
+     "widget": {
+      "name": "保存名の頭"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "プロンプト",
+     "name": "プロンプト",
+     "shape": 6,
+     "type": "STRING",
+     "links": [
+      1
+     ]
+    },
+    {
+     "localized_name": "ラベル",
+     "name": "ラベル",
+     "shape": 6,
+     "type": "STRING",
+     "links": [
+      4
+     ]
+    },
+    {
+     "localized_name": "保存名",
+     "name": "保存名",
+     "shape": 6,
+     "type": "STRING",
+     "links": [
+      3
+     ]
+    },
+    {
+     "localized_name": "一覧",
+     "name": "一覧",
+     "type": "STRING",
+     "links": [
+      2
+     ]
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "KigaeKoboPrompt"
+   },
+   "widgets_values": [
+    "masterpiece, best quality, amazing quality, absurdres",
+    "1girl, solo, long hair, silver hair, blue eyes",
+    "【メイド】maid, maid headdress, white apron, black dress, frills\n【セーラー服】serafuku, sailor collar, pleated skirt, red neckerchief\n【パーカー】hoodie, denim shorts, sneakers\n【着物】kimono, floral print, obi\n// 【水着】one-piece swimsuit ← 行頭の // でお休み",
+    "standing, smile, looking at viewer",
+    "full body, simple background, white background",
+    "全部まとめて",
+    1,
+    "fixed",
+    "着替工房/"
+   ],
+   "widgets_values_named": {
+    "品質・画風": "masterpiece, best quality, amazing quality, absurdres",
+    "キャラ": "1girl, solo, long hair, silver hair, blue eyes",
+    "服": "【メイド】maid, maid headdress, white apron, black dress, frills\n【セーラー服】serafuku, sailor collar, pleated skirt, red neckerchief\n【パーカー】hoodie, denim shorts, sneakers\n【着物】kimono, floral print, obi\n// 【水着】one-piece swimsuit ← 行頭の // でお休み",
+    "ポーズ・表情": "standing, smile, looking at viewer",
+    "背景・構図": "full body, simple background, white background",
+    "服の出し方": "全部まとめて",
+    "番号": 1,
+    "control_after_generate": "fixed",
+    "保存名の頭": "着替工房/"
+   },
+   "color": "#432",
+   "bgcolor": "#653"
+  },
+  {
+   "id": 3,
+   "type": "CheckpointLoaderSimple",
+   "pos": [
+    560,
+    0
+   ],
+   "size": [
+    340,
+    100
+   ],
+   "flags": {},
+   "order": 2,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "ckpt名",
+     "name": "ckpt_name",
+     "type": "COMBO",
+     "widget": {
+      "name": "ckpt_name"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "モデル",
+     "name": "MODEL",
+     "type": "MODEL",
+     "links": [
+      7
+     ]
+    },
+    {
+     "localized_name": "CLIP",
+     "name": "CLIP",
+     "type": "CLIP",
+     "links": [
+      5,
+      6
+     ]
+    },
+    {
+     "localized_name": "VAE",
+     "name": "VAE",
+     "type": "VAE",
+     "links": [
+      12
+     ]
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "CheckpointLoaderSimple"
+   },
+   "widgets_values": [
+    "illustriousPencilXL_v320.safetensors"
+   ],
+   "widgets_values_named": {
+    "ckpt_name": "illustriousPencilXL_v320.safetensors"
+   }
+  },
+  {
+   "id": 4,
+   "type": "CLIPTextEncode",
+   "pos": [
+    560,
+    170
+   ],
+   "size": [
+    340,
+    88
+   ],
+   "flags": {},
+   "order": 3,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "クリップ",
+     "name": "clip",
+     "type": "CLIP",
+     "link": 5
+    },
+    {
+     "localized_name": "テキスト",
+     "name": "text",
+     "type": "STRING",
+     "widget": {
+      "name": "text"
+     },
+     "link": 1
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "条件付け",
+     "name": "CONDITIONING",
+     "type": "CONDITIONING",
+     "links": [
+      8
+     ]
+    }
+   ],
+   "title": "ポジティブ（着替工房から）",
+   "properties": {
+    "Node name for S&R": "CLIPTextEncode"
+   },
+   "widgets_values": [
+    ""
+   ],
+   "widgets_values_named": {
+    "text": ""
+   },
+   "color": "#232",
+   "bgcolor": "#353"
+  },
+  {
+   "id": 5,
+   "type": "CLIPTextEncode",
+   "pos": [
+    560,
+    300
+   ],
+   "size": [
+    340,
+    170
+   ],
+   "flags": {},
+   "order": 4,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "クリップ",
+     "name": "clip",
+     "type": "CLIP",
+     "link": 6
+    },
+    {
+     "localized_name": "テキスト",
+     "name": "text",
+     "type": "STRING",
+     "widget": {
+      "name": "text"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "条件付け",
+     "name": "CONDITIONING",
+     "type": "CONDITIONING",
+     "links": [
+      9
+     ]
+    }
+   ],
+   "title": "ネガティブ",
+   "properties": {
+    "Node name for S&R": "CLIPTextEncode"
+   },
+   "widgets_values": [
+    "worst quality, bad quality, low quality, lowres, bad anatomy, bad hands, extra fingers, missing fingers, signature, watermark, text"
+   ],
+   "widgets_values_named": {
+    "text": "worst quality, bad quality, low quality, lowres, bad anatomy, bad hands, extra fingers, missing fingers, signature, watermark, text"
+   },
+   "color": "#322",
+   "bgcolor": "#533"
+  },
+  {
+   "id": 6,
+   "type": "EmptyLatentImage",
+   "pos": [
+    560,
+    530
+   ],
+   "size": [
+    340,
+    110
+   ],
+   "flags": {},
+   "order": 5,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "幅",
+     "name": "width",
+     "type": "INT",
+     "widget": {
+      "name": "width"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "高さ",
+     "name": "height",
+     "type": "INT",
+     "widget": {
+      "name": "height"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "バッチサイズ",
+     "name": "batch_size",
+     "type": "INT",
+     "widget": {
+      "name": "batch_size"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "潜在",
+     "name": "LATENT",
+     "type": "LATENT",
+     "links": [
+      10
+     ]
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "EmptyLatentImage"
+   },
+   "widgets_values": [
+    832,
+    1216,
+    1
+   ],
+   "widgets_values_named": {
+    "width": 832,
+    "height": 1216,
+    "batch_size": 1
+   }
+  },
+  {
+   "id": 7,
+   "type": "KSampler",
+   "pos": [
+    940,
+    0
+   ],
+   "size": [
+    320,
+    290
+   ],
+   "flags": {},
+   "order": 6,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "モデル",
+     "name": "model",
+     "type": "MODEL",
+     "link": 7
+    },
+    {
+     "localized_name": "ポジティブ",
+     "name": "positive",
+     "type": "CONDITIONING",
+     "link": 8
+    },
+    {
+     "localized_name": "ネガティブ",
+     "name": "negative",
+     "type": "CONDITIONING",
+     "link": 9
+    },
+    {
+     "localized_name": "潜在画像",
+     "name": "latent_image",
+     "type": "LATENT",
+     "link": 10
+    },
+    {
+     "localized_name": "シード",
+     "name": "seed",
+     "type": "INT",
+     "widget": {
+      "name": "seed"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "ステップ",
+     "name": "steps",
+     "type": "INT",
+     "widget": {
+      "name": "steps"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "cfg",
+     "name": "cfg",
+     "type": "FLOAT",
+     "widget": {
+      "name": "cfg"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "サンプラー名",
+     "name": "sampler_name",
+     "type": "COMBO",
+     "widget": {
+      "name": "sampler_name"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "スケジューラ",
+     "name": "scheduler",
+     "type": "COMBO",
+     "widget": {
+      "name": "scheduler"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "ノイズ除去",
+     "name": "denoise",
+     "type": "FLOAT",
+     "widget": {
+      "name": "denoise"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "潜在",
+     "name": "LATENT",
+     "type": "LATENT",
+     "links": [
+      11
+     ]
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "KSampler"
+   },
+   "widgets_values": [
+    20261026,
+    "fixed",
+    30,
+    4,
+    "euler_ancestral",
+    "normal",
+    1
+   ],
+   "widgets_values_named": {
+    "seed": 20261026,
+    "control_after_generate": "fixed",
+    "steps": 30,
+    "cfg": 4,
+    "sampler_name": "euler_ancestral",
+    "scheduler": "normal",
+    "denoise": 1
+   }
+  },
+  {
+   "id": 8,
+   "type": "VAEDecode",
+   "pos": [
+    940,
+    350
+   ],
+   "size": [
+    220,
+    50
+   ],
+   "flags": {},
+   "order": 7,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "サンプル",
+     "name": "samples",
+     "type": "LATENT",
+     "link": 11
+    },
+    {
+     "localized_name": "vae",
+     "name": "vae",
+     "type": "VAE",
+     "link": 12
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "画像",
+     "name": "IMAGE",
+     "type": "IMAGE",
+     "links": [
+      13,
+      14
+     ]
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "VAEDecode"
+   }
+  },
+  {
+   "id": 9,
+   "type": "PreviewAny",
+   "pos": [
+    560,
+    710
+   ],
+   "size": [
+    700,
+    290
+   ],
+   "flags": {},
+   "order": 8,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "ソース",
+     "name": "source",
+     "type": "*",
+     "link": 2
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "文字列",
+     "name": "STRING",
+     "type": "STRING",
+     "links": null
+    }
+   ],
+   "title": "できあがったプロンプト（全パターン）",
+   "properties": {
+    "Node name for S&R": "PreviewAny"
+   },
+   "widgets_values": [],
+   "widgets_values_named": {}
+  },
+  {
+   "id": 10,
+   "type": "SaveImage",
+   "pos": [
+    1320,
+    0
+   ],
+   "size": [
+    440,
+    640
+   ],
+   "flags": {},
+   "order": 9,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "画像",
+     "name": "images",
+     "type": "IMAGE",
+     "link": 13
+    },
+    {
+     "localized_name": "ファイル名_プレフィックス",
+     "name": "filename_prefix",
+     "type": "STRING",
+     "widget": {
+      "name": "filename_prefix"
+     },
+     "link": 3
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "images",
+     "name": "images",
+     "type": "IMAGE",
+     "links": null
+    }
+   ],
+   "title": "1枚ずつ保存",
+   "properties": {},
+   "widgets_values": [
+    "ComfyUI"
+   ],
+   "widgets_values_named": {
+    "filename_prefix": "ComfyUI"
+   }
+  },
+  {
+   "id": 11,
+   "type": "KigaeKoboSheet",
+   "pos": [
+    1800,
+    0
+   ],
+   "size": [
+    300,
+    130
+   ],
+   "flags": {},
+   "order": 10,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "画像",
+     "name": "画像",
+     "type": "IMAGE",
+     "link": 14
+    },
+    {
+     "localized_name": "ラベル",
+     "name": "ラベル",
+     "shape": 7,
+     "type": "STRING",
+     "link": 4
+    },
+    {
+     "localized_name": "列数",
+     "name": "列数",
+     "type": "INT",
+     "widget": {
+      "name": "列数"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "コマの幅",
+     "name": "コマの幅",
+     "type": "INT",
+     "widget": {
+      "name": "コマの幅"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "一覧画像",
+     "name": "一覧画像",
+     "type": "IMAGE",
+     "links": [
+      15
+     ]
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "KigaeKoboSheet"
+   },
+   "widgets_values": [
+    0,
+    512
+   ],
+   "widgets_values_named": {
+    "列数": 0,
+    "コマの幅": 512
+   }
+  },
+  {
+   "id": 12,
+   "type": "SaveImage",
+   "pos": [
+    1800,
+    200
+   ],
+   "size": [
+    560,
+    800
+   ],
+   "flags": {},
+   "order": 11,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "画像",
+     "name": "images",
+     "type": "IMAGE",
+     "link": 15
+    },
+    {
+     "localized_name": "ファイル名_プレフィックス",
+     "name": "filename_prefix",
+     "type": "STRING",
+     "widget": {
+      "name": "filename_prefix"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "images",
+     "name": "images",
+     "type": "IMAGE",
+     "links": null
+    }
+   ],
+   "title": "一覧を保存",
+   "properties": {},
+   "widgets_values": [
+    "着替工房/一覧"
+   ],
+   "widgets_values_named": {
+    "filename_prefix": "着替工房/一覧"
+   }
+  }
+ ],
+ "links": [
+  [
+   1,
+   2,
+   0,
+   4,
+   1,
+   "STRING"
+  ],
+  [
+   2,
+   2,
+   3,
+   9,
+   0,
+   "STRING"
+  ],
+  [
+   3,
+   2,
+   2,
+   10,
+   1,
+   "STRING"
+  ],
+  [
+   4,
+   2,
+   1,
+   11,
+   1,
+   "STRING"
+  ],
+  [
+   5,
+   3,
+   1,
+   4,
+   0,
+   "CLIP"
+  ],
+  [
+   6,
+   3,
+   1,
+   5,
+   0,
+   "CLIP"
+  ],
+  [
+   7,
+   3,
+   0,
+   7,
+   0,
+   "MODEL"
+  ],
+  [
+   8,
+   4,
+   0,
+   7,
+   1,
+   "CONDITIONING"
+  ],
+  [
+   9,
+   5,
+   0,
+   7,
+   2,
+   "CONDITIONING"
+  ],
+  [
+   10,
+   6,
+   0,
+   7,
+   3,
+   "LATENT"
+  ],
+  [
+   11,
+   7,
+   0,
+   8,
+   0,
+   "LATENT"
+  ],
+  [
+   12,
+   3,
+   2,
+   8,
+   1,
+   "VAE"
+  ],
+  [
+   13,
+   8,
+   0,
+   10,
+   0,
+   "IMAGE"
+  ],
+  [
+   14,
+   8,
+   0,
+   11,
+   0,
+   "IMAGE"
+  ],
+  [
+   15,
+   11,
+   0,
+   12,
+   0,
+   "IMAGE"
+  ]
+ ],
+ "groups": [
+  {
+   "id": 1,
+   "title": "① 書く（さわるのはここだけ）",
+   "bounding": [
+    -24,
+    -88,
+    528,
+    1112
+   ],
+   "color": "#b58b2a",
+   "flags": {}
+  },
+  {
+   "id": 2,
+   "title": "② 生成",
+   "bounding": [
+    536,
+    -88,
+    748,
+    1112
+   ],
+   "color": "#3f789e",
+   "flags": {}
+  },
+  {
+   "id": 3,
+   "title": "③ 保存と一覧",
+   "bounding": [
+    1296,
+    -88,
+    1088,
+    1112
+   ],
+   "color": "#8A8",
+   "flags": {}
+  }
+ ],
+ "config": {},
+ "extra": {
+  "ds": {
+   "scale": 0.62,
+   "offset": [
+    693,
+    201
+   ]
+  }
+ },
+ "version": 0.4
+}
