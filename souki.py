@@ -46,7 +46,7 @@ except ImportError:
     sys.stderr.write("Pillow が必要です:  pip install Pillow\n")
     raise
 
-VERSION = "2.4.1"
+VERSION = "2.4.2"
 APP_NAME = "想起"
 APP_DIR = Path(__file__).resolve().parent
 DATA_DIR = APP_DIR / "data"
@@ -2252,6 +2252,38 @@ CHARA = None
 CHARA_ERROR = None
 
 
+def fresh_bytecode(names=("vision", "chara")) -> None:
+    """Python の控え（__pycache__ の .pyc）を、中身で確かめる形にしておく。
+
+    Python はふつう、元のファイルの「日時と大きさ」が同じなら控えをそのまま使う。
+    zip で上書きしたとき、版の数字だけ変わったファイルは大きさが同じなので、日時まで同じだと
+    前の版の控えが使われてしまう（v2.4.1 で「chara.py の版（2.4.0）が違います」と出た）。
+    中身の印（ハッシュ）で確かめる形の控えなら、Python が読み込むたびに中身と突き合わせる。"""
+    import importlib.util
+    import py_compile
+    for name in names:
+        src = APP_DIR / f"{name}.py"
+        if not src.is_file():
+            continue
+        try:
+            pyc = Path(importlib.util.cache_from_source(str(src)))
+            with open(pyc, "rb") as f:
+                head = f.read(16)
+        except (OSError, NotImplementedError, ValueError):
+            head = b""
+        if len(head) == 16 and head[:4] == importlib.util.MAGIC_NUMBER and \
+                int.from_bytes(head[4:8], "little") == 0b11:
+            continue                       # もう中身で確かめる形
+        try:
+            py_compile.compile(str(src), cfile=str(pyc), doraise=True,
+                               invalidation_mode=py_compile.PycInvalidationMode.CHECKED_HASH)
+        except Exception:
+            try:
+                pyc.unlink()               # 作れなければ消す（元のファイルから読み直される）
+            except Exception:
+                pass
+
+
 def load_chara():
     """chara.py を読み込む。numpy や ONNX Runtime が無い環境でも台帳は使えるように、
     失敗しても落とさず、理由だけ覚えておく。"""
@@ -2259,6 +2291,7 @@ def load_chara():
     if CHARA is not None or CHARA_ERROR is not None:
         return CHARA
     try:
+        fresh_bytecode()
         import chara as _c
         if _c.VERSION != VERSION:
             raise ImportError(f"chara.py の版（{_c.VERSION}）が souki.py（{VERSION}）と違います。"
@@ -3887,6 +3920,11 @@ class Handler(BaseHTTPRequestHandler):
                                       "text/plain; charset=utf-8")
                 return self._send(200, f.read_bytes(), "text/html; charset=utf-8")
 
+            if path in ("/" + APP_PATH, "/" + APP_PATH + "/"):
+                # 専用の窓の入口。台帳へ案内する（窓の名札は、最初に開いた URL で決まる）
+                return self._send(302, b"", "text/plain",
+                                  {"Location": "/" + ("?" + u.query if u.query else "")})
+
             if path in ("/chara", "/chara.html"):
                 f = APP_DIR / "chara.html"
                 if not f.exists():
@@ -4220,7 +4258,14 @@ class Handler(BaseHTTPRequestHandler):
 # 専用の窓（Edge の --app 窓。タブもアドレス欄もない）と、黒い窓を出さない動かし方
 # --------------------------------------------------------------------------
 
-EDGE_DIR = DATA_DIR / "edge"          # 想起専用の Edge の設定フォルダ
+# Edge は、--app の窓のタスクバーの名札（AppUserModelID）を
+#   「MSEdge.<URL のホスト>_<URL のパス>.<設定フォルダの名前>.Default」
+# で付ける（Chromium の shell_integration_win.cc の GetAppUserModelIdForApp。ポート番号は入らない）。
+# 台割工房も「http://127.0.0.1:<ポート>/」と設定フォルダ「edge」なので、同じ名札になってまとめられていた。
+# 想起は、パスを /souki、設定フォルダを souki_edge にして、Edge が別の名札を付けるようにする。
+EDGE_DIR = DATA_DIR / "souki_edge"     # 想起専用の Edge の設定フォルダ（名前を「edge」にしない）
+OLD_EDGE_DIR = DATA_DIR / "edge"       # v2.4.0〜2.4.1 の設定フォルダ
+APP_PATH = "souki"                     # 専用の窓で開く URL のパス（/souki → / へ案内する）
 LOG_PATH = DATA_DIR / "souki.log"
 
 
@@ -4248,6 +4293,30 @@ def find_edge() -> str | None:
     return None
 
 
+def edge_profile_dir() -> Path:
+    """想起専用の Edge の設定フォルダ。前の版のもの（data\\edge）があれば名前を変えて使う。"""
+    if OLD_EDGE_DIR.is_dir() and not EDGE_DIR.exists():
+        try:
+            OLD_EDGE_DIR.rename(EDGE_DIR)
+        except OSError:
+            pass                       # Edge が使っている間は変えられない。新しく作る
+    return EDGE_DIR
+
+
+def chromium_app_id(url: str, user_data_dir, prefix: str = "MSEdge") -> str:
+    """Edge（Chromium）が --app の窓に付ける名札の見込み（記録と確かめ用）。"""
+    u = urlparse(url)
+    app_name = f"{u.hostname or ''}_{u.path or '/'}"
+    from pathlib import PureWindowsPath
+    name = PureWindowsPath(str(user_data_dir)).name
+    profile_id = "".join(c for c in f"{name}.Default" if (c.isascii() and c.isalnum()) or c == ".")
+    return ".".join([prefix, app_name, profile_id]).replace(" ", "_")
+
+
+def app_window_url(port: int) -> str:
+    return f"http://127.0.0.1:{port}/{APP_PATH}"
+
+
 def window_geometry(cfg: dict) -> dict:
     w = cfg.get("window") if isinstance(cfg.get("window"), dict) else {}
     out = {"w": 1500, "h": 950}
@@ -4260,23 +4329,30 @@ def window_geometry(cfg: dict) -> dict:
     return out
 
 
+def edge_command(edge: str, url: str, cfg: dict | None = None, remember: bool = True) -> list:
+    args = [edge, f"--app={url}", f"--user-data-dir={edge_profile_dir()}", "--no-first-run",
+            "--no-default-browser-check"]
+    if remember and cfg is not None:
+        g = window_geometry(cfg)
+        args.append(f"--window-size={g['w']},{g['h']}")
+        if "x" in g and "y" in g:
+            args.append(f"--window-position={g['x']},{g['y']}")
+    return args
+
+
 def open_app_window(url: str, cfg: dict | None = None, remember: bool = True) -> str:
     """専用の窓で開く。Edge が無ければ、いつものブラウザで開く。戻り値は "edge" か "browser"。"""
     edge = find_edge()
     if edge:
         import subprocess
-        args = [edge, f"--app={url}", f"--user-data-dir={EDGE_DIR}", "--no-first-run",
-                "--no-default-browser-check"]
-        if remember and cfg is not None:
-            g = window_geometry(cfg)
-            args.append(f"--window-size={g['w']},{g['h']}")
-            if "x" in g and "y" in g:
-                args.append(f"--window-position={g['x']},{g['y']}")
+        args = edge_command(edge, url, cfg, remember)
         try:
             flags = 0x00000008 | 0x00000200      # DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP
             subprocess.Popen(args, creationflags=flags, close_fds=True,
                              stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
                              stderr=subprocess.DEVNULL)
+            log(f"Edge の専用窓を開きます: {url}（Edge が付ける名札の見込み: "
+                f"{chromium_app_id(url, edge_profile_dir())}）")
             return "edge"
         except Exception as e:
             log(f"Edge を開けませんでした: {e}")
@@ -4284,117 +4360,201 @@ def open_app_window(url: str, cfg: dict | None = None, remember: bool = True) ->
     return "browser"
 
 
-APP_USER_MODEL_ID = "Souki.Ledger"      # タスクバーで、ほかの Edge の窓（台割工房など）とまとめられないための名札
+# 念のための 2 段目: 想起の窓に、想起の名札・アイコン・ピン留めしたときの起動口を直接付ける。
+# Edge はプロファイルのアイコンができたときなどに名札を付け直すので、戻されたら付け直す。
+APP_USER_MODEL_ID = "Souki.Ledger"
 WINDOW_TITLE_HEAD = "想起"               # ui.html・chara.html の <title> の頭
+_PKEY_FMT = "{9F4C2855-9F79-4B39-A8D0-E1D42DE1D5F3}"   # System.AppUserModel.*
+PID_ID, PID_RELAUNCH_COMMAND, PID_RELAUNCH_ICON, PID_RELAUNCH_NAME = 5, 2, 3, 4
 
 
-def _set_window_identity(hwnd: int, launcher: str, icon: str) -> bool:
-    """窓に想起の名札（AppUserModelID）を付ける。タスクバーは名札ごとにまとめるので、
-    同じ Edge の窓でも、台割工房などとは別のボタンになる。アイコンも想起のものにする。"""
-    import ctypes
-    from ctypes import wintypes
+class _Win:
+    """タスクバーの名札を読み書きするための Windows の呼び出し（ctypes）。"""
 
-    class GUID(ctypes.Structure):
-        _fields_ = [("d1", ctypes.c_uint32), ("d2", ctypes.c_uint16), ("d3", ctypes.c_uint16),
-                    ("d4", ctypes.c_ubyte * 8)]
-
-    def guid(s):
+    def __init__(self):
+        import ctypes
         import uuid
-        u = uuid.UUID(s)
-        g = GUID(u.time_low, u.time_mid, u.time_hi_version)
-        g.d4[:] = list(u.bytes[8:])
-        return g
+        from ctypes import wintypes
+        self.ct, self.wt = ctypes, wintypes
 
-    class PROPERTYKEY(ctypes.Structure):
-        _fields_ = [("fmtid", GUID), ("pid", ctypes.c_uint32)]
+        class GUID(ctypes.Structure):
+            _fields_ = [("d1", ctypes.c_uint32), ("d2", ctypes.c_uint16), ("d3", ctypes.c_uint16),
+                        ("d4", ctypes.c_ubyte * 8)]
 
-    class PROPVARIANT(ctypes.Structure):
-        _fields_ = [("vt", ctypes.c_ushort), ("r1", ctypes.c_ushort), ("r2", ctypes.c_ushort),
-                    ("r3", ctypes.c_ushort), ("p", ctypes.c_void_p), ("pad", ctypes.c_void_p)]
+        class PROPERTYKEY(ctypes.Structure):
+            _fields_ = [("fmtid", GUID), ("pid", ctypes.c_uint32)]
 
-    fmt = "{9F4C2855-9F79-4B39-A8D0-E1D42DE1D5F3}"
-    keys = [(5, APP_USER_MODEL_ID),          # PKEY_AppUserModel_ID
-            (2, launcher),                   # RelaunchCommand（ピン留めしたとき 起動.bat から開く）
-            (3, icon),                       # RelaunchIconResource
-            (4, APP_NAME)]                   # RelaunchDisplayNameResource
-    ole32, shell32 = ctypes.windll.ole32, ctypes.windll.shell32
-    ole32.CoInitialize(None)
-    iid = guid("{886D8EEB-8CF2-4446-8D02-79F1B4AF7E1D}")   # IID_IPropertyStore
-    store = ctypes.c_void_p()
-    hr = shell32.SHGetPropertyStoreForWindow(wintypes.HWND(hwnd), ctypes.byref(iid), ctypes.byref(store))
-    if hr != 0 or not store:
-        return False
-    vtbl = ctypes.cast(ctypes.cast(store, ctypes.POINTER(ctypes.c_void_p))[0],
-                       ctypes.POINTER(ctypes.c_void_p))
-    SetValue = ctypes.WINFUNCTYPE(ctypes.c_long, ctypes.c_void_p, ctypes.POINTER(PROPERTYKEY),
-                                  ctypes.POINTER(PROPVARIANT))(vtbl[6])
-    Commit = ctypes.WINFUNCTYPE(ctypes.c_long, ctypes.c_void_p)(vtbl[7])
-    Release = ctypes.WINFUNCTYPE(ctypes.c_ulong, ctypes.c_void_p)(vtbl[2])
-    ok = True
-    # 名札は最後に付ける（付けた時点でタスクバーが分け直すので、その前に残りをそろえる）
-    for pid, val in sorted(keys, key=lambda k: k[0] == 5):
-        buf = ctypes.create_unicode_buffer(val)
-        pv = PROPVARIANT()
-        pv.vt = 31                           # VT_LPWSTR
-        pv.p = ctypes.cast(buf, ctypes.c_void_p)
-        pk = PROPERTYKEY(guid(fmt), pid)
-        ok = SetValue(store, ctypes.byref(pk), ctypes.byref(pv)) == 0 and ok
-    Commit(store)
-    Release(store)
-    # 窓のアイコンも想起のものに（タスクバーのボタンに出る）
-    try:
-        user32 = ctypes.windll.user32
-        user32.LoadImageW.restype = wintypes.HANDLE
-        for which, size in ((1, 32), (0, 16)):          # ICON_BIG, ICON_SMALL
-            h = user32.LoadImageW(None, icon, 1, size, size, 0x10)   # IMAGE_ICON, LR_LOADFROMFILE
+        class PROPVARIANT(ctypes.Structure):      # 64 ビットで 24 バイト
+            _fields_ = [("vt", ctypes.c_ushort), ("r1", ctypes.c_ushort), ("r2", ctypes.c_ushort),
+                        ("r3", ctypes.c_ushort), ("p", ctypes.c_void_p), ("pad", ctypes.c_void_p)]
+
+        def guid(s):
+            u = uuid.UUID(s)
+            g = GUID(u.time_low, u.time_mid, u.time_hi_version)
+            g.d4[:] = list(u.bytes[8:])
+            return g
+
+        self.GUID, self.PROPERTYKEY, self.PROPVARIANT, self.guid = GUID, PROPERTYKEY, PROPVARIANT, guid
+        self.iid_store = guid("{886D8EEB-8CF2-4446-8D02-79F1B4AF7E1D}")    # IID_IPropertyStore
+        self.fmt = guid(_PKEY_FMT)
+        H = wintypes.HWND
+        self.EnumProc = ctypes.WINFUNCTYPE(wintypes.BOOL, H, wintypes.LPARAM)
+        u = self.user32 = ctypes.WinDLL("user32")
+        s = self.shell32 = ctypes.WinDLL("shell32")
+        o = self.ole32 = ctypes.WinDLL("ole32")
+        u.EnumWindows.argtypes = [self.EnumProc, wintypes.LPARAM]
+        u.IsWindowVisible.argtypes = [H]
+        u.IsWindow.argtypes = [H]
+        u.GetClassNameW.argtypes = [H, wintypes.LPWSTR, ctypes.c_int]
+        u.GetWindowTextLengthW.argtypes = [H]
+        u.GetWindowTextW.argtypes = [H, wintypes.LPWSTR, ctypes.c_int]
+        u.SendMessageW.argtypes = [H, wintypes.UINT, wintypes.WPARAM, wintypes.LPARAM]
+        u.SendMessageW.restype = wintypes.LPARAM
+        u.LoadImageW.argtypes = [wintypes.HINSTANCE, wintypes.LPCWSTR, wintypes.UINT, ctypes.c_int,
+                                 ctypes.c_int, wintypes.UINT]
+        u.LoadImageW.restype = wintypes.HANDLE
+        s.SHGetPropertyStoreForWindow.argtypes = [H, ctypes.POINTER(GUID), ctypes.POINTER(ctypes.c_void_p)]
+        s.SHGetPropertyStoreForWindow.restype = ctypes.c_long
+        o.PropVariantClear.argtypes = [ctypes.POINTER(PROPVARIANT)]
+        o.CoInitialize.argtypes = [ctypes.c_void_p]
+        o.CoInitialize(None)
+
+    def windows(self) -> list:
+        """想起の窓（題が「想起」で始まる Edge の窓）。[(hwnd, 題)]"""
+        ct, u, found = self.ct, self.user32, []
+
+        def cb(hwnd, _):
+            try:
+                if not u.IsWindowVisible(hwnd):
+                    return True
+                cls = ct.create_unicode_buffer(64)
+                u.GetClassNameW(hwnd, cls, 64)
+                if not cls.value.startswith("Chrome_WidgetWin"):
+                    return True
+                n = u.GetWindowTextLengthW(hwnd)
+                t = ct.create_unicode_buffer(n + 1)
+                u.GetWindowTextW(hwnd, t, n + 1)
+                # 専用の窓の題はページの題だけ。ふつうのブラウザの窓（「… - Microsoft Edge」など）は除く
+                if t.value.startswith(WINDOW_TITLE_HEAD) and \
+                        not any(x in t.value for x in ("Edge", "Chrome", "Firefox")):
+                    found.append((int(hwnd), t.value))
+            except Exception:
+                pass
+            return True
+        u.EnumWindows(self.EnumProc(cb), 0)
+        return found
+
+    def _store(self, hwnd):
+        ct = self.ct
+        p = ct.c_void_p()
+        hr = self.shell32.SHGetPropertyStoreForWindow(hwnd, ct.byref(self.iid_store), ct.byref(p))
+        if hr != 0 or not p:
+            raise OSError(f"SHGetPropertyStoreForWindow が失敗しました（{hr & 0xFFFFFFFF:#010x}）")
+        vt = ct.cast(ct.cast(p, ct.POINTER(ct.c_void_p))[0], ct.POINTER(ct.c_void_p))
+        HR = ct.c_long
+        K, V = ct.POINTER(self.PROPERTYKEY), ct.POINTER(self.PROPVARIANT)
+        fns = {"release": ct.WINFUNCTYPE(ct.c_ulong, ct.c_void_p)(vt[2]),
+               "get": ct.WINFUNCTYPE(HR, ct.c_void_p, K, V)(vt[5]),
+               "set": ct.WINFUNCTYPE(HR, ct.c_void_p, K, V)(vt[6]),
+               "commit": ct.WINFUNCTYPE(HR, ct.c_void_p)(vt[7])}
+        return p, fns
+
+    def get_id(self, hwnd) -> str | None:
+        ct = self.ct
+        p, f = self._store(hwnd)
+        try:
+            pv = self.PROPVARIANT()
+            hr = f["get"](p, ct.byref(self.PROPERTYKEY(self.fmt, PID_ID)), ct.byref(pv))
+            val = ct.wstring_at(pv.p) if hr == 0 and pv.vt == 31 and pv.p else None
+            self.ole32.PropVariantClear(ct.byref(pv))
+            return val
+        finally:
+            f["release"](p)
+
+    def set_identity(self, hwnd, values: dict) -> list:
+        """values は {pid: 文字}。名札（PID_ID）は最後に付ける。戻り値は各 SetValue の結果。"""
+        ct = self.ct
+        p, f = self._store(hwnd)
+        out = []
+        try:
+            for pid in sorted(values, key=lambda k: k == PID_ID):
+                buf = ct.create_unicode_buffer(values[pid])
+                pv = self.PROPVARIANT()
+                pv.vt = 31                                    # VT_LPWSTR（SetValue は中身を写し取る）
+                pv.p = ct.addressof(buf)
+                out.append(f["set"](p, ct.byref(self.PROPERTYKEY(self.fmt, pid)), ct.byref(pv)) & 0xFFFFFFFF)
+            out.append(f["commit"](p) & 0xFFFFFFFF)
+        finally:
+            f["release"](p)
+        return out
+
+    def set_icon(self, hwnd, icon: str) -> None:
+        for which, size in ((1, 32), (0, 16)):                # ICON_BIG, ICON_SMALL
+            h = self.user32.LoadImageW(None, icon, 1, size, size, 0x10)   # IMAGE_ICON, LR_LOADFROMFILE
             if h:
-                user32.SendMessageW(wintypes.HWND(hwnd), 0x80, which, h)   # WM_SETICON
-    except Exception:
-        pass
-    return ok
+                self.user32.SendMessageW(hwnd, 0x80, which, h)            # WM_SETICON
+
+
+def relaunch_command(bat: Path) -> str:
+    """ピン留めした想起のボタンから開くときのコマンド（場所に空白があっても動くよう、cmd でくるむ）。"""
+    comspec = os.environ.get("ComSpec") or r"C:\Windows\System32\cmd.exe"
+    return f'"{comspec}" /c ""{bat}""'
+
+
+def identity_values() -> dict:
+    return {PID_RELAUNCH_COMMAND: relaunch_command(APP_DIR / "起動.bat"),
+            PID_RELAUNCH_ICON: f"{APP_DIR / 'souki.ico'},0",
+            PID_RELAUNCH_NAME: APP_NAME,
+            PID_ID: APP_USER_MODEL_ID}
+
+
+def identity_pass(w, values: dict, seen: dict) -> dict:
+    """想起の窓をひと通り見て、名札が想起のものでなければ付ける（Edge に戻されていたら付け直す）。
+    seen は {窓: 付けた回数}。今ある窓の分だけ返す。"""
+    live = set()
+    for hwnd, title in w.windows():
+        live.add(hwnd)
+        cur = w.get_id(hwnd)
+        if cur == APP_USER_MODEL_ID:
+            continue
+        n = seen.get(hwnd, 0)
+        res = w.set_identity(hwnd, values)
+        if n == 0:
+            w.set_icon(hwnd, str(APP_DIR / "souki.ico"))
+        after = w.get_id(hwnd)
+        seen[hwnd] = n + 1
+        if n < 3:
+            log(f"タスクバーの名札: 窓 {hwnd}「{title}」 {cur!r} → {after!r}"
+                f"（結果 {', '.join(f'{x:#x}' for x in res)}）")
+        elif n == 3:
+            log("タスクバーの名札: Edge が何度も名札を戻しています（このあとは記録しません）")
+    return {h: c for h, c in seen.items() if h in live}
 
 
 def watch_window_identity() -> None:
-    """想起の窓（Edge の専用窓）が現れたら名札を付ける。台帳⇄キャラ帳の切り替えでは窓は同じまま。"""
-    if sys.platform != "win32":
+    """想起の窓が現れたら名札を付け、Edge に戻されたら付け直す。様子は data\\souki.log に書く。
+    Edge が無い（いつものブラウザで開いた）ときは何もしない。"""
+    if sys.platform != "win32" or not find_edge():
         return
 
     def run():
-        import ctypes
-        from ctypes import wintypes
-        user32 = ctypes.windll.user32
-        done: set = set()
-        launcher = str(APP_DIR / "起動.bat")
-        icon = str(APP_DIR / "souki.ico")
-        EnumProc = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
+        try:
+            w = _Win()
+        except Exception as e:
+            log(f"タスクバーの名札: 準備できませんでした: {e}")
+            return
+        values, seen, fails = identity_values(), {}, 0
         while True:
-            found = []
-
-            def cb(hwnd, _):
-                if not user32.IsWindowVisible(hwnd):
-                    return True
-                cls = ctypes.create_unicode_buffer(64)
-                user32.GetClassNameW(hwnd, cls, 64)
-                if not cls.value.startswith("Chrome_WidgetWin"):
-                    return True
-                n = user32.GetWindowTextLengthW(hwnd)
-                t = ctypes.create_unicode_buffer(n + 1)
-                user32.GetWindowTextW(hwnd, t, n + 1)
-                if t.value.startswith(WINDOW_TITLE_HEAD):
-                    found.append(int(hwnd))
-                return True
             try:
-                user32.EnumWindows(EnumProc(cb), 0)
-                for h in found:
-                    if h not in done:
-                        if _set_window_identity(h, launcher, icon):
-                            log(f"窓に想起の名札を付けました（{h}）")
-                        done.add(h)
-                done = {h for h in done if user32.IsWindow(h)}
+                seen = identity_pass(w, values, seen)
+                fails = 0
             except Exception as e:
-                log(f"窓の名札を付けられませんでした: {e}")
-                return
-            time.sleep(1.5)
+                fails += 1
+                if fails <= 3:
+                    log(f"タスクバーの名札: 付けられませんでした: {e}")
+                if fails > 30:
+                    return
+            time.sleep(2.0)
     threading.Thread(target=run, daemon=True, name="souki-window-identity").start()
 
 
@@ -4615,6 +4775,7 @@ def cmd_serve(args) -> None:
         cfg["comfy_url"] = args.comfy
     port = args.port or cfg.get("server_port", 8765)
     url = f"http://127.0.0.1:{port}/"
+    win_url = app_window_url(port)       # 専用の窓は /souki で開く（タスクバーの名札を台割工房と分けるため）
 
     print(f"[{APP_NAME}] 版 {VERSION}")
     print(f"  Python   {sys.version.split()[0]}  ({sys.executable})")
@@ -4635,7 +4796,7 @@ def cmd_serve(args) -> None:
             print(f"  すでに起動しています。窓を開きます: {url}")
             if not args.no_browser:
                 if args.app:
-                    open_app_window(url, cfg)
+                    open_app_window(win_url, cfg)
                 else:
                     webbrowser.open(url)
         else:
@@ -4692,7 +4853,7 @@ def cmd_serve(args) -> None:
         watch_window_identity()    # タスクバーで台割工房などとまとめられないように
     if not args.no_browser:
         if args.app:
-            threading.Timer(0.5, lambda: log("窓: " + open_app_window(url, cfg))).start()
+            threading.Timer(0.5, lambda: log("窓: " + open_app_window(win_url, cfg))).start()
         else:
             threading.Timer(0.8, lambda: webbrowser.open(url)).start()
     try:

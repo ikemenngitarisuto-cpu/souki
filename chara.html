@@ -334,7 +334,7 @@ function alive(){
 alive(); setInterval(alive, 5000);
 window.addEventListener("pagehide", () => { try{ navigator.sendBeacon("/api/bye", ""); }catch(e){} });
 
-const PAGE_VERSION = "2.4.1";
+const PAGE_VERSION = "2.4.2";
 const $ = s => document.querySelector(s);
 const el = (t, c, x) => { const n = document.createElement(t); if (c) n.className = c; if (x != null) n.textContent = x; return n; };
 const fmt = n => (n == null ? "—" : Number(n).toLocaleString());

@@ -555,6 +555,77 @@ class Window(unittest.TestCase):
             if p.poll() is None:
                 p.kill()
 
+    def test_edge_window_has_own_taskbar_id(self):
+        """Edge は --app の窓に「URL のホスト_パス」と「設定フォルダの名前」から名札を付け、名札が同じ窓を
+        タスクバーで 1 つにまとめる。台割工房（http://127.0.0.1:<ポート>/ と設定フォルダ edge）と違う名札になること。"""
+        d = ENV["tmp"] / "app_edge"
+        shutil.rmtree(d, ignore_errors=True)
+        d.mkdir()
+        for f in APP_FILES:
+            shutil.copy(ROOT / f, d / f)
+        (d / "data" / "edge").mkdir(parents=True)              # 前の版の設定フォルダ
+        code = ("import json, souki; u = souki.app_window_url(8765); "
+                "a = souki.edge_command('msedge.exe', u, {'window': {'w': 1200, 'h': 800}}); "
+                "print(json.dumps([a, souki.chromium_app_id(u, souki.EDGE_DIR), "
+                "souki.chromium_app_id('http://127.0.0.1:8765/', r'C:\\souki\\data\\edge'), "
+                "souki.chromium_app_id('http://127.0.0.1:8770/', r'C:\\daiwari\\data\\edge')]))")
+        r = subprocess.run([sys.executable, "-c", code], cwd=d, capture_output=True, text=True,
+                           env=dict(os.environ, PYTHONUTF8="1"))
+        args, ours, old, daiwari = json.loads(r.stdout)
+        self.assertIn("--app=http://127.0.0.1:8765/souki", args)
+        udd = next(a for a in args if a.startswith("--user-data-dir="))
+        self.assertTrue(udd.endswith("souki_edge"), udd)
+        self.assertIn("--window-size=1200,800", args)
+        self.assertEqual(old, daiwari)                          # 前の版は台割工房と同じ名札だった
+        self.assertNotEqual(ours, daiwari)
+        self.assertEqual(ours, "MSEdge.127.0.0.1_/souki.soukiedge.Default")
+        self.assertTrue((d / "data" / "souki_edge").is_dir())   # 前の版の設定フォルダを引き継ぐ
+        self.assertFalse((d / "data" / "edge").exists())
+
+    def test_identity_is_reapplied_when_edge_resets_it(self):
+        """名札を付けたあと Edge に戻されても、次に見たとき付け直す（Windows の呼び出しは偽物）。"""
+        sys.path.insert(0, str(ENV["app"]))
+        try:
+            import souki
+        finally:
+            sys.path.pop(0)
+
+        class FakeWin:
+            def __init__(self):
+                self.ids = {101: "MSEdge.127.0.0.1_/.edge.Default", 202: "MSEdge.127.0.0.1_/.edge.Default"}
+                self.icons, self.sets = [], 0
+
+            def windows(self):
+                return [(101, "想起 — ComfyUI 出力台帳")]       # 202 は台割工房の窓（題が違うので触らない）
+
+            def get_id(self, h):
+                return self.ids.get(h)
+
+            def set_identity(self, h, values):
+                self.sets += 1
+                self.ids[h] = values[souki.PID_ID]
+                return [0, 0, 0, 0, 0]
+
+            def set_icon(self, h, icon):
+                self.icons.append(h)
+
+        w, values = FakeWin(), souki.identity_values()
+        seen = souki.identity_pass(w, values, {})
+        self.assertEqual(w.ids[101], "Souki.Ledger")
+        self.assertEqual(w.ids[202], "MSEdge.127.0.0.1_/.edge.Default")
+        seen = souki.identity_pass(w, values, seen)
+        self.assertEqual(w.sets, 1)                              # 付いていれば何もしない
+        w.ids[101] = "MSEdge.127.0.0.1_/souki.soukiedge.Default"    # Edge が付け直した
+        seen = souki.identity_pass(w, values, seen)
+        self.assertEqual((w.ids[101], w.sets, w.icons), ("Souki.Ledger", 2, [101]))
+        self.assertTrue(values[souki.PID_RELAUNCH_COMMAND].endswith('/c ""' + str(ENV["app"] / "起動.bat") + '""'))
+        self.assertTrue(values[souki.PID_RELAUNCH_ICON].endswith("souki.ico,0"))
+
+    def test_window_entry_redirects_to_ledger(self):
+        with urllib.request.urlopen(ENV["souki"] + "/souki?image=5") as r:
+            self.assertTrue(r.geturl().endswith("/?image=5"), r.geturl())
+            self.assertIn("<title>想起", r.read().decode("utf-8"))
+
     def test_chara_page_has_no_new_tabs(self):
         html = (ROOT / "chara.html").read_text(encoding="utf-8")
         self.assertNotIn('target = "_blank"', html)
@@ -575,6 +646,58 @@ class Versions(unittest.TestCase):
             b = f.read_bytes()
             b.decode("ascii")
             self.assertNotIn(b"\n", b.replace(b"\r\n", b""), f.name)
+
+    def test_stale_bytecode_after_overwrite(self):
+        """zip で上書きして、chara.py・vision.py の日時と大きさが前の版と同じでも、
+        前の版の控え（__pycache__）を使わない（v2.4.1 で「chara.py の版（2.4.0）が違います」と出た件）。"""
+        d = ENV["tmp"] / "app_pyc"
+        shutil.rmtree(d, ignore_errors=True)
+        d.mkdir()
+        for f in APP_FILES:
+            shutil.copy(ROOT / f, d / f)
+        import re
+        ver = re.search(r'^VERSION = "([^"]+)"', (ROOT / "souki.py").read_text(encoding="utf-8"), re.M).group(1)
+        old = ver[:-1] + ("0" if ver[-1] != "0" else "1")          # 前の版（文字数は同じ）
+        saved = {}
+        for name in ("chara.py", "vision.py"):
+            src = d / name
+            cur = src.read_bytes()
+            st = src.stat()
+            saved[name] = (cur, st.st_mtime)
+            src.write_bytes(cur.replace(f'VERSION = "{ver}"'.encode(), f'VERSION = "{old}"'.encode()))
+            os.utime(src, (st.st_mtime, st.st_mtime))
+        env = dict(os.environ, PYTHONUTF8="1", PYTHONIOENCODING="utf-8")
+        r = subprocess.run([sys.executable, "-c", "import chara; print(chara.VERSION)"], cwd=d,
+                           capture_output=True, text=True, env=env)
+        self.assertEqual(r.stdout.strip(), old, r.stderr)        # 前の版で一度動かした（控えができた）
+        for name, (cur, mt) in saved.items():                     # zip で上書き（日時も大きさも同じ）
+            (d / name).write_bytes(cur)
+            os.utime(d / name, (mt, mt))
+        r = subprocess.run([sys.executable, "-c",
+                            "import souki; souki.load_chara(); print(souki.CHARA_ERROR); "
+                            "print(souki.CHARA and souki.CHARA.VERSION)"],
+                           cwd=d, capture_output=True, text=True, env=env)
+        self.assertEqual(r.stdout.split(), ["None", ver], r.stdout + r.stderr)
+
+    def test_zip_has_fresh_dates(self):
+        """納品の zip のファイルの日時は、作った時刻にする（版ごとに日時が変わるように）。"""
+        sys.path.insert(0, str(ROOT / "tests" / "tools"))
+        try:
+            import make_zip
+        finally:
+            sys.path.pop(0)
+        out = ENV["tmp"] / "test.zip"
+        make_zip.build(out)
+        import zipfile
+        with zipfile.ZipFile(out) as z:
+            names = z.namelist()
+            for f in make_zip.FILES:
+                self.assertIn(f, names)
+            for i in z.infolist():
+                t = time.mktime(i.date_time + (0, 0, -1))
+                self.assertLess(abs(time.time() - t), 600, (i.filename, i.date_time))
+                if any(ord(c) > 127 for c in i.filename):
+                    self.assertTrue(i.flag_bits & 0x800, i.filename)
 
 
 class Screen(unittest.TestCase):

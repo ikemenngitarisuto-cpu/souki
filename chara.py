@@ -46,9 +46,36 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-import vision as V
 
-VERSION = "2.4.1"
+def _fresh_vision_bytecode() -> None:
+    """vision.py の控え（__pycache__）を中身で確かめる形にしておく（souki.py の fresh_bytecode と同じ。
+    chara.py を直接動かす setup のときのため）。"""
+    import importlib.util
+    import py_compile
+    src = Path(__file__).resolve().parent / "vision.py"
+    try:
+        pyc = Path(importlib.util.cache_from_source(str(src)))
+        with open(pyc, "rb") as f:
+            head = f.read(16)
+    except (OSError, NotImplementedError, ValueError):
+        head = b""
+    if len(head) == 16 and head[:4] == importlib.util.MAGIC_NUMBER and \
+            int.from_bytes(head[4:8], "little") == 0b11:
+        return
+    try:
+        py_compile.compile(str(src), cfile=str(pyc), doraise=True,
+                           invalidation_mode=py_compile.PycInvalidationMode.CHECKED_HASH)
+    except Exception:
+        try:
+            pyc.unlink()
+        except Exception:
+            pass
+
+
+_fresh_vision_bytecode()
+import vision as V  # noqa: E402
+
+VERSION = "2.4.2"
 if V.VERSION != VERSION:
     raise ImportError(
         f"vision.py の版（{V.VERSION}）が chara.py（{VERSION}）と違います。"

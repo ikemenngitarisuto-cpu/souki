@@ -27,7 +27,7 @@ ComfyUI が出力した PNG に入っているワークフロー（API 形式の
 
 ## いまの状態と次の作業
 
-- 今の版は v2.4.1（docs/仕様_v2.4.md の第 1 弾＋タスクバーの名札）。
+- 今の版は v2.4.2（docs/仕様_v2.4.md の第 1 弾＋版の控えとタスクバーの直し）。
 - 次は同じ仕様書の「第 2 弾（v2.5.0）」。仕様は作者と確定済みなので、そのとおりに作る。
   書いていないことで迷ったら作者に聞く。
 - 版を上げるときは souki.py・chara.py・vision.py の `VERSION`、ui.html の `UI_VERSION`、chara.html の `PAGE_VERSION` を全部そろえる
@@ -112,8 +112,16 @@ ComfyUI が出力した PNG に入っているワークフロー（API 形式の
 - 台帳の読み直し: `reparse_ledger`。`PARSE_VERSION` を上げると、次の起動で 1 回読み直す。
 - 専用の窓: `serve --app`（起動.bat が pythonw で呼ぶ）。画面は 5 秒ごとに /api/alive、閉じるとき /api/bye。
   `Alive`・`watch_window` が、知らせが途絶えたら仕事の終わりを待って止める。窓の大きさは config.json の "window"。
-- タスクバー（v2.4.1）: `watch_window_identity` が、題が「想起」で始まる Edge の窓に AppUserModelID `Souki.Ledger`・
-  起動.bat・souki.ico を付ける（台割工房の窓とまとめられないため）。Windows でしか動かず、テストでは確かめられない。
+- タスクバー（v2.4.2）: Edge（Chromium）は --app の窓に AppUserModelID「MSEdge.<ホスト>_<パス>.<設定フォルダ名>.Default」を付け
+  （chrome/browser/shell_integration_win.cc の GetAppUserModelIdForApp・web_app_helpers.cc の GenerateApplicationNameFromURL。
+  ポートは入らない。設定フォルダ名は英数字だけ残す）、同じ名札の窓をタスクバーでまとめる。台割工房（127.0.0.1:<ポート>/ と edge）と
+  分けるため、想起は `/souki`（→ / へ 302）と `data\souki_edge` で開く（`app_window_url`・`edge_profile_dir`・`chromium_app_id`）。
+  2 段目として `watch_window_identity` が、題が「想起」で始まる Edge の専用窓に名札 `Souki.Ledger`・起動.bat・souki.ico を付け、
+  Edge に戻されたら付け直す（Edge はプロファイルのアイコンができたときに付け直す）。Windows の呼び出しは作業環境では動かせない
+  （`identity_pass` の流れだけ偽物でテストしている）。
+- Python の控え（v2.4.2）: zip の日時が版ごとに同じだと、版の数字しか変わらない chara.py・vision.py（大きさも同じ）で
+  Python が古い .pyc を使う。`fresh_bytecode`（souki.py）と `_fresh_vision_bytecode`（chara.py）が、控えを中身（ハッシュ）で
+  確かめる形（CHECKED_HASH）に作り直す。make_zip.py は日時を「作った時刻」にする。
 
 ## テスト
 
