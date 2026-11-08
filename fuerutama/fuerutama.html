@@ -9,7 +9,7 @@
 <style>
 /* いつも暗い画面（夜の実験室のような見た目。明るい設定でも同じ色） */
 :root{
-  --bg:#04050a; --fg:#f3f5ff; --muted:#9ba3bf; --panel:rgba(16,18,30,.86); --line:rgba(255,255,255,.14);
+  --bg:#04050a; --fg:#f3f5ff; --muted:#9ba3bf; --panel:rgba(16,18,30,.9); --line:rgba(255,255,255,.14);
   --btn:rgba(255,255,255,.07); --btn-hover:rgba(255,255,255,.16); --gold:#f6c445; --focus:#9fb4ff;
   --sans:system-ui,-apple-system,"Segoe UI","Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;
   color-scheme:dark;
@@ -45,12 +45,16 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 #bar svg{width:18px;height:18px;fill:currentColor}
 #bar :focus-visible,#panel :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 #vol{width:84px;accent-color:var(--focus);cursor:pointer}
-#panel{position:fixed;left:50%;transform:translateX(-50%);bottom:76px;width:min(340px,calc(100vw - 32px));
-  box-sizing:border-box;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:14px;
+#panel{position:fixed;left:50%;transform:translateX(-50%);bottom:76px;width:min(380px,calc(100vw - 32px));
+  max-height:calc(100% - 110px);overflow-y:auto;overscroll-behavior:contain;
+  box-sizing:border-box;padding:8px 14px 12px;background:var(--panel);border:1px solid var(--line);border-radius:14px;
   backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);font-size:13px}
 #panel[hidden]{display:none}
-#panel .row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:6px 0}
+#panel h3{margin:12px 0 2px;font-size:11px;font-weight:600;letter-spacing:.16em;color:var(--muted)}
+#panel h3:first-child{margin-top:4px}
+#panel .row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:5px 0}
 #panel .row span{color:var(--fg)}
+#panel select{height:32px;max-width:210px}
 #panel input[type=checkbox]{width:18px;height:18px;accent-color:var(--focus)}
 #panel .keys{margin-top:10px;display:grid;grid-template-columns:auto 1fr;gap:2px 10px;color:var(--muted);font-size:12px;line-height:1.6}
 #panel .keys b{color:var(--fg);font-weight:600;white-space:nowrap}
@@ -70,25 +74,21 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 <div id="label"></div>
 <div id="hint" hidden>画面をクリックすると音が出ます</div>
 <div id="panel" hidden>
-  <div class="row"><span>玉の大きさ</span>
-    <select id="sSize"><option value="auto">おまかせ</option><option value="l">大</option><option value="m">中</option><option value="s">小</option><option value="t">極小（1 万個まで）</option></select></div>
-  <div class="row"><span>分かれる数</span>
-    <select id="sSplit"><option value="auto">おまかせ</option><option value="2">2 つ</option><option value="3">3 つ</option><option value="4">4 つ</option></select></div>
-  <div class="row"><span>速さ</span>
-    <select id="sSpeed"><option value="0.5">ゆっくり</option><option value="1">ふつう</option><option value="1.5">はやい</option><option value="2">とてもはやい</option></select></div>
+  <div id="opts"></div>
+  <h3>表示と音</h3>
   <div class="row vol"><span>音量</span><input id="vol2" type="range" min="0" max="100"></div>
   <label class="row"><span>玉の数を出す</span><input type="checkbox" id="cCount"></label>
   <div class="keys">
     <b>スペース</b><span>止める・動かす</span><b>N</b><span>次へ</span><b>F・ダブルクリック</b><span>全画面</span>
-    <b>M</b><span>音を消す・出す</span><b>↑ ↓</b><span>音量</span><b>1〜4 ・ 0</b><span>仕掛けを選ぶ・おまかせ</span>
+    <b>M</b><span>音を消す・出す</span><b>↑ ↓</b><span>音量</span><b>1〜3 ・ 0</b><span>仕掛けを選ぶ・おまかせ</span>
   </div>
   <div class="ver" id="ver"></div>
 </div>
 <div id="bar">
   <button id="bPlay" title="止める・動かす（スペース）"></button>
   <button id="bNext" title="次へ（N）"><svg viewBox="0 0 24 24"><path d="M5 5l9 7-9 7zM16 5h3v14h-3z"/></svg></button>
-  <select id="sMech" title="仕掛け（0〜4）">
-    <option value="auto">おまかせ</option><option value="press">プレス</option><option value="cross">十字</option>
+  <select id="sMech" title="仕掛け（0〜3）">
+    <option value="auto">おまかせ</option><option value="yose">寄せ刃</option>
     <option value="loops">8 の字</option><option value="box">はさみ箱</option>
   </select>
   <button id="bMute" title="音を消す・出す（M）"></button>
@@ -98,8 +98,8 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 </div>
 <script>
 "use strict";
-/* ふえる玉 — 仕掛けに挟まれた玉が分かれて増え、円がいっぱいになると割れて、また 1 個から。 */
-const VERSION = "1.0.0";
+/* ふえる玉 — 仕掛けに挟まれた玉が分かれて増え、いっぱいになっても重なりながら増えつづけ、最後は割れて、また 1 個から。 */
+const VERSION = "1.1.0";
 const $ = s => document.querySelector(s);
 
 /* ── 乱数（?seed= で固定できる） ───────────────────── */
@@ -116,35 +116,65 @@ const pick = a => a[(rnd() * a.length) | 0];
 function wpick(list){ let s = 0; for (const x of list) s += x[1]; let v = rnd() * s; for (const x of list){ if ((v -= x[1]) < 0) return x[0]; } return list[list.length - 1][0]; }
 const clamp = (x, a, b) => x < a ? a : x > b ? b : x;
 const smooth = (a, b, x) => { x = clamp((x - a) / (b - a), 0, 1); return x * x * (3 - 2 * x); };
+const tri = u => 2 / Math.PI * Math.asin(Math.sin(2 * Math.PI * u));   // ギザギザ用の三角の波（-1〜1）
+function round2(x){ if (x < 100) return Math.max(10, Math.round(x)); const p = 10 ** (Math.floor(Math.log10(x)) - 1); return Math.round(x / p) * p; }
 const EZ = {
   inQ: t => t * t, outC: t => 1 - (1 - t) ** 3,
   inOut: t => t < .5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2,
   outBack: t => 1 + 2.70158 * (t - 1) ** 3 + 1.70158 * (t - 1) ** 2,
 };
 
-/* ── 設定（この PC のブラウザに覚える） ───────────────── */
-const DEF = { mech: "auto", size: "auto", split: "auto", speed: 1, vol: 60, mute: false, count: true };
+/* ── 設定（この PC のブラウザに覚える）。込み入ったものはここに逃がしてある ── */
+const OPTS = [   // [見出し, 名前, 表示, [[値, 表示], …]]  先頭が既定
+  ["基本", "size", "玉の大きさ", [["auto", "おまかせ"], ["l", "大"], ["m", "中"], ["s", "小"], ["t", "極小"]]],
+  ["基本", "split", "分かれる数", [["auto", "おまかせ"], ["2", "2 つ"], ["3", "3 つ"], ["4", "4 つ"]]],
+  ["基本", "speed", "速さ", [["1", "ふつう"], ["0.5", "ゆっくり"], ["1.5", "はやい"], ["2", "とてもはやい"]]],
+  ["増え方", "limit", "どこまで増やす", [["auto", "おまかせ（円の 3 倍）"], ["x2", "円の 2 倍"], ["x5", "円の 5 倍"], ["10000", "1 万個"], ["30000", "3 万個"], ["100000", "10 万個"]]],
+  ["増え方", "guard", "生まれた玉を守る", [["1", "次の 1 回"], ["2", "次の 2 回"], ["0", "守らない"]]],
+  ["増え方", "eject", "生まれた玉をはじき出す", [["1", "ふつう"], ["2", "強く"], ["0", "しない"]]],
+  ["減るもの", "foe", "減らすもの", [["auto", "おまかせ"], ["none", "なし"], ["eater", "食べる玉"], ["hole", "穴"], ["life", "寿命"], ["red", "消し刃"]]],
+  ["減るもの", "foeLv", "強さ", [["2", "ふつう"], ["1", "弱い"], ["3", "強い"]]],
+  ["寄せ刃", "yoseN", "刃の数", [["auto", "おまかせ"], ["2", "2 枚（プレス）"], ["3", "3 枚"], ["4", "4 枚（十字）"], ["5", "5 枚"], ["6", "6 枚"], ["8", "8 枚"]]],
+  ["寄せ刃", "yoseShape", "刃の形", [["auto", "おまかせ"], ["bar", "まっすぐ"], ["arc", "弧"], ["saw", "ギザギザ"], ["chev", "くの字"]]],
+  ["8 の字", "loopN", "輪の数", [["auto", "おまかせ"], ["2", "2 つ"], ["3", "3 つ"], ["4", "4 つ"], ["5", "5 つ"]]],
+  ["8 の字", "loopShape", "刃の形", [["auto", "おまかせ"], ["arc", "弧"], ["bar", "まっすぐ"]]],
+  ["計算", "quality", "細かさ", [["1", "ふつう"], ["0", "軽く（玉がとても多いとき）"], ["2", "なめらか"]]],
+];
+const LIVE = new Set(["speed", "guard", "eject", "quality"]);   // 変えても、いまの回をそのまま続けるもの
+const DEF = { mech: "auto", vol: 60, mute: false, count: true };
+for (const o of OPTS) DEF[o[1]] = o[3][0][0];
 const SET = Object.assign({}, DEF, loadSet());
 function loadSet(){ try { return JSON.parse(localStorage.getItem("fuerutama") || "{}") || {}; } catch (e){ return {}; } }
 function saveSet(){ try { localStorage.setItem("fuerutama", JSON.stringify(SET)); } catch (e){} }
-for (const k of ["mech", "size", "split"]) if (Q.get(k)) SET[k] = Q.get(k);
-if (Q.get("speed")) SET.speed = +Q.get("speed") || 1;
+const QK = { mech: "mech", size: "size", split: "split", speed: "speed", limit: "limit", guard: "guard", eject: "eject",
+             foe: "foe", fl: "foeLv", yn: "yoseN", ys: "yoseShape", ln: "loopN", ls: "loopShape", q: "quality" };
+for (const [q, k] of Object.entries(QK)) if (Q.get(q)) SET[k] = Q.get(q);
+// v1.0 の言い方を読みかえる（プレス＝寄せ刃 2 枚、十字＝寄せ刃 4 枚）
+if (SET.mech === "press"){ SET.mech = "yose"; SET.yoseN = "2"; }
+else if (SET.mech === "cross"){ SET.mech = "yose"; SET.yoseN = "4"; }
+if (!["auto", "yose", "loops", "box"].includes(SET.mech)) SET.mech = "auto";
+for (const o of OPTS){
+  SET[o[1]] = String(SET[o[1]]);
+  const okNum = o[1] === "limit" && /^\d+$/.test(SET.limit);   // 試験用に ?limit=数 も受ける
+  if (!okNum && !o[3].some(v => v[0] === SET[o[1]])) SET[o[1]] = o[3][0][0];
+}
 
 /* ── 世界の決まり ───────────────────────────────── */
 const R = 500;            // 円の半径（世界の単位）
-const MAXN = 12000;       // 玉の数の上限
+const MAXN = 101000;      // 玉の数の上限（「10 万個」まで）
 const V0 = 430;           // 玉のふだんの速さ（単位/秒）
 const STIFF = .9, E_BB = .92, E_W = .86, E_M = .45;   // 玉どうしの押し返し・はね返り、壁のはね返り、仕掛けのはね返り
-const SQZ = .14;          // 2 つの面から逆向きに押されて、めり込みがこれ（半径に対する割合）を超えたらつぶれる
-const CONV = 2.5;         // いっぱいのとき、生まれられなかった玉 1 個につき、まわりの玉を何個その色に染めるか
 const MU = .5;            // 仕掛けに押されたとき、面に沿った動きをどれだけ止めるか（すべり止め）
+const SQZ = .14;          // 2 つの面から逆向きに押されて、めり込みがこれ（半径に対する割合）を超えたらつぶれる
+const PRESS_CRUSH = 1.2;  // 閉じていく刃に押され、まわりの玉との重なりの合計がこれ（直径に対する割合）を超えたらつぶれる
+const KICK_AT = .4;       // 直径のこの割合より深く重なった玉どうしは、はじけるように離れる（円がまだ混んでいないときだけ）
+const CELL_SOLO = 6;      // 1 つの升目にこれより多く詰まったら、升目の中どうしだけで押し合う（重くならないように）
+const PACK = .74;         // 「円 1 杯」の詰め具合（面積の割合）。どこまで増やすかの物差し
 const HIT_MIN = 60;       // 音を鳴らすぶつかりの強さ
-const PRESS_CRUSH = 1.2;  // 閉じていく仕掛けに押され、まわりの玉との重なりの合計がこれ（直径に対する割合）を超えたらつぶれる
-const KICK_AT = .4;       // 直径のこの割合より深く重なった玉どうしは、はじけるように離れる
-const CELL_MAX = 16;      // 1 つの升目にこれより多く詰まったら、ぶつかりの計算を間引く（重くならないように）
-const PACK = .74;         // 円をどこまで玉で埋めるか（面積の割合）
+const FOE_AT = 30;        // 減るものが出てくる玉の数
 const SIZES = { l: { r: 12, n: "大" }, m: { r: 8.5, n: "中" }, s: { r: 6, n: "小" }, t: { r: 4.1, n: "極小" } };
-const GOLD_MAX = 10000;
+const SHAPE_NAMES = { bar: "まっすぐ", arc: "弧", saw: "ギザギザ", chev: "くの字" };
+const FOE_NAMES = { eater: "食べる玉", hole: "穴", life: "寿命", red: "消し刃" };
 
 /* 色（色相の順。1 回ごとに 5 つ飛ばしで使うので、となりの色がはっきり違う） */
 const PAL = ["#ff3b4a","#ff8a2b","#ffd43b","#c4f23a","#38e070","#22e8c0","#2fd0ff","#3d6bff","#8c5cff","#b14dff","#ff45b5","#ff6b8b"];
@@ -154,35 +184,44 @@ const PALX = [...PAL, "#f6c445"];
 /* ── 玉 ─────────────────────────────────────────── */
 const X = new Float64Array(MAXN), Y = new Float64Array(MAXN), VX = new Float64Array(MAXN), VY = new Float64Array(MAXN);
 const PX = new Float64Array(MAXN), PY = new Float64Array(MAXN);   // 1 歩前の場所（棒をすり抜けたかを見る）
-const COL = new Uint8Array(MAXN), CR = new Uint8Array(MAXN);
-const BORN = new Float64Array(MAXN), IMM = new Float64Array(MAXN), FL = new Float64Array(MAXN);
+const COL = new Uint8Array(MAXN), CR = new Uint8Array(MAXN);       // 色、つぶれた印
+const RM = new Uint8Array(MAXN), ESC = new Uint8Array(MAXN);       // 消える印（1 食べられた 2 穴から出た 3 寿命）、穴から出ていく途中
+const BORN = new Float64Array(MAXN), IMM = new Float64Array(MAXN), FL = new Float64Array(MAXN), DIE = new Float64Array(MAXN);
 const CS = new Int32Array(MAXN), CNX = new Float32Array(MAXN), CNY = new Float32Array(MAXN), CNP = new Float32Array(MAXN);
+const KF = new Uint8Array(MAXN);     // この 1 歩で触れた面（1 赤い刃 2 ふつうの刃 4 円のふち）
 const PR = new Float32Array(MAXN);   // まわりの玉との重なりの合計（押しつぶされ具合）
 let N = 0, rad = 8.5, T = 0, STAMP = 0, wallOn = true;
 
 function addBall(x, y, vx, vy, c, imm){
   if (N >= MAXN) return -1;
   const i = N++;
-  X[i] = PX[i] = x; Y[i] = PY[i] = y; VX[i] = vx; VY[i] = vy; COL[i] = c; CR[i] = 0;
-  BORN[i] = T; IMM[i] = T + (imm || 0); FL[i] = -9; CS[i] = -1;
+  X[i] = PX[i] = x; Y[i] = PY[i] = y; VX[i] = vx; VY[i] = vy; COL[i] = c; CR[i] = 0; RM[i] = 0; ESC[i] = 0;
+  BORN[i] = T; IMM[i] = T + (imm || 0); FL[i] = -9; DIE[i] = Infinity; CS[i] = -1; KF[i] = 0; PR[i] = 0;
   return i;
 }
 function delBall(i){
   const j = --N;
   if (i === j) return;
   X[i] = X[j]; Y[i] = Y[j]; PX[i] = PX[j]; PY[i] = PY[j]; VX[i] = VX[j]; VY[i] = VY[j]; COL[i] = COL[j]; CR[i] = CR[j];
-  BORN[i] = BORN[j]; IMM[i] = IMM[j]; FL[i] = FL[j]; CS[i] = CS[j]; CNX[i] = CNX[j]; CNY[i] = CNY[j]; CNP[i] = CNP[j]; PR[i] = PR[j];
+  RM[i] = RM[j]; ESC[i] = ESC[j]; BORN[i] = BORN[j]; IMM[i] = IMM[j]; FL[i] = FL[j]; DIE[i] = DIE[j];
+  CS[i] = CS[j]; CNX[i] = CNX[j]; CNY[i] = CNY[j]; CNP[i] = CNP[j]; KF[i] = KF[j]; PR[i] = PR[j];
 }
 
 /* ── 近くの玉を探すための升目 ───────────────────────── */
-let GW = 1, GH = 1, G0 = -R, GINV = 1;
-let CST = new Int32Array(2), CUR = new Int32Array(1);
+let GW = 1, GH = 1, G0 = -R, GINV = 1, GCELL = 1;
+let CST = new Int32Array(2), CUR = new Int32Array(1), INSIDE = new Uint8Array(1), DEN = new Float32Array(1);
 const ITEM = new Int32Array(MAXN), BC = new Int32Array(MAXN);
 function setupGrid(){
-  const cell = 2 * rad, half = R + 6 * rad;
-  GINV = 1 / cell; G0 = -half;
+  GCELL = 2 * rad; const half = R + 6 * rad;
+  GINV = 1 / GCELL; G0 = -half;
   GW = GH = Math.ceil(2 * half * GINV);
-  CST = new Int32Array(GW * GH + 1); CUR = new Int32Array(GW * GH);
+  const nc = GW * GH;
+  CST = new Int32Array(nc + 1); CUR = new Int32Array(nc); INSIDE = new Uint8Array(nc); DEN = new Float32Array(nc);
+  const lim = (R - rad * .5) ** 2;
+  for (let cy = 0; cy < GH; cy++) for (let cx = 0; cx < GW; cx++){
+    const x = G0 + (cx + .5) * GCELL, y = G0 + (cy + .5) * GCELL;
+    INSIDE[cy * GW + cx] = x * x + y * y < lim ? 1 : 0;
+  }
 }
 function buildGrid(){
   const nc = GW * GH;
@@ -198,6 +237,30 @@ function buildGrid(){
   CUR.set(CST.subarray(0, nc));
   for (let i = 0; i < N; i++){ const c = BC[i]; if (c >= 0) ITEM[CUR[c]++] = i; }
 }
+/* 混み具合でならす: 升目ごとの玉の数をなめらかにして、混んだほうから空いたほうへ少しずつ押す（重なってもまんべんなく） */
+function relax(){
+  const nc = GW * GH;
+  for (let c = 0; c < nc; c++){
+    if (!INSIDE[c]){ DEN[c] = 0; continue; }
+    let s = (CST[c + 1] - CST[c]) * 4, w = 4;
+    if (INSIDE[c - 1]){ s += CST[c] - CST[c - 1]; w++; }
+    if (INSIDE[c + 1]){ s += CST[c + 2] - CST[c + 1]; w++; }
+    if (INSIDE[c - GW]){ s += CST[c - GW + 1] - CST[c - GW]; w++; }
+    if (INSIDE[c + GW]){ s += CST[c + GW + 1] - CST[c + GW]; w++; }
+    DEN[c] = s / w;
+  }
+  const k = .045 * GCELL;
+  for (let i = 0; i < N; i++){
+    const c = BC[i];
+    if (c < 0 || !INSIDE[c]) continue;
+    const d0 = DEN[c];
+    if (d0 < 1.25) continue;
+    const dl = INSIDE[c - 1] ? DEN[c - 1] : d0, dr = INSIDE[c + 1] ? DEN[c + 1] : d0;
+    const du = INSIDE[c - GW] ? DEN[c - GW] : d0, dd = INSIDE[c + GW] ? DEN[c + GW] : d0;
+    const f = k * Math.min(1, d0 - 1.25);
+    X[i] -= (dr - dl) * f; Y[i] -= (dd - du) * f;
+  }
+}
 
 /* ── 音を鳴らすぶつかりの記録（1 こまぶん） ─────────── */
 let hitN = 0, hitV = 0, hitX = 0, clinkN = 0, clinkV = 0, clinkX = 0;
@@ -205,6 +268,7 @@ function hit(v, x){ hitN++; if (v > hitV){ hitV = v; hitX = x; } }
 function clink(v, x){ clinkN++; if (v > clinkV){ clinkV = v; clinkX = x; } }
 
 /* ── 玉どうし ───────────────────────────────────── */
+let PRSUM = 0, PR_TH = 1e9, kickOn = true;
 function pair(i, j, D, D2){
   const dx = X[j] - X[i], dy = Y[j] - Y[i], d2 = dx * dx + dy * dy;
   if (d2 >= D2) return;
@@ -213,8 +277,8 @@ function pair(i, j, D, D2){
   else { const d = Math.sqrt(d2); nx = dx / d; ny = dy / d; pen = D - d; }
   const p = pen * .5 * STIFF;
   X[i] -= nx * p; Y[i] -= ny * p; X[j] += nx * p; Y[j] += ny * p;
-  PR[i] += pen; PR[j] += pen;
-  if (pen > KICK_AT * D){ const kv = (pen / D - KICK_AT) * V0 * 1.2; VX[i] -= nx * kv; VY[i] -= ny * kv; VX[j] += nx * kv; VY[j] += ny * kv; }
+  PR[i] += pen; PR[j] += pen; PRSUM += pen;
+  if (kickOn && pen > KICK_AT * D){ const kv = (pen / D - KICK_AT) * V0 * 1.2; VX[i] -= nx * kv; VY[i] -= ny * kv; VX[j] += nx * kv; VY[j] += ny * kv; }
   const vn = (VX[j] - VX[i]) * nx + (VY[j] - VY[i]) * ny;
   if (vn < 0){
     const q = -(1 + E_BB) * vn * .5;
@@ -224,41 +288,50 @@ function pair(i, j, D, D2){
 }
 function collideBalls(){
   const D = 2 * rad, D2 = D * D;
+  PRSUM = 0;
   for (let cy = 0; cy < GH; cy++){
     for (let cx = 0; cx < GW; cx++){
-      const c = cy * GW + cx, s0 = CST[c], e0 = CST[c + 1];
-      if (s0 === e0) continue;
+      const c = cy * GW + cx, s0 = CST[c], e0 = CST[c + 1], n = e0 - s0;
+      if (!n) continue;
+      if (n > CELL_SOLO){
+        // 詰まった升目: 升目の中どうしだけ、間引いて押し合う（となりとの押し合いは「ならす」に任せる）
+        const st = Math.ceil(n / CELL_SOLO);
+        for (let a = s0; a < e0; a++){ const i = ITEM[a]; for (let b = a + 1; b < e0; b += st) pair(i, ITEM[b], D, D2); }
+        continue;
+      }
       const right = cx + 1 < GW, down = cy + 1 < GH, left = cx > 0;
-      const st = e0 - s0 > CELL_MAX ? Math.ceil((e0 - s0) / CELL_MAX) : 1;   // 詰まりすぎた升目は間引く
       for (let a = s0; a < e0; a++){
         const i = ITEM[a];
-        for (let b = a + 1; b < e0; b += st) pair(i, ITEM[b], D, D2);
-        if (right){ for (let b = CST[c + 1], e = CST[c + 2]; b < e; b += st) pair(i, ITEM[b], D, D2); }
+        for (let b = a + 1; b < e0; b++) pair(i, ITEM[b], D, D2);
+        if (right){ for (let b = CST[c + 1], e = CST[c + 2]; b < e; b++) pair(i, ITEM[b], D, D2); }
         if (down){
-          const n = c + GW;
-          if (left){ for (let b = CST[n - 1], e = CST[n]; b < e; b += st) pair(i, ITEM[b], D, D2); }
-          for (let b = CST[n], e = CST[n + 1]; b < e; b += st) pair(i, ITEM[b], D, D2);
-          if (right){ for (let b = CST[n + 1], e = CST[n + 2]; b < e; b += st) pair(i, ITEM[b], D, D2); }
+          const m = c + GW;
+          if (left){ for (let b = CST[m - 1], e = CST[m]; b < e; b++) pair(i, ITEM[b], D, D2); }
+          for (let b = CST[m], e = CST[m + 1]; b < e; b++) pair(i, ITEM[b], D, D2);
+          if (right){ for (let b = CST[m + 1], e = CST[m + 2]; b < e; b++) pair(i, ITEM[b], D, D2); }
         }
       }
     }
   }
+  PR_TH = Math.max(PRESS_CRUSH * D, 2.6 * 2 * PRSUM / Math.max(1, N));   // 円全体が混んでいるときは、ふだんより強く押された玉だけ
 }
 
-/* 面（仕掛け・円の壁）に触れた向きを覚え、逆向きの面にも押されたら「つぶれた」にする */
-function contact(i, nx, ny, pen){
-  if (CS[i] !== STAMP){ CS[i] = STAMP; CNX[i] = nx; CNY[i] = ny; CNP[i] = pen; return; }
-  if (nx * CNX[i] + ny * CNY[i] < -.5 && pen + CNP[i] > SQZ * rad) CR[i] = 1;
+/* 面（刃・円のふち）に触れた向きを覚え、逆向きの面にも押されたら「つぶれた」にする */
+function contact(i, nx, ny, pen, kind){
+  const bit = kind === 2 ? 1 : kind === 1 ? 2 : 4;
+  if (CS[i] !== STAMP){ CS[i] = STAMP; CNX[i] = nx; CNY[i] = ny; CNP[i] = pen; KF[i] = bit; return; }
+  KF[i] |= bit;
+  if (nx * CNX[i] + ny * CNY[i] < -.45 && pen + CNP[i] > SQZ * rad) CR[i] = 1;   // 3 枚の刃が 120° で寄るときもつぶれるように
   if (pen > CNP[i]){ CNX[i] = nx; CNY[i] = ny; CNP[i] = pen; }
 }
 
-/* ── 仕掛けの棒（線分＋太さ）。1 本 10 個: 今の両端・太さ・ひとつ前の両端・挟んでつぶすか ── */
-const SEG = new Float64Array(64 * 10);
+/* ── 仕掛けの棒（線分＋太さ）。1 本 10 個: 今の両端・太さ・ひとつ前の両端・種類（0 押すだけ 1 刃 2 消し刃） ── */
+const SEG = new Float64Array(400 * 10);
 let NSEG = 0, mechClosing = 0;
 function collideMech(h){
   const inv = 1 / h;
   for (let s = 0; s < NSEG; s++){
-    const o = s * 10, ax = SEG[o], ay = SEG[o + 1], bx = SEG[o + 2], by = SEG[o + 3], w = SEG[o + 4], crush = SEG[o + 9] > 0;
+    const o = s * 10, ax = SEG[o], ay = SEG[o + 1], bx = SEG[o + 2], by = SEG[o + 3], w = SEG[o + 4], kind = SEG[o + 9];
     const pax = SEG[o + 5], pay = SEG[o + 6], pbx = SEG[o + 7], pby = SEG[o + 8];
     const md = w + rad, md2 = md * md;
     const abx = bx - ax, aby = by - ay, L2 = abx * abx + aby * aby || 1e-9;
@@ -308,21 +381,33 @@ function collideMech(h){
             VX[i] -= (1 + E_M) * vn * nx + MU * tx; VY[i] -= (1 + E_M) * vn * ny + MU * ty;
             if (-vn > HIT_MIN) clink(-vn, px);
           }
-          if (crush){
-            contact(i, nx, ny, pen);
-            // 閉じていく面に押され、まわりの玉ともひどく重なっていたら、その場でつぶれる
-            if (mechClosing > 0 && svx * nx + svy * ny > 60 && PR[i] > PRESS_CRUSH * 2 * rad) CR[i] = 1;
+          if (kind > 0){
+            contact(i, nx, ny, pen, kind);
+            // 閉じていく刃に押され、まわりの玉ともひどく重なっていたら、その場でつぶれる
+            if (mechClosing > 0 && svx * nx + svy * ny > 60 && PR[i] > PR_TH) CR[i] = 1;
           }
         }
       }
     }
   }
 }
+/* 円のふち。穴（すき間）では押し返さず、外へ出た玉は消える */
 function collideWall(){
-  const lim = R - rad, lim2 = lim * lim;
+  const lim = R - rad, lim2 = lim * lim, out2 = (R + 2.5 * rad) ** 2;
+  const gaps = DRN.on ? DRN.gaps : null;
   for (let i = 0; i < N; i++){
     const x = X[i], y = Y[i], d2 = x * x + y * y;
+    if (ESC[i]){ if (d2 > out2) RM[i] = 2; continue; }
     if (d2 <= lim2) continue;
+    if (gaps){
+      const a = Math.atan2(y, x);
+      let open = false;
+      for (const g of gaps){
+        let df = a - (DRN.ang + g.a); df -= Math.round(df / 6.283185307179586) * 6.283185307179586;
+        if (Math.abs(df) < g.w - rad / R * .5){ open = true; break; }
+      }
+      if (open){ if (d2 > R * R) ESC[i] = 1; continue; }
+    }
     const d = Math.sqrt(d2), nx = -x / d, ny = -y / d, pen = d - lim;
     X[i] = x + nx * pen; Y[i] = y + ny * pen;
     const vn = VX[i] * nx + VY[i] * ny;
@@ -330,11 +415,11 @@ function collideWall(){
       VX[i] -= (1 + E_W) * vn * nx; VY[i] -= (1 + E_W) * vn * ny;
       if (-vn > HIT_MIN) clink(-vn * .6, x);
     }
-    contact(i, nx, ny, pen);
+    contact(i, nx, ny, pen, 3);
   }
 }
 
-/* ── 動きの段取り（行き先・時間・動き方を順に） ─────────── */
+/* ── 動きの段取り（行き先・時間・動き方を順に。bev は段の始め、ev は段の終わりの合図） ── */
 class Seq {
   constructor(v, gen){ this.v = v; this.from = v; this.gen = gen; this.steps = null; this.k = 0; this.t = 0; this.cyc = 0; this.speed = 0; }
   update(dt, ev){
@@ -362,97 +447,192 @@ class Seq {
 /* ── 仕掛け（共通） ─────────────────────────────── */
 let TX = 0, TY = 0;
 class Mech {
-  constructor(n){ this.n = n; this.ang = 0; this.spin = 0; this.area = 0; }
+  constructor(n){ this.n = n; this.ang = 0; this.spin = 0; this.area = 0; this.cycle = 2; this.red = new Set(); this.redOn = false; this.redK = 0; }
   rot(x, y){ const c = Math.cos(this.ang), s = Math.sin(this.ang); TX = x * c - y * s; TY = x * s + y * c; }
-  seg(k, ax, ay, bx, by, w, soft){
+  seg(k, ax, ay, bx, by, w, kind){
     const o = k * 10; this.rot(ax, ay); SEG[o] = TX; SEG[o + 1] = TY;
-    this.rot(bx, by); SEG[o + 2] = TX; SEG[o + 3] = TY; SEG[o + 4] = w; SEG[o + 9] = soft ? 0 : 1;
+    this.rot(bx, by); SEG[o + 2] = TX; SEG[o + 3] = TY; SEG[o + 4] = w; SEG[o + 9] = kind === undefined ? 1 : kind;
   }
   keep(){ for (let k = 0; k < this.n; k++){ const o = k * 10; SEG[o + 5] = SEG[o]; SEG[o + 6] = SEG[o + 1]; SEG[o + 7] = SEG[o + 2]; SEG[o + 8] = SEG[o + 3]; } }
   install(){ NSEG = this.n; this.geom(); this.keep(); }
-  step(dt){ this.keep(); this.advance(dt); this.geom(); }
+  step(dt){ this.keep(); this.advance(dt); this.geom(); if (this.redOn && this.redK < 1) this.redK = Math.min(1, this.redK + dt / .6); }
   motion(){ return 0; }
   drawBack(){}
 }
 
-/* プレス: 上と下の板が寄って、間の玉をつぶす */
-class Press extends Mech {
-  constructor(){
-    super(4); this.key = "press";
-    this.W = 300; this.tp = 11; this.rw = 7; this.ho = 352; this.hc = this.tp + .8 * rad;
-    this.ang = pick([0, Math.PI / 2]) + (rnd() < .3 ? rr(-.35, .35) : 0);
-    this.spin = rnd() < .25 ? pick([1, -1]) * rr(.06, .15) : 0;
+/* 寄せ刃: N 枚の刃がまわりから真ん中へ寄ってきて、間の玉をつぶす（2 枚＝プレス、4 枚＝十字） */
+class Yose extends Mech {
+  constructor(NB, shape){
+    super(0);
+    this.key = "yose"; this.NB = NB; this.shape = shape;
+    const tb = this.tb = NB === 2 ? 11 : 10; this.rw = 7;
+    let L, dOpen, dLock = 0;
+    if (NB === 2){ L = 300; dOpen = 352; }
+    else {
+      // 開いたとき刃の端が円のふちに当たらず、閉じかけたとき角がふさがる大きさ
+      const tn = Math.tan(Math.PI / NB);
+      for (dOpen = 445; dOpen > 220; dOpen -= 5){ L = (.5 * dOpen + tb + 2) * tn; if (Math.hypot(dOpen, L) + tb <= R - 34) break; }
+      dLock = L / tn - tb - 3;
+    }
+    this.L = L; this.dOpen = dOpen; this.dLock = dLock;
+    // 刃の形（刃の上の点。x は刃に沿って、y は真ん中へ向かう向き）
+    const lp = [];
+    if (shape === "arc"){
+      const rb = NB === 2 ? 900 : Math.max(150, dLock + 20);
+      for (let j = 0; j <= 8; j++){ const x = -L + 2 * L * j / 8; lp.push(x, x * x / (2 * rb)); }
+    } else if (shape === "chev"){
+      const hh = L * (NB === 2 ? .2 : .3); lp.push(-L, hh, 0, 0, L, hh);
+    } else if (shape === "saw"){
+      // 2 枚のときは上下の刃がかみ合う形（奇関数）、3 枚以上は刃の真ん中に歯の先（真ん中に隠れる場所を作らない）
+      const P = NB === 2 ? 64 : 46, A = P * .42, q = P / 4, K = Math.floor((L - 1) / q), ph = NB === 2 ? 0 : .25;
+      this.sawA = A; this.sawP = P;
+      lp.push(-L, tri(-L / P + ph) * A / 2);
+      for (let j = -K; j <= K; j++) lp.push(j * q, tri(j * q / P + ph) * A / 2);
+      lp.push(L, tri(L / P + ph) * A / 2);
+    } else lp.push(-L, 0, L, 0);
+    this.lp = lp; this.np = lp.length / 2;
+    this.n = NB * this.np;   // 1 枚につき、刃のかけら (np-1) 本と押し棒 1 本
+    this.wp = new Float64Array(NB * this.np * 2);
+    let dC = tb + .8 * rad;
+    if (shape === "saw") dC = NB === 2 ? (tb + .8 * rad) / Math.cos(Math.atan(2 * this.sawA / this.sawP)) : tb + .8 * rad + this.sawA / 2;
+    this.dC = dC;
+    this.ang = NB === 2 ? pick([0, Math.PI / 2]) + (rnd() < .3 ? rr(-.35, .35) : 0) : rr(0, 2 * Math.PI / NB);
+    this.spin = rnd() < (NB === 2 ? .25 : .45) ? pick([1, -1]) * rr(.06, .25) : 0;
     const tp = rr(.85, 1.15);
-    this.seq = new Seq(this.ho, c => [
-      { d: (c === 0 ? .55 : rr(.18, .42)) * tp, to: this.ho },
-      { d: rr(.38, .5) * tp, to: this.hc, e: EZ.inQ, bev: "close", ev: "impact" },
-      { d: .12 * tp, to: this.hc },
-      { d: rr(.55, .8) * tp, to: this.ho, e: EZ.outC },
-    ]);
-    this.h = this.ho;
-    this.area = 2 * (2 * this.W + 2 * this.tp) * 2 * this.tp + 2 * 2 * this.rw * (R - this.ho);
+    if (NB === 2){
+      this.cycle = 1.54 * tp;
+      this.seq = new Seq(dOpen, c => [
+        { d: (c === 0 ? .55 : rr(.18, .42)) * tp, to: dOpen },
+        { d: rr(.38, .5) * tp, to: dC, e: EZ.inQ, bev: "close", ev: "impact" },
+        { d: .12 * tp, to: dC },
+        { d: rr(.55, .8) * tp, to: dOpen, e: EZ.outC },
+      ]);
+    } else {
+      this.cycle = 1.99 * tp;
+      this.seq = new Seq(dOpen, c => [
+        { d: (c === 0 ? .5 : rr(.15, .35)) * tp, to: dOpen },
+        { d: rr(.45, .6) * tp, to: dLock, e: EZ.inOut, bev: "close", ev: "lock" },
+        { d: rr(.06, .16) * tp, to: dLock },
+        { d: rr(.26, .36) * tp, to: dC, e: EZ.inQ, ev: "impact" },
+        { d: .12 * tp, to: dC },
+        { d: rr(.55, .8) * tp, to: dOpen, e: EZ.outC },
+      ]);
+    }
+    this.d = dOpen;
+    this.area = NB * ((2 * L + 2 * tb) * 2 * tb + 2 * this.rw * (R - dOpen));
   }
+  name(){ return "寄せ刃 " + this.NB + " 枚・" + SHAPE_NAMES[this.shape]; }
   start(){ return [0, 0]; }
-  advance(dt){ this.h = this.seq.update(dt, mechEvent); this.ang += this.spin * dt; }
-  motion(){ return this.seq.speed / 1400; }
+  advance(dt){ this.d = this.seq.update(dt, mechEvent); this.ang += this.spin * dt; }
+  motion(){ return this.seq.speed / 1300; }
+  setRed(lv){
+    const NB = this.NB, n = lv === 1 ? 1 : lv === 2 ? Math.max(1, Math.round(NB / 3)) : Math.max(1, Math.floor(NB / 2));
+    this.red = new Set(); for (let j = 0; j < n; j++) this.red.add(Math.round(j * NB / n) % NB);
+  }
   geom(){
-    const h = this.h, W = this.W, t = this.tp;
-    this.seg(0, -W, -h, W, -h, t); this.seg(1, -W, h, W, h, t);
-    this.seg(2, 0, -h - t, 0, -R - 90, this.rw); this.seg(3, 0, h + t, 0, R + 90, this.rw);
+    const NB = this.NB, lp = this.lp, np = this.np, d = this.d, tb = this.tb, wp = this.wp;
+    let k = 0;
+    for (let i = 0; i < NB; i++){
+      const th = this.ang + 2 * Math.PI * i / NB, ux = Math.cos(th), uy = Math.sin(th), cx = ux * d, cy = uy * d;
+      for (let j = 0; j < np; j++){   // 刃に沿う向き (-uy, ux)、真ん中へ向かう向き (-ux, -uy)
+        const x = lp[j * 2], y = lp[j * 2 + 1], o = (i * np + j) * 2;
+        wp[o] = cx - uy * x - ux * y; wp[o + 1] = cy + ux * x - uy * y;
+      }
+      const kind = this.redOn && this.red.has(i) ? 2 : 1;
+      for (let j = 0; j < np - 1; j++){
+        const o = (i * np + j) * 2, s = k * 10;
+        SEG[s] = wp[o]; SEG[s + 1] = wp[o + 1]; SEG[s + 2] = wp[o + 2]; SEG[s + 3] = wp[o + 3]; SEG[s + 4] = tb; SEG[s + 9] = kind; k++;
+      }
+      const s = k * 10;   // 押し棒（刃の背中から円の外へ）
+      SEG[s] = cx + ux * tb; SEG[s + 1] = cy + uy * tb; SEG[s + 2] = ux * (R + 90); SEG[s + 3] = uy * (R + 90); SEG[s + 4] = this.rw; SEG[s + 9] = 1; k++;
+    }
   }
   draw(c){
-    c.save(); c.rotate(this.ang);
-    rod(c, 0, -R - 20, 0, -this.h, this.rw); rod(c, 0, R + 20, 0, this.h, this.rw);
-    mount(c, -R - 6, 1); mount(c, R + 6, -1);
-    bar(c, -this.W, -this.h, this.W, -this.h, this.tp, true); bar(c, -this.W, this.h, this.W, this.h, this.tp, true);
-    c.restore();
+    const NB = this.NB, np = this.np, wp = this.wp, tb = this.tb;
+    for (let i = 0; i < NB; i++){
+      c.save(); c.rotate(this.ang + 2 * Math.PI * i / NB - Math.PI / 2);   // 押し棒と台は、下向きの形で描いて回す
+      rod(c, 0, R + 20, 0, this.d + tb, this.rw); mount(c, R + 6, -1);
+      c.restore();
+    }
+    for (let i = 0; i < NB; i++){
+      const red = this.red.has(i) ? this.redK : 0;
+      if (this.shape === "bar"){ const o = i * np * 2; bar(c, wp[o], wp[o + 1], wp[o + 2], wp[o + 3], tb, NB === 2, red); }
+      else drawPoly(c, wp, i * np, np, tb, red);
+    }
   }
 }
 
-/* 十字: 斜めの 4 本の棒が寄ってきて四角になり、真ん中をつぶす */
-class Cross extends Mech {
-  constructor(){
-    super(4); this.key = "cross";
-    this.L = 200; this.tb = 10; this.do = 390; this.dl = this.L - this.tb - 6; this.dc = this.tb + .8 * rad;
-    this.ang = rr(0, Math.PI / 2);
-    this.spin = rnd() < .45 ? pick([1, -1]) * rr(.12, .3) : 0;
-    const tp = rr(.85, 1.15);
-    this.seq = new Seq(this.do, c => [
-      { d: (c === 0 ? .5 : rr(.15, .35)) * tp, to: this.do },
-      { d: rr(.45, .6) * tp, to: this.dl, e: EZ.inOut, bev: "close", ev: "lock" },
-      { d: rr(.06, .16) * tp, to: this.dl },
-      { d: rr(.26, .36) * tp, to: this.dc, e: EZ.inQ, ev: "impact" },
-      { d: .12 * tp, to: this.dc },
-      { d: rr(.55, .8) * tp, to: this.do, e: EZ.outC },
-    ]);
-    this.d = this.do; this.area = 4 * (2 * this.L + 2 * this.tb) * 2 * this.tb;
+/* 8 の字: 真ん中の軸のまわりの N 個の輪（2 枚の刃）が、ハサミのように閉じて輪の中をつぶす。全体はゆっくり回る */
+class Loops extends Mech {
+  constructor(NL, shape){
+    const P = shape === "arc" ? 10 : 2;
+    super(NL * 2 * P + 1);
+    this.key = "loops"; this.NL = NL; this.shape = shape; this.P = P;
+    this.rho = [0, 0, 172, 150, 126, 108][NL]; this.g = 36; this.tb = 9; this.hub = 30; this.hm = 1;
+    this.bo = [0, 0, -1.15, -.98, -.84, -.74][NL];
+    if (shape === "arc") this.bc = Math.asin(clamp(1 - (this.tb + .75 * rad) / this.rho, 0, .995));
+    else this.bc = Math.atan(this.hm) - Math.asin(clamp((this.tb + .75 * rad) / (this.rho * Math.hypot(1, this.hm)), 0, .99));   // ひし形の輪がつぶれきる角度
+    this.ang = rr(0, Math.PI * 2); this.spin = pick([1, -1]) * rr(.2, .5);
+    this.alt = rnd() < .5;
+    const tp = rr(.9, 1.15), bo = this.bo, bc = this.bc;
+    this.cycle = 1.885 * tp;
+    const gen = c => [
+      { d: (c === 0 ? .45 : rr(.15, .32)) * tp, to: bo },
+      { d: rr(.38, .5) * tp, to: 0, e: EZ.inOut, bev: "close", ev: "lock" },
+      { d: .08 * tp, to: 0 },
+      { d: rr(.36, .46) * tp, to: bc, e: EZ.inQ, ev: "impact" },
+      { d: .12 * tp, to: bc },
+      { d: rr(.5, .7) * tp, to: bo, e: EZ.outC },
+    ];
+    this.seqs = []; this.b = new Float64Array(NL);
+    for (let j = 0; j < NL; j++){ const s = new Seq(bo, gen); if (this.alt && j) s.update(this.cycle * j / NL, null); this.seqs.push(s); this.b[j] = s.v; }
+    this.area = NL * 2 * (shape === "arc" ? Math.PI * this.rho : 2 * this.rho * Math.hypot(1, this.hm)) * 2 * this.tb + Math.PI * this.hub ** 2;
   }
-  start(){ return [0, 0]; }
-  advance(dt){ this.d = this.seq.update(dt, mechEvent); this.ang += this.spin * dt; }
-  motion(){ return this.seq.speed / 1200; }
+  name(){ return "8 の字 " + this.NL + " つ・" + SHAPE_NAMES[this.shape]; }
+  start(){ this.pt(0, this.g + this.rho, 0); return [TX, TY]; }
+  pt(j, x, y){ const al = this.ang + 2 * Math.PI * j / this.NL, cs = Math.cos(al), sn = Math.sin(al); TX = x * cs - y * sn; TY = x * sn + y * cs; }
+  advance(dt){ for (let j = 0; j < this.NL; j++) this.b[j] = this.seqs[j].update(dt, mechEvent); this.ang += this.spin * dt; }
+  motion(){ let s = 0; for (const q of this.seqs) s += q.speed; return s / (4.5 * this.NL); }
+  setRed(lv){ const NL = this.NL; this.red = new Set(); if (lv === 1) this.red.add(1); else for (let j = 0; j < NL; j += lv === 2 ? 2 : 1) this.red.add(j * 2 + 1); }
+  /* 刃の上の点: j 番目の輪、up 上(+1)・下(-1)、s 0=先 1=留め具、b 閉じる角度 → TX,TY */
+  bp(j, up, s, b){
+    let lx, ly;
+    if (this.shape === "arc"){ const th = Math.PI * s; lx = this.rho + this.rho * Math.cos(th); ly = -up * this.rho * Math.sin(th); }
+    else {   // まっすぐ: 先 → 真ん中の角 → 留め具 の 2 本で、ひし形の半分
+      const u = s < .5 ? s * 2 : (s - .5) * 2;
+      if (s < .5){ lx = 2 * this.rho - this.rho * u; ly = -up * this.rho * this.hm * u; }
+      else { lx = this.rho * (1 - u); ly = -up * this.rho * this.hm * (1 - u); }
+    }
+    const a = up * b, ca = Math.cos(a), sa = Math.sin(a);
+    this.pt(j, this.g + lx * ca - ly * sa, lx * sa + ly * ca);
+  }
   geom(){
-    for (let i = 0; i < 4; i++){
-      const th = Math.PI / 4 + i * Math.PI / 2, cs = Math.cos(th), sn = Math.sin(th);
-      const cx = cs * this.d, cy = sn * this.d, tx = -sn * this.L, ty = cs * this.L;
-      this.seg(i, cx - tx, cy - ty, cx + tx, cy + ty, this.tb);
+    const P = this.P; let k = 0;
+    for (let j = 0; j < this.NL; j++){
+      for (let u = 0; u < 2; u++){
+        const up = u ? -1 : 1, kind = this.redOn && this.red.has(j * 2 + u) ? 2 : 1;
+        this.bp(j, up, 0, this.b[j]); let px = TX, py = TY;
+        for (let q = 1; q <= P; q++){
+          this.bp(j, up, q / P, this.b[j]);
+          const o = k * 10; SEG[o] = px; SEG[o + 1] = py; SEG[o + 2] = TX; SEG[o + 3] = TY; SEG[o + 4] = this.tb; SEG[o + 9] = kind;
+          px = TX; py = TY; k++;
+        }
+      }
     }
-  }
-  drawBack(c){
-    c.save(); c.rotate(this.ang);
-    for (const th of [Math.PI / 4, -Math.PI / 4]){
-      const cs = Math.cos(th), sn = Math.sin(th);
-      rail(c, -cs * 3 * R, -sn * 3 * R, cs * 3 * R, sn * 3 * R, 5);
-    }
-    c.restore();
+    const o = k * 10; SEG[o] = 0; SEG[o + 1] = 0; SEG[o + 2] = 0; SEG[o + 3] = 0; SEG[o + 4] = this.hub; SEG[o + 9] = 0;   // 真ん中の軸ではつぶさない
   }
   draw(c){
-    c.save(); c.rotate(this.ang);
-    for (let i = 0; i < 4; i++){
-      const th = Math.PI / 4 + i * Math.PI / 2, cs = Math.cos(th), sn = Math.sin(th);
-      const cx = cs * this.d, cy = sn * this.d, tx = -sn * this.L, ty = cs * this.L;
-      bar(c, cx - tx, cy - ty, cx + tx, cy + ty, this.tb, false);
+    const M = this.shape === "arc" ? 28 : 2;
+    for (let j = 0; j < this.NL; j++){
+      for (let u = 0; u < 2; u++){
+        const up = u ? -1 : 1, red = this.red.has(j * 2 + u) ? this.redK : 0;
+        c.beginPath();
+        for (let q = 0; q <= M; q++){ this.bp(j, up, q / M, this.b[j]); q ? c.lineTo(TX, TY) : c.moveTo(TX, TY); }
+        blade(c, this.tb, red);
+      }
     }
-    c.restore();
+    for (let j = 0; j < this.NL; j++){ this.pt(j, this.g, 0); bolt(c, TX, TY, this.tb * .55); }
+    hubDraw(c, this.hub);
   }
 }
 
@@ -463,6 +643,7 @@ class Box extends Mech {
     this.H = 120; this.L = 250; this.tb = 9; this.so = R + 30; this.sl = this.L - 6; this.sc = this.tb + .8 * rad;
     this.ang = pick([0, Math.PI / 2]) + rr(-.5, .5);
     const tp = rr(.85, 1.15);
+    this.cycle = 2.08 * tp;
     this.seq = new Seq(this.so, c => [
       { d: (c === 0 ? .35 : rr(.15, .35)) * tp, to: this.so },
       { d: rr(.5, .65) * tp, to: this.sl, e: EZ.inOut, bev: "close", ev: "lock" },
@@ -473,13 +654,16 @@ class Box extends Mech {
     ]);
     this.s = this.so; this.area = 2 * (2 * this.H + 2 * this.L) * 2 * this.tb;
   }
+  name(){ return "はさみ箱"; }
   start(){ return [0, 0]; }
   advance(dt){ this.s = this.seq.update(dt, mechEvent); }
   motion(){ return this.seq.speed / 1100; }
+  setRed(lv){ this.red = new Set(lv === 1 ? [0] : lv === 2 ? [0, 1, 2] : [0, 1, 2, 3]); }
+  kd(k){ return this.redOn && this.red.has(k) ? 2 : 1; }
   geom(){
     const s = this.s, H = this.H, L = this.L, w = this.tb;
-    this.seg(0, -s, -H, -s, H, w); this.seg(1, -s, -H, -s + L, -H, w); this.seg(2, -s, H, -s + L, H, w);
-    this.seg(3, s, -H, s, H, w); this.seg(4, s, -H, s - L, -H, w); this.seg(5, s, H, s - L, H, w);
+    this.seg(0, -s, -H, -s, H, w, this.kd(0)); this.seg(1, -s, -H, -s + L, -H, w, this.kd(1)); this.seg(2, -s, H, -s + L, H, w, this.kd(2));
+    this.seg(3, s, -H, s, H, w, this.kd(3)); this.seg(4, s, -H, s - L, -H, w, this.kd(4)); this.seg(5, s, H, s - L, H, w, this.kd(5));
   }
   drawBack(c){
     c.save(); c.rotate(this.ang);
@@ -487,92 +671,29 @@ class Box extends Mech {
     c.restore();
   }
   draw(c){
-    const s = this.s, H = this.H, L = this.L, w = this.tb;
+    const s = this.s, H = this.H, L = this.L, w = this.tb, r = k => this.red.has(k) ? this.redK : 0;
     c.save(); c.rotate(this.ang);
-    bar(c, -s, -H, -s + L, -H, w, false); bar(c, -s, H, -s + L, H, w, false);
-    bar(c, s, -H, s - L, -H, w, false); bar(c, s, H, s - L, H, w, false);
-    bar(c, -s, -H, -s, H, w, false); bar(c, s, -H, s, H, w, false);
+    bar(c, -s, -H, -s + L, -H, w, false, r(1)); bar(c, -s, H, -s + L, H, w, false, r(2));
+    bar(c, s, -H, s - L, -H, w, false, r(4)); bar(c, s, H, s - L, H, w, false, r(5));
+    bar(c, -s, -H, -s, H, w, false, r(0)); bar(c, s, -H, s, H, w, false, r(3));
     bolt(c, -s, -H, w * .45); bolt(c, -s, H, w * .45); bolt(c, s, -H, w * .45); bolt(c, s, H, w * .45);
     c.restore();
   }
 }
-
-/* 8 の字: 真ん中で留めた 2 組の弧がハサミのように閉じて、輪の中をつぶす。全体はゆっくり回る */
-class Loops extends Mech {
-  constructor(){
-    const P = 10;
-    super(4 * P + 1); this.P = P; this.key = "loops";
-    this.rho = 172; this.g = 36; this.tb = 9; this.hub = 30;
-    this.bo = -1.15; this.bc = Math.asin(clamp(1 - (this.tb + .75 * rad) / this.rho, 0, .995));
-    this.ang = rr(0, Math.PI * 2); this.spin = pick([1, -1]) * rr(.25, .55);
-    this.alt = rnd() < .5;
-    const tp = rr(.9, 1.15);
-    const gen = c => [
-      { d: (c === 0 ? .45 : rr(.15, .32)) * tp, to: this.bo },
-      { d: rr(.38, .5) * tp, to: 0, e: EZ.inOut, bev: "close", ev: "lock" },
-      { d: .08 * tp, to: 0 },
-      { d: rr(.36, .46) * tp, to: this.bc, e: EZ.inQ, ev: "impact" },
-      { d: .12 * tp, to: this.bc },
-      { d: rr(.5, .7) * tp, to: this.bo, e: EZ.outC },
-    ];
-    this.sa = new Seq(this.bo, gen); this.sb = new Seq(this.bo, gen);
-    if (this.alt) this.sb.update(.95, null);
-    this.ba = this.sa.v; this.bb = this.sb.v;
-    this.area = 4 * Math.PI * this.rho * 2 * this.tb + Math.PI * this.hub * this.hub;
-  }
-  start(){ this.rot(this.g + this.rho, 0); return [TX, TY]; }
-  advance(dt){ this.ba = this.sa.update(dt, mechEvent); this.bb = this.sb.update(dt, mechEvent); this.ang += this.spin * dt; }
-  motion(){ return (this.sa.speed + this.sb.speed) / 9; }
-  /* 刃の上の点: sg 右(+1)・左(-1)、up 上(+1)・下(-1)、th 0=先 π=留め具、b 閉じる角度 → TX,TY */
-  bp(sg, up, th, b){
-    const bx = sg * (this.rho + this.rho * Math.cos(th)), by = -up * this.rho * Math.sin(th);
-    const a = sg * up * b, ca = Math.cos(a), sa = Math.sin(a);
-    this.rot(sg * this.g + bx * ca - by * sa, bx * sa + by * ca);
-  }
-  geom(){
-    const P = this.P; let k = 0;
-    for (let side = 0; side < 2; side++){
-      const sg = side ? -1 : 1, b = side ? this.bb : this.ba;
-      for (let u = 0; u < 2; u++){
-        const up = u ? -1 : 1;
-        this.bp(sg, up, 0, b); let px = TX, py = TY;
-        for (let j = 1; j <= P; j++){
-          this.bp(sg, up, Math.PI * j / P, b);
-          const o = k * 10; SEG[o] = px; SEG[o + 1] = py; SEG[o + 2] = TX; SEG[o + 3] = TY; SEG[o + 4] = this.tb; SEG[o + 9] = 1;
-          px = TX; py = TY; k++;
-        }
-      }
-    }
-    const o = k * 10; SEG[o] = 0; SEG[o + 1] = 0; SEG[o + 2] = 0; SEG[o + 3] = 0; SEG[o + 4] = this.hub; SEG[o + 9] = 0;   // 真ん中の軸ではつぶさない
-  }
-  draw(c){
-    const M = 28;
-    for (let side = 0; side < 2; side++){
-      const sg = side ? -1 : 1, b = side ? this.bb : this.ba;
-      for (let u = 0; u < 2; u++){
-        const up = u ? -1 : 1;
-        c.beginPath();
-        for (let j = 0; j <= M; j++){ this.bp(sg, up, Math.PI * j / M, b); j ? c.lineTo(TX, TY) : c.moveTo(TX, TY); }
-        blade(c, this.tb);
-      }
-    }
-    for (const sg of [1, -1]){ this.rot(sg * this.g, 0); bolt(c, TX, TY, this.tb * .55); }
-    hubDraw(c, this.hub);
-  }
-}
-const MECHS = { press: Press, cross: Cross, loops: Loops, box: Box };
-const MECH_NAMES = { press: "プレス", cross: "十字", loops: "8 の字", box: "はさみ箱" };
+const MECHS = { yose: Yose, loops: Loops, box: Box };
+const MECH_KEYS = ["yose", "loops", "box"];
 
 /* ── 仕掛けの絵 ─────────────────────────────────── */
-function metal(c, w, x0, y0, x1, y1){
-  const g = c.createLinearGradient(x0, y0, x1, y1);
-  g.addColorStop(0, "#eef1f7"); g.addColorStop(.3, "#c3c9d4"); g.addColorStop(.62, "#8d94a1"); g.addColorStop(1, "#5a606b");
+const METAL = ["#eef1f7", "#c3c9d4", "#8d94a1", "#5a606b"], REDM = ["#ffd9d6", "#f07a7f", "#c2343d", "#6e1a20"];
+function metal(c, x0, y0, x1, y1, red){
+  const g = c.createLinearGradient(x0, y0, x1, y1), st = [0, .3, .62, 1];
+  for (let q = 0; q < 4; q++) g.addColorStop(st[q], red > 0 ? mix(METAL[q], REDM[q], red) : METAL[q]);
   return g;
 }
-function bar(c, x0, y0, x1, y1, w, groove){
+function bar(c, x0, y0, x1, y1, w, groove, red){
   const dx = x1 - x0, dy = y1 - y0, L = Math.hypot(dx, dy);
   c.save(); c.translate(x0, y0); c.rotate(Math.atan2(dy, dx));
-  c.fillStyle = metal(c, w, 0, -w, 0, w);
+  c.fillStyle = metal(c, 0, -w, 0, w, red || 0);
   c.beginPath(); c.roundRect(-w, -w, L + 2 * w, 2 * w, w); c.fill();
   c.lineWidth = Math.max(.8, w * .12); c.strokeStyle = "rgba(20,24,32,.55)"; c.stroke();
   c.strokeStyle = "rgba(255,255,255,.6)"; c.lineWidth = w * .16;
@@ -583,6 +704,11 @@ function bar(c, x0, y0, x1, y1, w, groove){
     for (const q of [.12, .5, .88]) bolt(c, L * q, 0, w * .32);
   }
   c.restore();
+}
+function drawPoly(c, wp, p0, np, w, red){
+  c.beginPath();
+  for (let j = 0; j < np; j++){ const o = (p0 + j) * 2; j ? c.lineTo(wp[o], wp[o + 1]) : c.moveTo(wp[o], wp[o + 1]); }
+  blade(c, w, red);
 }
 function rod(c, x0, y0, x1, y1, w){
   const dx = x1 - x0, dy = y1 - y0, L = Math.hypot(dx, dy);
@@ -609,11 +735,13 @@ function rail(c, x0, y0, x1, y1, w){
   c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke();
   c.restore();
 }
-function blade(c, w){
+function blade(c, w, red){
+  red = red || 0;
   c.lineCap = "round"; c.lineJoin = "round";
-  c.strokeStyle = "#555b67"; c.lineWidth = w * 2 + 1.6; c.stroke();
-  c.strokeStyle = "#a9b0bd"; c.lineWidth = w * 2; c.stroke();
-  c.strokeStyle = "rgba(244,247,252,.75)"; c.lineWidth = w * .55; c.stroke();
+  c.strokeStyle = red ? mix("#555b67", "#4a1418", red) : "#555b67"; c.lineWidth = w * 2 + 1.6; c.stroke();
+  c.strokeStyle = red ? mix("#a9b0bd", "#d2464d", red) : "#a9b0bd"; c.lineWidth = w * 2; c.stroke();
+  c.strokeStyle = red ? `rgba(255,${Math.round(247 - 90 * red)},${Math.round(252 - 100 * red)},.75)` : "rgba(244,247,252,.75)";
+  c.lineWidth = w * .55; c.stroke();
 }
 function bolt(c, x, y, r){
   c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2);
@@ -630,115 +758,220 @@ function hubDraw(c, r){
   c.beginPath(); c.arc(0, 0, r * .16, 0, Math.PI * 2); c.fillStyle = "#2b2f38"; c.fill();
 }
 
+/* ── 減るもの（増える玉とケンカする） ───────────────────── */
+/* 食べる玉: 円の中をうろうろして、触れた玉を食べる。食べるほど大きく、食べないと小さくなる */
+const EAT = { list: [] };
+function makeEaters(lv){
+  EAT.list = [];
+  const r0 = Math.max(30, rad * 4.2) * (lv === 3 ? 1.2 : 1);
+  for (let j = 0; j < lv; j++){
+    const a = rnd() * 6.2832 + j * 2.1;
+    EAT.list.push({ x: Math.cos(a) * R * .62, y: Math.sin(a) * R * .62, head: a + Math.PI + rr(-.5, .5), turn: 0, turnT: 0,
+                    r0, r: 1, full: 0, born: T, col: 0, gulp: -9, out: 0 });
+  }
+}
+function eatersUpdate(dt){
+  for (const e of EAT.list){
+    if ((e.turnT -= dt) < 0){ e.turn = rr(-1.3, 1.3); e.turnT = rr(.7, 2); }
+    e.head += e.turn * dt;
+    const sp = V0 * .42;
+    e.x += Math.cos(e.head) * sp * dt; e.y += Math.sin(e.head) * sp * dt;
+    const d = Math.hypot(e.x, e.y), lim = R - e.r * .7;
+    if (d > lim){ e.x *= lim / d; e.y *= lim / d; e.head = Math.atan2(-e.y, -e.x) + rr(-.7, .7); }
+    e.full *= Math.exp(-dt / 5);
+    const grow = Math.min(1, (T - e.born) / 1.2), fade = e.out ? Math.max(0, 1 - (T - e.out) / .6) : 1;
+    e.r = Math.max(1, e.r0 * grow * fade * (1 + 1.1 * e.full / (e.full + 40)));
+  }
+  EAT.list = EAT.list.filter(e => !(e.out && T - e.out > .6));
+}
+function eatPass(h){
+  for (const e of EAT.list){
+    if (e.out) continue;
+    const r = e.r, pr = r * 2.4, r2 = r * r, pr2 = pr * pr;
+    const cx0 = Math.max(0, Math.floor((e.x - pr - G0) * GINV)), cx1 = Math.min(GW - 1, Math.floor((e.x + pr - G0) * GINV));
+    const cy0 = Math.max(0, Math.floor((e.y - pr - G0) * GINV)), cy1 = Math.min(GH - 1, Math.floor((e.y + pr - G0) * GINV));
+    for (let cy = cy0; cy <= cy1; cy++) for (let cx = cx0; cx <= cx1; cx++){
+      const c = cy * GW + cx;
+      for (let k = CST[c], end = CST[c + 1]; k < end; k++){
+        const i = ITEM[k], dx = e.x - X[i], dy = e.y - Y[i], d2 = dx * dx + dy * dy;
+        if (d2 < r2){ if (!RM[i]){ RM[i] = 1; e.full++; e.gulp = T; e.col = COL[i]; } }
+        else if (d2 < pr2){ const d = Math.sqrt(d2), a = 1100 * (1 - d / pr) * h; VX[i] += dx / d * a; VY[i] += dy / d * a; }   // 吸いこむ
+      }
+    }
+  }
+}
+/* 穴: 円のふちのすき間。ゆっくり回り、混んでいるほど勢いよくこぼれる */
+const DRN = { on: false, gaps: [], ang: 0, spin: 0, t0: 0, closing: 0 };
+function makeHoles(lv){
+  const w = [0, 70, 95, 120][lv] / 2 / R;
+  DRN.gaps = []; for (let j = 0; j < lv; j++) DRN.gaps.push({ a: j * 2 * Math.PI / lv, w: 0, w0: w });
+  DRN.ang = rnd() * 2 * Math.PI; DRN.spin = pick([1, -1]) * rr(.08, .18); DRN.on = true; DRN.t0 = T; DRN.closing = 0;
+}
+function drainUpdate(dt){
+  if (!DRN.on) return;
+  DRN.ang += DRN.spin * dt;
+  const k = DRN.closing ? Math.max(0, 1 - (T - DRN.closing) / .5) : EZ.outC(Math.min(1, (T - DRN.t0) / 1.2));
+  for (const g of DRN.gaps) g.w = g.w0 * k;
+  if (DRN.closing && k <= 0) DRN.on = false;
+}
+/* 穴の縁の小さな柱（玉が縁に引っかからないように）。仕掛けの棒のうしろに足す */
+function extraSegs(){
+  let k = mech.n;
+  if (DRN.on) for (const g of DRN.gaps) for (const sg of [-1, 1]){
+    const a = DRN.ang + g.a + sg * g.w, x = Math.cos(a) * R, y = Math.sin(a) * R, o = k * 10;
+    SEG[o] = SEG[o + 2] = SEG[o + 5] = SEG[o + 7] = x; SEG[o + 1] = SEG[o + 3] = SEG[o + 6] = SEG[o + 8] = y; SEG[o + 4] = 4; SEG[o + 9] = 0; k++;
+  }
+  NSEG = k;
+}
+/* 寿命: 時間がたった玉から、しぼんで消える */
+function lifePass(){ for (let i = 0; i < N; i++) if (T > DIE[i] + .25) RM[i] = 3; }
+
+function activateFoe(){
+  RD.foeOn = true;
+  const lv = RD.foeLv;
+  if (RD.foe === "eater"){ makeEaters(lv); showLabel("食べる玉が来た！"); }
+  else if (RD.foe === "hole"){ makeHoles(lv); showLabel("ふちに穴が開いた！"); }
+  else if (RD.foe === "life"){
+    RD.lifeOn = true; RD.lifeBase = [0, 16, 11, 7.5][lv] * (mech.cycle / 1.8);
+    for (let i = 0; i < N; i++) DIE[i] = T + RD.lifeBase * rr(.25, 1.25);
+    showLabel("玉に寿命がついた！");
+  } else if (RD.foe === "red"){ mech.setRed(lv); mech.redOn = true; showLabel("消し刃が赤くなった！"); }
+  AU.sfx("foe");
+}
+function stopFoes(){
+  for (const e of EAT.list) if (!e.out) e.out = T;
+  if (DRN.on && !DRN.closing) DRN.closing = T;
+  RD.lifeOn = false;
+  for (let i = 0; i < N; i++){
+    if (DIE[i] === Infinity) continue;
+    if (T < DIE[i]) DIE[i] = Infinity; else RM[i] = 3;   // しぼみかけの玉は、そのまま消す（見えないまま残らないように）
+  }
+}
+
 /* ── 1 回ぶん（1 個から始まって、割れるか金色になるまで） ─── */
 let mech = null, RD = null, lastMech = null;
-const STAT = { crush: 0, rounds: 0 };
+const STAT = { crush: 0, erased: 0, eaten: 0, drained: 0, expired: 0, rounds: 0 };
 function newRound(){
-  const keys = Object.keys(MECHS);
   let mk = SET.mech;
-  if (!MECHS[mk]){ do { mk = pick(keys); } while (keys.length > 1 && mk === lastMech); }
+  if (!MECHS[mk]){ do { mk = pick(MECH_KEYS); } while (mk === lastMech); }
   lastMech = mk;
   const sz = SIZES[SET.size] ? SET.size : wpick([["l", .22], ["m", .36], ["s", .27], ["t", .15]]);
   rad = SIZES[sz].r;
   const k = [2, 3, 4].includes(+SET.split) ? +SET.split : wpick(mk === "loops" ? [[3, .55], [4, .45]] : [[2, .25], [3, .5], [4, .25]]);
   N = 0; FX.length = 0; wallOn = true; mechClosing = 0;
+  EAT.list = []; DRN.on = false; DRN.gaps = [];
   setupGrid();
-  mech = new MECHS[mk](); mech.install();
-  const cap = Math.min(MAXN - 200, Math.floor(PACK * (Math.PI * (R - rad) ** 2 - mech.area) / (Math.PI * rad * rad)));
-  const gold = sz === "t" || rnd() < .15;
+  if (mk === "yose"){
+    const nb = SET.yoseN !== "auto" ? +SET.yoseN : wpick([[2, .2], [3, .15], [4, .2], [5, .12], [6, .15], [8, .18]]);
+    const sh = SET.yoseShape !== "auto" ? SET.yoseShape : wpick([["bar", .35], ["arc", .25], ["saw", .2], ["chev", .2]]);
+    mech = new Yose(nb, sh);
+  } else if (mk === "loops"){
+    const nl = SET.loopN !== "auto" ? +SET.loopN : wpick([[2, .35], [3, .3], [4, .2], [5, .15]]);
+    const sh = SET.loopShape !== "auto" ? SET.loopShape : wpick([["arc", .7], ["bar", .3]]);
+    mech = new Loops(nl, sh);
+  } else mech = new Box();
+  mech.install();
+  // どこまで増やすか（「円 1 杯」の何倍か、または数）。キリのいい数にそろえる
+  const cap = PACK * (Math.PI * (R - rad) ** 2 - mech.area) / (Math.PI * rad * rad);
+  const lim = SET.limit;
+  let target = lim === "auto" ? round2(cap * 3) : lim === "x2" ? round2(cap * 2) : lim === "x5" ? round2(cap * 5) : +lim || round2(cap * 3);
+  target = Math.max(10, Math.min(MAXN - 500, target));
+  let gold = rnd() < (sz === "t" ? .5 : .15);
+  if (Q.get("gold")) gold = Q.get("gold") === "1";   // 試験用
+  const foe = SET.foe === "auto" ? wpick([[null, .3], ["eater", .175], ["hole", .175], ["life", .175], ["red", .175]]) : (SET.foe === "none" ? null : SET.foe);
   const start = (rnd() * PAL.length) | 0, pal = [];
   for (let i = 0; i < PAL.length; i++) pal.push((start + i * 5) % PAL.length);
-  RD = { mk, sz, k, cap, gold, target: gold ? Math.min(GOLD_MAX, cap) : cap, pal, phase: "intro", t: 0,
-         epoch: 0, lastCrush: -99, still: true, convLeft: 0, fade: 1, mAlpha: 0, beads: null, frags: null };
+  RD = { mk, sz, k, cap: Math.round(cap), gold, target, pal, phase: "intro", t: 0, epoch: 0, lastCrush: -99, still: true,
+         fade: 1, mAlpha: 0, beads: null, frags: null, foe, foeLv: +SET.foeLv, foeOn: false, lifeOn: false, lifeBase: 10,
+         peak: 1, peakT: 0, growT: 0 };
   STAT.rounds++;
   cam.zoom = 1;
   buildSprites(); drawBg();
-  showLabel(MECH_NAMES[mk] + "　" + k + " つに分かれる");
+  showLabel(mech.name() + "　" + k + " つに分かれる" + (foe ? "　＋ " + FOE_NAMES[foe] : ""));
 }
 function mechEvent(name){
   if (!RD) return;
   if (name === "impact"){
     mechClosing = Math.max(0, mechClosing - 1);
     RD.still = false;
-    if (RD.phase === "full") RD.convLeft--;
-    cam.shake = Math.max(cam.shake, mech.key === "press" ? 7 : 5);
-    AU.sfx(mech.key);
+    cam.shake = Math.max(cam.shake, mech.key === "yose" && mech.NB === 2 ? 7 : 5);
+    AU.sfx(mech.key === "yose" ? (mech.NB === 2 ? "press" : "cross") : mech.key);
   } else if (name === "lock"){
     AU.sfx("lock");
   } else if (name === "close"){
     mechClosing++;
-    if (RD.phase === "grow" || RD.phase === "full") RD.epoch++;   // 閉じるたびに、次につぶれた玉から生まれる色を変える
+    if (RD.phase === "grow") RD.epoch++;   // 閉じるたびに、次につぶれた玉から生まれる色を変える
   }
 }
 
-/* つぶれた玉を分ける（いっぱいのときは、まわりの玉をその色に染める） */
-const CRL = [], CAND = [], PV = [];
-function processCrushes(){
-  for (let i = 0; i < N; i++) if (CR[i]){ CR[i] = 0; if (IMM[i] <= T) CRL.push(i); }
-  if (!CRL.length) return;
-  const ph = RD.phase;
+/* つぶれた玉を分け、減るもので消えた玉を片づける */
+const CRL = [], RML = [], PV = [], DEL = [];
+function processEvents(){
+  for (let i = 0; i < N; i++){
+    if (RM[i]){ RML.push(i); CR[i] = 0; continue; }
+    if (CR[i]){ CR[i] = 0; if (IMM[i] <= T) CRL.push(i); }
+  }
+  if (!CRL.length && !RML.length) return;
+  const ph = RD.phase, col = RD.pal[RD.epoch % RD.pal.length];
+  DEL.length = 0; PV.length = 0;
+  let eaten = 0, expired = 0;
+  for (const i of RML){
+    const why = RM[i]; RM[i] = 0; DEL.push(i);
+    if (why === 1){ STAT.eaten++; eaten++; } else if (why === 2) STAT.drained++; else { STAT.expired++; expired++; }
+  }
+  if (eaten) AU.sfx("gulp");
+  if (expired) AU.sfx("pip");
   if (ph === "burst" || ph === "clear"){
     // 割れたあとに仕掛けに挟まれた玉は、ぽんと消える（真ん中に閉じこめられたまま残らないように）
-    CRL.sort((a, b) => b - a);
-    for (const i of CRL){ if (FX.length < 200) fxRing(X[i], Y[i], COL[i]); delBall(i); }
-    AU.pops(Math.min(3, CRL.length));
-    CRL.length = 0; return;
-  }
-  if (ph !== "grow" && ph !== "full"){ CRL.length = 0; return; }
-  RD.lastCrush = T;
-  const col = RD.pal[RD.epoch % RD.pal.length], m = CRL.length, k = RD.k;
-  const room = Math.min(RD.target - (N - m), m + Math.max(80, Math.floor(N * .3)));   // 1 回に増える数にも上限（一か所に詰まりすぎないように）
-  const total = Math.max(m, Math.min(m * k, room));
-  const base = Math.floor(total / m), extra = total - base * m;
-  PV.length = 0;
-  for (let q = 0; q < m; q++){ const i = CRL[q]; PV.push(X[i], Y[i], VX[i], VY[i]); }
-  if (total < m * k){
-    for (let q = 0; q < m; q++){
-      const kids = base + (q < extra ? 1 : 0), conv = Math.round((k - kids) * CONV);
-      if (conv > 0) convertNear(PV[q * 4], PV[q * 4 + 1], col, conv);
-    }
-  }
-  CRL.sort((a, b) => b - a);
-  for (const i of CRL) delBall(i);
-  for (let q = 0; q < m; q++){
-    const kids = base + (q < extra ? 1 : 0);
-    spawnKids(PV[q * 4], PV[q * 4 + 1], PV[q * 4 + 2], PV[q * 4 + 3], kids, col);
-    if (q < 60) fxRing(PV[q * 4], PV[q * 4 + 1], col);
-  }
-  AU.pops(m);
-  STAT.crush += m;
-  CRL.length = 0;
-}
-function spawnKids(x, y, vx, vy, n, col){
-  const a0 = rnd() * Math.PI * 2, sp = V0 * 1.05;
-  for (let j = 0; j < n; j++){
-    const a = a0 + j * Math.PI * 2 / n, c = Math.cos(a), s = Math.sin(a);
-    addBall(x + c * rad * .9, y + s * rad * .9, c * sp + vx * .25, s * sp + vy * .25, col, .45);
-  }
-}
-function convertNear(x, y, col, m){
-  const cx = Math.floor((x - G0) * GINV), cy = Math.floor((y - G0) * GINV);
-  for (let ring = 1; ring <= 4 && m > 0; ring++){
-    CAND.length = 0;
-    for (let yy = cy - ring; yy <= cy + ring; yy++){
-      if (yy < 0 || yy >= GH) continue;
-      for (let xx = cx - ring; xx <= cx + ring; xx++){
-        if (xx < 0 || xx >= GW) continue;
-        const c = yy * GW + xx;
-        for (let q = CST[c], e = CST[c + 1]; q < e; q++){
-          const j = ITEM[q];
-          if (j < N && COL[j] !== col) CAND.push(j);
-        }
+    for (const i of CRL){ if (FX.length < 200) fxRing(X[i], Y[i], COL[i]); DEL.push(i); }
+    if (CRL.length) AU.pops(Math.min(3, CRL.length));
+  } else if (ph === "grow"){
+    const k = RD.k;
+    let room = RD.target - (N - RML.length), sp = 0, er = 0;
+    for (const i of CRL){
+      const kf = CS[i] === STAMP ? KF[i] : 0;
+      if ((kf & 1) && (!(kf & 2) || rnd() < .5)){   // 消し刃に挟まれた（ふつうの刃と半々なら、半分の確率で）
+        DEL.push(i); room++; er++;
+        if (er <= 40) fxPoof(X[i], Y[i]);
+        continue;
       }
+      if (room <= 0) continue;                     // 上限ちょうどに届いたら、もうつぶさない
+      const kids = Math.min(k, room + 1);
+      room -= kids - 1;
+      PV.push(X[i], Y[i], VX[i], VY[i], kids); DEL.push(i);
+      if (sp < 60) fxRing(X[i], Y[i], col);
+      sp++;
     }
-    if (!CAND.length) continue;
-    CAND.sort((a, b) => ((X[a] - x) ** 2 + (Y[a] - y) ** 2) - ((X[b] - x) ** 2 + (Y[b] - y) ** 2));
-    for (let q = 0; q < CAND.length && m > 0; q++){ const j = CAND[q]; COL[j] = col; FL[j] = T; m--; }
+    STAT.crush += sp; STAT.erased += er;
+    if (sp){ AU.pops(sp); RD.lastCrush = T; }
+    if (er) AU.sfx("poof");
+  }
+  DEL.sort((a, b) => b - a);
+  for (const i of DEL) delBall(i);
+  for (let q = 0; q < PV.length; q += 5) spawnKids(PV[q], PV[q + 1], PV[q + 2], PV[q + 3], PV[q + 4], col);
+  CRL.length = 0; RML.length = 0;
+}
+/* 生まれた玉: 仕掛けの外へはじき出し、次に刃が閉じる回（設定の回数）はつぶれないように守る */
+function spawnKids(x, y, vx, vy, n, col){
+  const ej = SET.eject, sp0 = [1.05, 1.7, 2.6][+ej] * V0;
+  const guard = +SET.guard, imm = guard ? mech.cycle * guard + .1 : .25;
+  const life = RD.lifeOn;
+  let base, spread;
+  if (ej === "0"){ base = rnd() * Math.PI * 2; spread = Math.PI * 2 * (n - 1) / n; }
+  else {
+    base = (Math.hypot(x, y) > rad * 3 ? Math.atan2(y, x) : rnd() * Math.PI * 2) + rr(-.5, .5);   // 真ん中から外へ向けて
+    spread = n > 1 ? Math.min(1.6, .45 * n) : 0;
+  }
+  for (let j = 0; j < n; j++){
+    const a = base + (n > 1 ? (j / (n - 1) - .5) * spread : 0), c = Math.cos(a), s = Math.sin(a), sp = sp0 * rr(.85, 1.15);
+    const i = addBall(x + c * rad * .9, y + s * rad * .9, c * sp + vx * .2, s * sp + vy * .2, col, imm);
+    if (i >= 0 && life) DIE[i] = T + RD.lifeBase * rr(.7, 1.3);
   }
 }
 
 /* ── 1 こまの中の細かい 1 歩 ───────────────────────── */
-let HS = 1 / 180;
+const HS_Q = { "0": 1 / 120, "1": 1 / 180, "2": 1 / 240 };
+let HS = HS_Q[SET.quality] || 1 / 180;
 function substep(h){
   STAMP++;
   const vm2 = (V0 * 4) ** 2;
@@ -749,15 +982,19 @@ function substep(h){
     PX[i] = X[i]; PY[i] = Y[i]; X[i] += vx * h; Y[i] += vy * h; PR[i] = 0;
   }
   if (RD.phase === "gold") mech.keep(); else mech.step(h);
+  extraSegs();
   buildGrid();
+  relax();
   collideBalls();
   collideMech(h);
   if (wallOn) collideWall();
-  processCrushes();
+  if (EAT.list.length && RD.phase === "grow") eatPass(h);
+  if (RD.lifeOn) lifePass();
+  processEvents();
   T += h;
 }
 
-/* 速さをふだんの速さに寄せる（いっぱいになるほど、ゆっくりに） */
+/* 速さをふだんの速さに寄せる（混むほど、ゆっくりに） */
 function governor(dt){
   const fill = N * rad * rad / ((R - rad) * (R - rad));
   const vt = V0 * (1 - .72 * smooth(.3, .7, fill));
@@ -784,18 +1021,20 @@ function roundUpdate(dt){
     if (RD.t > .75){
       const p = mech.start();
       addBall(p[0], p[1], 0, 0, RD.pal[0], 0);
-      RD.phase = "grow"; RD.growT = RD.t; RD.lastCrush = T;
+      RD.phase = "grow"; RD.growT = RD.t; RD.peakT = RD.t; RD.lastCrush = T;
       AU.sfx("pop");
     }
   } else if (ph === "grow"){
-    if (N >= (RD.gold ? RD.target : RD.target * .995)){
-      if (RD.gold) startGold();
-      else { RD.phase = "full"; RD.fullT = RD.t; RD.convLeft = 3 + ((rnd() * 3) | 0); }
-    } else if (RD.t - RD.growT > 150 || (N < 6 && T - RD.lastCrush > 14)){
+    if (!RD.foeOn && RD.foe && N >= FOE_AT) activateFoe();
+    if (N > RD.peak * 1.1){ RD.peak = N; RD.peakT = RD.t; }
+    if (N >= RD.target){ if (RD.gold) startGold(); else startWarn(); }
+    else if (N === 0){ RD.phase = "gone"; RD.goneT = RD.t; stopFoes(); showLabel("全滅"); AU.sfx("gone"); }
+    else if ((N < 6 && T - RD.lastCrush > 14) || RD.t - RD.peakT > 30 || RD.t - RD.growT > 240){
+      // 増えも減りもしなくなった回は、終わりにする
       if (RD.gold && N > 300) startGold(); else startWarn();
     }
-  } else if (ph === "full"){
-    if (RD.convLeft <= 0 || RD.t - RD.fullT > 14) startWarn();
+  } else if (ph === "gone"){
+    if (RD.t - RD.goneT > 1.8) startClear();
   } else if (ph === "warn"){
     const e = (RD.t - RD.warnT) / 1.8;
     cam.shake = Math.max(cam.shake, 1 + 5 * e * e);
@@ -817,12 +1056,12 @@ function roundUpdate(dt){
   }
 }
 function startWarn(){
-  RD.phase = "warn"; RD.warnT = RD.t;
+  RD.phase = "warn"; RD.warnT = RD.t; stopFoes();
   RD.beads = []; for (let i = 0; i < 56; i++) RD.beads.push({ a: i / 56 * Math.PI * 2, t: RD.t + rnd() * 1.5 });
   AU.crackle(1.8);
 }
 function startBurst(){
-  RD.phase = "burst"; RD.burstT = RD.t; wallOn = false;
+  RD.phase = "burst"; RD.burstT = RD.t; wallOn = false; DRN.on = false; EAT.list = [];
   for (let i = 0; i < N; i++){
     const x = X[i], y = Y[i], d = Math.hypot(x, y);
     let nx, ny;
@@ -839,10 +1078,7 @@ function startBurst(){
   cam.shake = 12;
   AU.sfx("boom");
 }
-function startGold(){
-  RD.phase = "gold"; RD.goldT = RD.t;
-  AU.chime();
-}
+function startGold(){ RD.phase = "gold"; RD.goldT = RD.t; stopFoes(); AU.chime(); }
 function startClear(){ RD.phase = "clear"; RD.clearT = RD.t; }
 /* 割れたあと: 外向きの風で、残った玉も外へ運ぶ */
 function blowOut(dt){
@@ -868,6 +1104,9 @@ function advance(dt){
   const ph = RD.phase;
   if (ph !== "burst" && ph !== "clear") lastFill = governor(dt);
   else blowOut(dt);
+  kickOn = lastFill < .9;
+  if (EAT.list.length) eatersUpdate(dt);
+  drainUpdate(dt);
   roundUpdate(dt);
   fxUpdate(dt);
 }
@@ -877,6 +1116,7 @@ const FX = [];
 const cam = { zoom: 1, shake: 0, sx: 0, sy: 0 };
 const CALM = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);   // 動きを控えめにする設定なら、画面を揺らさない
 function fxRing(x, y, col){ FX.push({ k: 0, x, y, col, t0: T, life: .38 }); }
+function fxPoof(x, y){ FX.push({ k: 2, x, y, col: 0, t0: T, life: .45 }); }
 function fxTwinkle(){
   if (!N) return;
   const i = (Math.random() * N) | 0;
@@ -948,27 +1188,39 @@ function ballSprite(hex, size, rp, flat){
   if (rp > 4){ g.fillStyle = "rgba(255,255,255,.5)"; g.beginPath(); g.ellipse(m - rp * .34, m - rp * .4, rp * .27, rp * .16, -.6, 0, Math.PI * 2); g.fill(); }
   return cnv;
 }
+/* 玉ひとつの大きさ（出たて・寿命）と濃さ（穴から出ていくとき） */
+function ballScale(i){
+  let z = 1;
+  const age = T - BORN[i];
+  if (age < .2) z = Math.max(.05, EZ.outBack(age / .2));
+  if (T > DIE[i]) z *= Math.max(0, 1 - (T - DIE[i]) / .25);
+  return z;
+}
+function ballAlpha(i){
+  if (!ESC[i]) return 1;
+  return clamp(1 - (Math.hypot(X[i], Y[i]) - R) / (2.5 * rad), 0, 1);
+}
 
 /* 玉は WebGL でまとめて描く（使えないときは下の drawBalls で 1 個ずつ描く） */
 const GLR = {
-  gl: null, ok: false, maxPt: 0, data: new Float32Array(MAXN * 5), loc: {},
+  gl: null, ok: false, maxPt: 0, data: new Float32Array(MAXN * 6), loc: {},
   init(){
     let gl = null;
     try { gl = glc.getContext("webgl", { alpha: true, premultipliedAlpha: true, antialias: false, depth: false, stencil: false }); } catch (e){}
     if (!gl) return;
     const vs = `
-      attribute vec2 aPos; attribute float aSize; attribute float aCol; attribute float aFlash;
+      attribute vec2 aPos; attribute float aSize; attribute float aCol; attribute float aFlash; attribute float aAlpha;
       uniform vec2 uRes; uniform vec3 uPal[${PALX.length}];
-      varying vec3 vCol; varying float vFlash; varying float vSize;
+      varying vec3 vCol; varying float vFlash; varying float vSize; varying float vAlpha;
       void main(){
         vec2 p = aPos / uRes * 2.0 - 1.0;
         gl_Position = vec4(p.x, -p.y, 0.0, 1.0);
-        gl_PointSize = aSize; vSize = aSize; vFlash = aFlash;
+        gl_PointSize = aSize; vSize = aSize; vFlash = aFlash; vAlpha = aAlpha;
         vCol = uPal[int(aCol + 0.5)];
       }`;
     const fs = `
       precision mediump float;
-      varying vec3 vCol; varying float vFlash; varying float vSize;
+      varying vec3 vCol; varying float vFlash; varying float vSize; varying float vAlpha;
       uniform float uAlpha;
       void main(){
         vec2 p = gl_PointCoord * 2.0 - 1.0;
@@ -987,7 +1239,7 @@ const GLR = {
           c = mix(c, vec3(1.0), 0.5 * (1.0 - smoothstep(0.75, 1.0, length(e))));
         }
         c = mix(c, vec3(1.0), vFlash);
-        float a = edge * uAlpha;
+        float a = edge * uAlpha * vAlpha;
         gl_FragColor = vec4(c * a, a);
       }`;
     const sh = (type, src) => { const o = gl.createShader(type); gl.shaderSource(o, src); gl.compileShader(o); if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(o)); return o; };
@@ -997,18 +1249,19 @@ const GLR = {
       gl.linkProgram(pr);
       if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(pr));
       gl.useProgram(pr);
-      for (const a of ["aPos", "aSize", "aCol", "aFlash"]) this.loc[a] = gl.getAttribLocation(pr, a);
+      for (const a of ["aPos", "aSize", "aCol", "aFlash", "aAlpha"]) this.loc[a] = gl.getAttribLocation(pr, a);
       for (const u of ["uRes", "uPal", "uAlpha"]) this.loc[u] = gl.getUniformLocation(pr, u);
       const pal = new Float32Array(PALX.length * 3);
       PALX.forEach((h, i) => { const c = hexRgb(h); pal[i * 3] = c[0] / 255; pal[i * 3 + 1] = c[1] / 255; pal[i * 3 + 2] = c[2] / 255; });
       gl.uniform3fv(this.loc.uPal, pal);
       this.buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, this.buf);
       gl.bufferData(gl.ARRAY_BUFFER, this.data.byteLength, gl.DYNAMIC_DRAW);
-      const L = this.loc, st = 20;
+      const L = this.loc, st = 24;
       gl.enableVertexAttribArray(L.aPos); gl.vertexAttribPointer(L.aPos, 2, gl.FLOAT, false, st, 0);
       gl.enableVertexAttribArray(L.aSize); gl.vertexAttribPointer(L.aSize, 1, gl.FLOAT, false, st, 8);
       gl.enableVertexAttribArray(L.aCol); gl.vertexAttribPointer(L.aCol, 1, gl.FLOAT, false, st, 12);
       gl.enableVertexAttribArray(L.aFlash); gl.vertexAttribPointer(L.aFlash, 1, gl.FLOAT, false, st, 16);
+      gl.enableVertexAttribArray(L.aAlpha); gl.vertexAttribPointer(L.aAlpha, 1, gl.FLOAT, false, st, 20);
       gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
       this.maxPt = gl.getParameter(gl.ALIASED_POINT_SIZE_RANGE)[1] || 0;
       this.gl = gl; this.ok = this.maxPt >= 16;
@@ -1024,15 +1277,15 @@ const GLR = {
     for (let i = 0; i < N; i++){
       const x = ox + X[i] * s, y = oy + Y[i] * s;
       if (x < l || x > r || y < t || y > b) continue;
-      const age = T - BORN[i], fe = T - FL[i], o = n * 5;
-      d[o] = x; d[o + 1] = y; d[o + 2] = age < .2 ? base * Math.max(.05, EZ.outBack(age / .2)) : base;
-      d[o + 3] = COL[i]; d[o + 4] = fe < .32 ? .85 * (1 - fe / .32) : 0;
+      const fe = T - FL[i], o = n * 6;
+      d[o] = x; d[o + 1] = y; d[o + 2] = base * ballScale(i);
+      d[o + 3] = COL[i]; d[o + 4] = fe < .32 ? .85 * (1 - fe / .32) : 0; d[o + 5] = ballAlpha(i);
       n++;
     }
     gl.viewport(0, 0, CW, CH); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
     if (n){
       gl.uniform2f(this.loc.uRes, CW, CH); gl.uniform1f(this.loc.uAlpha, alpha);
-      gl.bufferSubData(gl.ARRAY_BUFFER, 0, d.subarray(0, n * 5));
+      gl.bufferSubData(gl.ARRAY_BUFFER, 0, d.subarray(0, n * 6));
       gl.drawArrays(gl.POINTS, 0, n);
     }
     return true;
@@ -1054,9 +1307,11 @@ function drawBalls(s, ox, oy, alpha){
     for (; q < end; q++){
       const i = ORD[q], x = ox + X[i] * s, y = oy + Y[i] * s;
       if (x < l || x > r || y < t || y > b) continue;
-      const age = T - BORN[i];
-      if (age < .2){ const z = size * Math.max(.05, EZ.outBack(age / .2)); c.drawImage(img, x - z / 2, y - z / 2, z, z); }
+      const z = ballScale(i), a = ballAlpha(i);
+      if (a < 1) c.globalAlpha = alpha * a;
+      if (z !== 1){ const zz = size * z; c.drawImage(img, x - zz / 2, y - zz / 2, zz, zz); }
       else c.drawImage(img, x - half, y - half, size, size);
+      if (a < 1) c.globalAlpha = alpha;
     }
   }
   for (let i = 0; i < N; i++){
@@ -1079,12 +1334,23 @@ function drawContainer(c, s){
     }
     return;
   }
-  let a0 = -Math.PI / 2, sweep = Math.PI * 2;
-  if (ph === "intro") sweep *= EZ.outC(Math.min(1, RD.t / .6));
   let alpha = .85 * RD.fade;
   if (ph === "warn") alpha *= .55 + .45 * Math.random();
   c.strokeStyle = `rgba(255,255,255,${alpha})`; c.lineWidth = lw;
-  c.beginPath(); c.arc(0, 0, R, a0, a0 + sweep); c.stroke();
+  if (DRN.on && DRN.gaps.length){
+    // 穴のところだけ線を切る
+    const gs = DRN.gaps, n = gs.length;
+    for (let j = 0; j < n; j++){
+      const g = gs[j], h = gs[(j + 1) % n];
+      const from = DRN.ang + g.a + g.w, to = DRN.ang + h.a - h.w + (j + 1 === n ? Math.PI * 2 : 0);
+      if (to > from){ c.beginPath(); c.arc(0, 0, R, from, to); c.stroke(); }
+    }
+    c.fillStyle = `rgba(255,255,255,${alpha})`;
+    for (const g of gs) for (const sg of [-1, 1]){ const a = DRN.ang + g.a + sg * g.w; c.beginPath(); c.arc(Math.cos(a) * R, Math.sin(a) * R, Math.max(4, lw * 1.6), 0, Math.PI * 2); c.fill(); }
+  } else {
+    const a0 = -Math.PI / 2, sweep = Math.PI * 2 * (ph === "intro" ? EZ.outC(Math.min(1, RD.t / .6)) : 1);
+    c.beginPath(); c.arc(0, 0, R, a0, a0 + sweep); c.stroke();
+  }
   if (ph === "warn" && RD.beads){
     for (const b of RD.beads){
       const e = RD.t - b.t; if (e < 0) continue;
@@ -1094,12 +1360,27 @@ function drawContainer(c, s){
     }
   }
 }
+function drawEaters(c){
+  for (const e of EAT.list){
+    const r = e.r, glow = Math.max(0, 1 - (T - e.gulp) / .4), rim = PALX[e.col];
+    const g = c.createRadialGradient(e.x, e.y, r * .2, e.x, e.y, r * 1.4);
+    g.addColorStop(0, "rgba(1,1,4,1)"); g.addColorStop(.7, "rgba(3,3,9,.98)");
+    g.addColorStop(.84, rgba(rim, .3 + .5 * glow)); g.addColorStop(1, "rgba(0,0,0,0)");
+    c.fillStyle = g; c.beginPath(); c.arc(e.x, e.y, r * 1.4, 0, Math.PI * 2); c.fill();
+    c.strokeStyle = rgba(rim, .28 + .3 * glow); c.lineWidth = Math.max(1.5, r * .06); c.lineCap = "round";
+    for (let k = 0; k < 3; k++){ const a0 = T * 2.4 + k * 2.094; c.beginPath(); c.arc(e.x, e.y, r * (.5 + .14 * k), a0, a0 + 1.3); c.stroke(); }
+  }
+}
 function drawFx(c){
   for (const f of FX){
     const e = (T - f.t0) / f.life;
     if (f.k === 0){
       c.strokeStyle = rgba(PALX[f.col], .9 * (1 - e)); c.lineWidth = rad * .45 * (1 - e) + .5;
       c.beginPath(); c.arc(f.x, f.y, rad * (1.2 + 3.2 * EZ.outC(e)), 0, Math.PI * 2); c.stroke();
+    } else if (f.k === 2){
+      c.strokeStyle = `rgba(150,150,165,${.8 * (1 - e)})`; c.lineWidth = rad * .3 * (1 - e) + .5;
+      c.beginPath(); c.arc(f.x, f.y, rad * (.6 + 1.8 * EZ.outC(e)), 0, Math.PI * 2); c.stroke();
+      c.fillStyle = `rgba(10,10,16,${.6 * (1 - e)})`; c.beginPath(); c.arc(f.x, f.y, rad * (1 - e), 0, Math.PI * 2); c.fill();
     } else {
       const r = rad * 2.6 * Math.sin(Math.PI * e);
       c.strokeStyle = `rgba(255,240,200,${.9 * (1 - e)})`; c.lineWidth = rad * .25;
@@ -1123,6 +1404,7 @@ function render(){
   if (!GLR.draw(s, ox, oy, fade)){ GLR.clear(); drawBalls(s, ox, oy, fade); }
   c.setTransform(s, 0, 0, s, ox, oy);
   drawContainer(c, s);
+  c.globalAlpha = fade; drawEaters(c);
   c.globalAlpha = RD.mAlpha * fade; mech.draw(c); c.globalAlpha = fade;
   drawFx(c);
   c.globalAlpha = 1;
@@ -1139,7 +1421,7 @@ function render(){
 
 /* ── 音（その場で作る。ファイルは使わない） ─────────── */
 const AU = {
-  ctx: null, master: null, B: {}, voices: 0, hum: null, ready: false,
+  ctx: null, master: null, B: {}, voices: 0, hum: null, ready: false, last: {},
   init(){
     if (this.ctx) return;
     const AC = window.AudioContext || window.webkitAudioContext;
@@ -1160,6 +1442,7 @@ const AU = {
   running(){ return this.ready && this.ctx.state === "running" && !SET.mute && SET.vol > 0; },
   resume(){ this.init(); if (this.ctx && this.ctx.state !== "running") this.ctx.resume().then(showHint, () => {}); },
   setVol(){ if (this.master){ const v = SET.mute ? 0 : (SET.vol / 100) ** 2; this.master.gain.setTargetAtTime(v, this.ctx.currentTime, .03); } },
+  rl(key, gap){ const now = this.ctx.currentTime; if ((this.last[key] || -9) + gap > now) return false; this.last[key] = now; return true; },
   play(buf, gain, rate, pan, when){
     if (this.voices > 44 || !buf) return;
     const c = this.ctx, src = c.createBufferSource(), g = c.createGain();
@@ -1181,6 +1464,11 @@ const AU = {
     else if (name === "lock"){ this.play(B.clack, .3, 1.05 * j(), 0, now); }
     else if (name === "pop"){ this.play(this.any(B.pop), .5, j()); }
     else if (name === "boom"){ this.play(B.boom, 1, 1); }
+    else if (name === "gulp"){ if (this.rl("gulp", .09)) this.play(this.any(B.pop), .3, .45 * j()); }
+    else if (name === "poof"){ if (this.rl("poof", .07)) this.play(B.poof, .5, j()); }
+    else if (name === "pip"){ if (this.rl("pip", .12)) this.play(this.any(B.tick), .07, 2.2 * j()); }
+    else if (name === "foe"){ this.play(B.bell, .26, .36, -.3, now); this.play(B.bell, .22, .27, .3, now + .12); }
+    else if (name === "gone"){ this.play(B.bell, .3, .3, 0, now); this.play(B.bell, .22, .225, 0, now + .25); }
   },
   pops(m){
     if (!this.running()) return;
@@ -1248,7 +1536,7 @@ const AU = {
         d[i] = v * Math.min(1, t / .001);
       }
     });
-    // カチッ（箱が閉じる）
+    // カチッ（閉じかけ）
     this.B.clack = mk(.13, (d, n) => {
       let hp = 0, prev = 0;
       for (let i = 0; i < n; i++){
@@ -1277,7 +1565,16 @@ const AU = {
         d[i] = v * Math.min(1, t / .004);
       }
     });
-    // キラン（金色）
+    // ボフッ（消し刃）
+    this.B.poof = mk(.2, (d, n) => {
+      let lp = 0, ph = 0;
+      for (let i = 0; i < n; i++){
+        const t = i / sr; lp += ((rn() * 2 - 1) - lp) * .1;
+        const f = 90 + 60 * Math.exp(-t / .03); ph += TAU * f / sr;
+        d[i] = lp * Math.exp(-t / .045) * 1.4 + Math.sin(ph) * Math.exp(-t / .06) * .5;
+      }
+    });
+    // キラン（金色・合図）
     this.B.bell = mk(2.2, (d, n) => {
       const f = 1046.5, P = [[1, .9, 1], [2.76, .45, .5], [5.4, .25, .25], [8.93, .12, .12]];
       for (let i = 0; i < n; i++){
@@ -1299,7 +1596,7 @@ function showHint(){
   h.hidden = !(AU.ctx && AU.ctx.state !== "running" && !SET.mute && SET.vol > 0);
 }
 
-/* ── 名札（仕掛けの名前を少し出す） ─────────────────── */
+/* ── 名札（仕掛けの名前などを少し出す） ─────────────────── */
 let labelTimer = 0;
 function showLabel(text, keep){
   labelEl.textContent = text; labelEl.classList.add("show");
@@ -1315,14 +1612,28 @@ const ICON = {
   mute: '<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4zM16 9.4l1.4-1.4 2.1 2.1 2.1-2.1L23 9.4 20.9 11.5 23 13.6l-1.4 1.4-2.1-2.1-2.1 2.1-1.4-1.4 2.1-2.1z"/></svg>',
 };
 let paused = Q.get("pause") === "1";   // ?pause=1 で止めた状態から始める（録画用）
+function buildPanel(){
+  const box = $("#opts"); let sec = "";
+  for (const [s, key, label, opts] of OPTS){
+    if (s !== sec){ sec = s; const h = document.createElement("h3"); h.textContent = s; box.appendChild(h); }
+    const row = document.createElement("div"); row.className = "row";
+    const sp = document.createElement("span"); sp.textContent = label;
+    const sel = document.createElement("select"); sel.id = "o_" + key;
+    for (const [v, t] of opts){ const o = document.createElement("option"); o.value = v; o.textContent = t; sel.appendChild(o); }
+    sel.onchange = () => {
+      sel.blur(); SET[key] = sel.value; saveSet();
+      if (key === "quality") HS = HS_Q[SET.quality] || 1 / 180;
+      if (!LIVE.has(key)) nextRound();
+    };
+    row.appendChild(sp); row.appendChild(sel); box.appendChild(row);
+  }
+}
 function syncUI(){
   $("#bPlay").innerHTML = paused ? ICON.play : ICON.pause;
   $("#bMute").innerHTML = SET.mute ? ICON.mute : ICON.snd;
   $("#bMute").classList.toggle("on", SET.mute);
   $("#sMech").value = MECHS[SET.mech] ? SET.mech : "auto";
-  $("#sSize").value = SIZES[SET.size] ? SET.size : "auto";
-  $("#sSplit").value = [2, 3, 4].includes(+SET.split) ? String(SET.split) : "auto";
-  $("#sSpeed").value = String(SET.speed);
+  for (const o of OPTS){ const el = $("#o_" + o[1]); if (el && o[3].some(v => v[0] === SET[o[1]])) el.value = SET[o[1]]; }
   $("#cCount").checked = !!SET.count;
   $("#vol").value = SET.vol; $("#vol2").value = SET.vol;
   $("#ver").textContent = "ふえる玉 v" + VERSION;
@@ -1346,9 +1657,6 @@ $("#bSet").onclick = () => { $("#panel").hidden = !$("#panel").hidden; $("#bSet"
 $("#vol").oninput = e => setVol(+e.target.value);
 $("#vol2").oninput = e => setVol(+e.target.value);
 $("#sMech").onchange = e => { e.target.blur(); setMech(e.target.value); };
-$("#sSize").onchange = e => { e.target.blur(); SET.size = e.target.value; saveSet(); nextRound(); };
-$("#sSplit").onchange = e => { e.target.blur(); SET.split = e.target.value; saveSet(); nextRound(); };
-$("#sSpeed").onchange = e => { e.target.blur(); SET.speed = +e.target.value || 1; saveSet(); };
 $("#cCount").onchange = e => { SET.count = e.target.checked; saveSet(); layout(); };
 cv.addEventListener("dblclick", toggleFull);
 addEventListener("keydown", e => {
@@ -1363,7 +1671,7 @@ addEventListener("keydown", e => {
   else if (k === "ArrowUp"){ setVol(SET.vol + 10); e.preventDefault(); }
   else if (k === "ArrowDown"){ setVol(SET.vol - 10); e.preventDefault(); }
   else if (k === "0"){ setMech("auto"); }
-  else if (k >= "1" && k <= "4"){ setMech(["press", "cross", "loops", "box"][+k - 1]); }
+  else if (k >= "1" && k <= "3"){ setMech(MECH_KEYS[+k - 1]); }
   else if (k === "c" || k === "C"){ SET.count = !SET.count; saveSet(); syncUI(); layout(); }
   poke();
 });
@@ -1395,11 +1703,14 @@ function frame(now){
     hitN = 0; hitV = 0; clinkN = 0; clinkV = 0;
     if (!paused){
       const t0 = performance.now();
-      advance(dt * SET.speed);
+      advance(dt * +SET.speed);
       physAvg = physAvg * .95 + (performance.now() - t0) * .05;
-      if (physAvg > 11 && HS < 1 / 121) HS = 1 / 120;
-      else if (physAvg < 4.5 && HS > 1 / 179) HS = 1 / 180;
-      AU.frame(lastFill, paused ? 0 : mech.motion());
+      // 重いときは、1 こまの歩数を減らす（細かさの設定より細かくはしない）
+      const base = HS_Q[SET.quality] || 1 / 180;
+      if (physAvg > 22 && HS < 1 / 91) HS = 1 / 90;
+      else if (physAvg > 12 && HS < 1 / 121) HS = 1 / 120;
+      else if (physAvg < 5 && HS > base) HS = base;
+      AU.frame(lastFill, mech.motion());
     } else if (AU.ready) AU.frame(lastFill, 0);
     render();
   } catch (err){ console.error(err); }
@@ -1408,8 +1719,11 @@ function frame(now){
 /* 試験用（画面を描かずに速く進めるなど） */
 window.FT = {
   version: VERSION,
-  state(){ return { N, phase: RD.phase, mech: RD.mk, size: RD.sz, k: RD.k, cap: RD.cap, target: RD.target, gold: RD.gold,
-                    t: +RD.t.toFixed(2), T: +T.toFixed(2), epoch: RD.epoch, crush: STAT.crush, rounds: STAT.rounds,
+  state(){ return { N, phase: RD.phase, mech: RD.mk, nb: mech.NB || mech.NL || 0, shape: mech.shape || "", size: RD.sz, k: RD.k,
+                    cap: RD.cap, target: RD.target, gold: RD.gold, foe: RD.foe, foeOn: RD.foeOn, foeLv: RD.foeLv,
+                    t: +RD.t.toFixed(2), T: +T.toFixed(2), epoch: RD.epoch, peak: RD.peak, rounds: STAT.rounds,
+                    crush: STAT.crush, erased: STAT.erased, eaten: STAT.eaten, drained: STAT.drained, expired: STAT.expired,
+                    eaters: EAT.list.length, gaps: DRN.on ? DRN.gaps.length : 0, red: mech.redOn ? mech.red.size : 0,
                     fps: Math.round(fps), physMs: +physAvg.toFixed(2), hs: Math.round(1 / HS), rad, gl: GLR.ok,
                     paused, mute: SET.mute, vol: SET.vol, setMech: SET.mech }; },
   run(sec){ const n = Math.round(sec * 60); for (let i = 0; i < n; i++){ hitN = 0; clinkN = 0; advance(1 / 60); } return this.state(); },
@@ -1417,6 +1731,7 @@ window.FT = {
   pause(v){ paused = !!v; syncUI(); },
 };
 
+buildPanel();
 layout();
 if (Q.get("gl") !== "0") GLR.init();
 newRound();
