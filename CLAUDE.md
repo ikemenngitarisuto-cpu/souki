@@ -21,6 +21,7 @@ ComfyUI が出力した PNG に入っているワークフロー（API 形式の
 | souki.ico, souki_256.png, chara.ico, chara_256.png | アイコン |
 | docs/仕様_v2.4.md | 次の 2 回分（v2.4.0・v2.5.0）の確定仕様 |
 | tests/fixtures/ | テスト用のワークフロー（下の「テスト」） |
+| fuerutama/ | 想起とは別のソフト「ふえる玉」（いちばん下の節）。想起の zip には入れない |
 
 設定は config.json、台帳やログは data/、Python 環境は runtime/（どれもリポに入れない。.gitignore 済み）。
 サーバの既定ポートは 8765（`serve --port` で変えられる）、ComfyUI の既定は http://127.0.0.1:8188。
@@ -150,3 +151,39 @@ ComfyUI が出力した PNG に入っているワークフロー（API 形式の
   - API 形式は画面用から変換したもの（MarkdownNote などフロント専用のノードは除いてある）。中の文は見本の文。
   - qwen21_edit.ui.json / qwen21_edit.api.json … Qwen-Image 2.1 の公式テンプレート（Image Edit）。
     API 形式は tests/tools/ui_to_api.py で作った（サブグラフの中は `"外:中"` の番号に平らにする）。
+
+## 別のソフト: ふえる玉（fuerutama/）
+
+作者が X で見た「円の中で玉が挟まれて分かれ、増えていく」動画（#satisfying 系）を、延々と眺めるためのソフト。
+作者と決めたこと: ブラウザで開く HTML 1 枚、想起のリポの別フォルダに置く、名前は「ふえる玉」（仮）。想起とはつながっていない。
+
+| ファイル | 役目 |
+|---|---|
+| fuerutama/fuerutama.html | 本体（これ 1 枚で動く。外のファイル・通信なし。アイコンも中に埋め込み） |
+| fuerutama/起動.bat | Edge の専用の窓（`--app=file:///…`）で開く。Edge が無ければいつものブラウザ |
+| fuerutama/README.md | 利用者向けの説明 |
+| fuerutama/fuerutama.ico, fuerutama_256.png | アイコン（`python fuerutama/tools/make_icon.py` で作り直す。HTML の中の絵も入れ替わる） |
+| fuerutama/tools/check.js | 試験（`node fuerutama/tools/check.js`。Playwright で 4 つの仕掛け・金色・2D・キー・スマホ幅） |
+| fuerutama/tools/make_zip.py | 納品の zip（`python fuerutama/tools/make_zip.py` → fuerutama/dist/fuerutama_v<版>.zip） |
+
+- 版は fuerutama.html の `VERSION` だけ。README.md の見出しの版もそろえる。
+- zip に入れるもの: 起動.bat, fuerutama.html, README.md, fuerutama.ico, fuerutama_256.png（UTF-8 の印つき）。
+- 起動.bat: 日本語を含む場所でも開けるよう、PowerShell の `(New-Object System.Uri …).AbsoluteUri` で file:/// の住所を作る
+  （Chromium は `--app` の値が ASCII でないと開かない）。専用の設定フォルダは `fuerutama\data\edge`（.gitignore 済み）。
+  `--autoplay-policy=no-user-gesture-required` で最初から音が出る。窓の大きさは最初の 1 回だけ渡す（あとは Edge が覚える）。
+
+### しくみ（fuerutama.html）
+
+- 世界は円の半径 R=500 の単位。玉の大きさは 4 段（12・8.5・6・4.1）。上限は円の面積の 74%（極小は 10,000 個で金色）。
+- 物理: 升目（玉の直径の大きさ）で近くの玉を探し、重なりを押し戻す（位置で直す方式）。1 こまに 3 歩（重いときは 2 歩）。
+  - 仕掛けは「太さのある線分」の集まり（`SEG` に 1 本 10 個: 両端・太さ・1 歩前の両端・挟んでつぶすか）。
+    1 歩前の位置から面の速さを出して押し返す。速い棒が玉を飛び越えたら、もとの側へ戻す（すり抜け防止）。
+  - つぶれる条件: (1) 2 つの面（仕掛け・円の壁）から逆向きに押されて、めり込みの合計が半径の 14% を超えた
+    (2) 閉じていく仕掛けに押され、まわりの玉との重なりの合計が直径の 1.2 倍を超えた。8 の字の真ん中の軸ではつぶさない。
+  - ひどく重なった玉ははじけるように離す。1 つの升目に 16 個より多く詰まったら計算を間引く（1 万個でも重くならないように）。
+- 仕掛けの動きは `Seq`（行き先・時間・動き方の段取り）。段の始めの合図 `bev:"close"` で色を次へ進め、終わりの合図 `ev:"impact"` で音と揺れ。
+- 1 回の段取り: intro → grow（増える）→ full（いっぱい。生まれられない分だけまわりを染める）→ warn（ふちに白い粒）→ burst（割れる）
+  → clear → 次の回。金色の回は grow → gold → clear。
+- 玉は WebGL の点でまとめて描く（`GLR`）。使えないときは 2D キャンバスで 1 個ずつ（`drawBalls`）。仕掛け・円・演出は 2D キャンバス。
+- 音はファイルを使わずその場で作る（`AU.synth`）。
+- 試験用: `?seed=` `?mech=press|cross|loops|box` `?size=l|m|s|t` `?split=2|3|4` `?speed=` `?gl=0` `?pause=1`、`window.FT`（state・run・next・pause）。

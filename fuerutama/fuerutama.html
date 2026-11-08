@@ -1,0 +1,1431 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>ふえる玉</title>
+<link rel="icon" href="data:image/png;base64,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">
+<style>
+/* いつも暗い画面（夜の実験室のような見た目。明るい設定でも同じ色） */
+:root{
+  --bg:#04050a; --fg:#f3f5ff; --muted:#9ba3bf; --panel:rgba(16,18,30,.86); --line:rgba(255,255,255,.14);
+  --btn:rgba(255,255,255,.07); --btn-hover:rgba(255,255,255,.16); --gold:#f6c445; --focus:#9fb4ff;
+  --sans:system-ui,-apple-system,"Segoe UI","Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;
+  color-scheme:dark;
+}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--fg)}
+body{font-family:var(--sans);-webkit-user-select:none;user-select:none;touch-action:manipulation}
+body.idle{cursor:none}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+#count{position:fixed;left:0;right:0;text-align:center;font-weight:800;letter-spacing:.01em;
+  font-variant-numeric:tabular-nums;pointer-events:none;line-height:1;
+  text-shadow:0 2px 20px rgba(0,0,0,.7);transform-origin:50% 60%;transition:color .4s}
+#count.gold{color:var(--gold);text-shadow:0 0 26px rgba(246,196,69,.45)}
+#count.off{display:none}
+#label{position:fixed;left:16px;right:16px;text-align:center;font-size:13px;color:var(--muted);
+  letter-spacing:.08em;pointer-events:none;opacity:0;transition:opacity .8s}
+#label.show{opacity:1}
+#hint{position:fixed;left:16px;right:16px;text-align:center;font-size:12px;color:var(--muted);pointer-events:none;
+  letter-spacing:.06em;transition:opacity .5s}
+#hint[hidden]{display:block;opacity:0}
+#bar{position:fixed;left:50%;bottom:max(16px,env(safe-area-inset-bottom));transform:translateX(-50%);
+  display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px;padding:7px 9px;
+  width:max-content;max-width:calc(100vw - 32px);box-sizing:border-box;background:var(--panel);border:1px solid var(--line);
+  border-radius:14px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  transition:opacity .35s,transform .35s}
+#bar.hide{opacity:0;pointer-events:none;transform:translateX(-50%) translateY(12px)}
+#bar button,#panel select,#bar select{font:inherit;font-size:13px;color:var(--fg);background:var(--btn);
+  border:1px solid transparent;border-radius:9px;height:34px;cursor:pointer}
+#bar button{width:38px;display:grid;place-items:center;padding:0}
+#bar button:hover,#bar select:hover,#panel select:hover{background:var(--btn-hover)}
+#bar button.on{border-color:rgba(255,255,255,.35)}
+#bar select,#panel select{padding:0 8px}
+#bar select option,#panel select option{background:#151827;color:var(--fg)}
+#bar svg{width:18px;height:18px;fill:currentColor}
+#bar :focus-visible,#panel :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+#vol{width:84px;accent-color:var(--focus);cursor:pointer}
+#panel{position:fixed;left:50%;transform:translateX(-50%);bottom:76px;width:min(340px,calc(100vw - 32px));
+  box-sizing:border-box;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);font-size:13px}
+#panel[hidden]{display:none}
+#panel .row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:6px 0}
+#panel .row span{color:var(--fg)}
+#panel input[type=checkbox]{width:18px;height:18px;accent-color:var(--focus)}
+#panel .keys{margin-top:10px;display:grid;grid-template-columns:auto 1fr;gap:2px 10px;color:var(--muted);font-size:12px;line-height:1.6}
+#panel .keys b{color:var(--fg);font-weight:600;white-space:nowrap}
+#panel .row.vol{display:none}
+#vol2{width:150px;accent-color:var(--focus)}
+#panel .ver{margin-top:6px;color:var(--muted);font-size:11px;text-align:right}
+@media (max-width:520px){ #vol{display:none} #panel .row.vol{display:flex} }
+@media (max-width:360px){ #bar button{width:34px} }
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+<canvas id="under"></canvas>
+<canvas id="gl"></canvas>
+<canvas id="cv"></canvas>
+<div id="count">0</div>
+<div id="label"></div>
+<div id="hint" hidden>画面をクリックすると音が出ます</div>
+<div id="panel" hidden>
+  <div class="row"><span>玉の大きさ</span>
+    <select id="sSize"><option value="auto">おまかせ</option><option value="l">大</option><option value="m">中</option><option value="s">小</option><option value="t">極小（1 万個まで）</option></select></div>
+  <div class="row"><span>分かれる数</span>
+    <select id="sSplit"><option value="auto">おまかせ</option><option value="2">2 つ</option><option value="3">3 つ</option><option value="4">4 つ</option></select></div>
+  <div class="row"><span>速さ</span>
+    <select id="sSpeed"><option value="0.5">ゆっくり</option><option value="1">ふつう</option><option value="1.5">はやい</option><option value="2">とてもはやい</option></select></div>
+  <div class="row vol"><span>音量</span><input id="vol2" type="range" min="0" max="100"></div>
+  <label class="row"><span>玉の数を出す</span><input type="checkbox" id="cCount"></label>
+  <div class="keys">
+    <b>スペース</b><span>止める・動かす</span><b>N</b><span>次へ</span><b>F・ダブルクリック</b><span>全画面</span>
+    <b>M</b><span>音を消す・出す</span><b>↑ ↓</b><span>音量</span><b>1〜4 ・ 0</b><span>仕掛けを選ぶ・おまかせ</span>
+  </div>
+  <div class="ver" id="ver"></div>
+</div>
+<div id="bar">
+  <button id="bPlay" title="止める・動かす（スペース）"></button>
+  <button id="bNext" title="次へ（N）"><svg viewBox="0 0 24 24"><path d="M5 5l9 7-9 7zM16 5h3v14h-3z"/></svg></button>
+  <select id="sMech" title="仕掛け（0〜4）">
+    <option value="auto">おまかせ</option><option value="press">プレス</option><option value="cross">十字</option>
+    <option value="loops">8 の字</option><option value="box">はさみ箱</option>
+  </select>
+  <button id="bMute" title="音を消す・出す（M）"></button>
+  <input id="vol" type="range" min="0" max="100" title="音量（↑↓）">
+  <button id="bSet" title="設定"><svg viewBox="0 0 24 24"><path d="M19.4 13a7.6 7.6 0 000-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 00-1.7-1L15 3h-4l-.4 2.9a7.4 7.4 0 00-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 000 2l-2.1 1.6 2 3.5 2.5-1a7.4 7.4 0 001.7 1L11 21h4l.4-2.9a7.4 7.4 0 001.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 110-7 3.5 3.5 0 010 7z"/></svg></button>
+  <button id="bFull" title="全画面（F）"><svg viewBox="0 0 24 24"><path d="M4 4h6v2H6v4H4zM14 4h6v6h-2V6h-4zM4 14h2v4h4v2H4zM18 14h2v6h-6v-2h4z"/></svg></button>
+</div>
+<script>
+"use strict";
+/* ふえる玉 — 仕掛けに挟まれた玉が分かれて増え、円がいっぱいになると割れて、また 1 個から。 */
+const VERSION = "1.0.0";
+const $ = s => document.querySelector(s);
+
+/* ── 乱数（?seed= で固定できる） ───────────────────── */
+const Q = new URLSearchParams(location.search);
+let seed = (parseInt(Q.get("seed"), 10) | 0) || ((Math.random() * 2147483647) | 0);
+function rnd(){
+  seed = (seed + 0x6D2B79F5) | 0;
+  let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+const rr = (a, b) => a + (b - a) * rnd();
+const pick = a => a[(rnd() * a.length) | 0];
+function wpick(list){ let s = 0; for (const x of list) s += x[1]; let v = rnd() * s; for (const x of list){ if ((v -= x[1]) < 0) return x[0]; } return list[list.length - 1][0]; }
+const clamp = (x, a, b) => x < a ? a : x > b ? b : x;
+const smooth = (a, b, x) => { x = clamp((x - a) / (b - a), 0, 1); return x * x * (3 - 2 * x); };
+const EZ = {
+  inQ: t => t * t, outC: t => 1 - (1 - t) ** 3,
+  inOut: t => t < .5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2,
+  outBack: t => 1 + 2.70158 * (t - 1) ** 3 + 1.70158 * (t - 1) ** 2,
+};
+
+/* ── 設定（この PC のブラウザに覚える） ───────────────── */
+const DEF = { mech: "auto", size: "auto", split: "auto", speed: 1, vol: 60, mute: false, count: true };
+const SET = Object.assign({}, DEF, loadSet());
+function loadSet(){ try { return JSON.parse(localStorage.getItem("fuerutama") || "{}") || {}; } catch (e){ return {}; } }
+function saveSet(){ try { localStorage.setItem("fuerutama", JSON.stringify(SET)); } catch (e){} }
+for (const k of ["mech", "size", "split"]) if (Q.get(k)) SET[k] = Q.get(k);
+if (Q.get("speed")) SET.speed = +Q.get("speed") || 1;
+
+/* ── 世界の決まり ───────────────────────────────── */
+const R = 500;            // 円の半径（世界の単位）
+const MAXN = 12000;       // 玉の数の上限
+const V0 = 430;           // 玉のふだんの速さ（単位/秒）
+const STIFF = .9, E_BB = .92, E_W = .86, E_M = .45;   // 玉どうしの押し返し・はね返り、壁のはね返り、仕掛けのはね返り
+const SQZ = .14;          // 2 つの面から逆向きに押されて、めり込みがこれ（半径に対する割合）を超えたらつぶれる
+const CONV = 2.5;         // いっぱいのとき、生まれられなかった玉 1 個につき、まわりの玉を何個その色に染めるか
+const MU = .5;            // 仕掛けに押されたとき、面に沿った動きをどれだけ止めるか（すべり止め）
+const HIT_MIN = 60;       // 音を鳴らすぶつかりの強さ
+const PRESS_CRUSH = 1.2;  // 閉じていく仕掛けに押され、まわりの玉との重なりの合計がこれ（直径に対する割合）を超えたらつぶれる
+const KICK_AT = .4;       // 直径のこの割合より深く重なった玉どうしは、はじけるように離れる
+const CELL_MAX = 16;      // 1 つの升目にこれより多く詰まったら、ぶつかりの計算を間引く（重くならないように）
+const PACK = .74;         // 円をどこまで玉で埋めるか（面積の割合）
+const SIZES = { l: { r: 12, n: "大" }, m: { r: 8.5, n: "中" }, s: { r: 6, n: "小" }, t: { r: 4.1, n: "極小" } };
+const GOLD_MAX = 10000;
+
+/* 色（色相の順。1 回ごとに 5 つ飛ばしで使うので、となりの色がはっきり違う） */
+const PAL = ["#ff3b4a","#ff8a2b","#ffd43b","#c4f23a","#38e070","#22e8c0","#2fd0ff","#3d6bff","#8c5cff","#b14dff","#ff45b5","#ff6b8b"];
+const GOLD = PAL.length;
+const PALX = [...PAL, "#f6c445"];
+
+/* ── 玉 ─────────────────────────────────────────── */
+const X = new Float64Array(MAXN), Y = new Float64Array(MAXN), VX = new Float64Array(MAXN), VY = new Float64Array(MAXN);
+const PX = new Float64Array(MAXN), PY = new Float64Array(MAXN);   // 1 歩前の場所（棒をすり抜けたかを見る）
+const COL = new Uint8Array(MAXN), CR = new Uint8Array(MAXN);
+const BORN = new Float64Array(MAXN), IMM = new Float64Array(MAXN), FL = new Float64Array(MAXN);
+const CS = new Int32Array(MAXN), CNX = new Float32Array(MAXN), CNY = new Float32Array(MAXN), CNP = new Float32Array(MAXN);
+const PR = new Float32Array(MAXN);   // まわりの玉との重なりの合計（押しつぶされ具合）
+let N = 0, rad = 8.5, T = 0, STAMP = 0, wallOn = true;
+
+function addBall(x, y, vx, vy, c, imm){
+  if (N >= MAXN) return -1;
+  const i = N++;
+  X[i] = PX[i] = x; Y[i] = PY[i] = y; VX[i] = vx; VY[i] = vy; COL[i] = c; CR[i] = 0;
+  BORN[i] = T; IMM[i] = T + (imm || 0); FL[i] = -9; CS[i] = -1;
+  return i;
+}
+function delBall(i){
+  const j = --N;
+  if (i === j) return;
+  X[i] = X[j]; Y[i] = Y[j]; PX[i] = PX[j]; PY[i] = PY[j]; VX[i] = VX[j]; VY[i] = VY[j]; COL[i] = COL[j]; CR[i] = CR[j];
+  BORN[i] = BORN[j]; IMM[i] = IMM[j]; FL[i] = FL[j]; CS[i] = CS[j]; CNX[i] = CNX[j]; CNY[i] = CNY[j]; CNP[i] = CNP[j]; PR[i] = PR[j];
+}
+
+/* ── 近くの玉を探すための升目 ───────────────────────── */
+let GW = 1, GH = 1, G0 = -R, GINV = 1;
+let CST = new Int32Array(2), CUR = new Int32Array(1);
+const ITEM = new Int32Array(MAXN), BC = new Int32Array(MAXN);
+function setupGrid(){
+  const cell = 2 * rad, half = R + 6 * rad;
+  GINV = 1 / cell; G0 = -half;
+  GW = GH = Math.ceil(2 * half * GINV);
+  CST = new Int32Array(GW * GH + 1); CUR = new Int32Array(GW * GH);
+}
+function buildGrid(){
+  const nc = GW * GH;
+  CST.fill(0);
+  for (let i = 0; i < N; i++){
+    const x = X[i], y = Y[i];
+    if (x < G0 || y < G0){ BC[i] = -1; continue; }
+    const cx = ((x - G0) * GINV) | 0, cy = ((y - G0) * GINV) | 0;
+    if (cx >= GW || cy >= GH){ BC[i] = -1; continue; }
+    const c = cy * GW + cx; BC[i] = c; CST[c + 1]++;
+  }
+  for (let c = 0; c < nc; c++) CST[c + 1] += CST[c];
+  CUR.set(CST.subarray(0, nc));
+  for (let i = 0; i < N; i++){ const c = BC[i]; if (c >= 0) ITEM[CUR[c]++] = i; }
+}
+
+/* ── 音を鳴らすぶつかりの記録（1 こまぶん） ─────────── */
+let hitN = 0, hitV = 0, hitX = 0, clinkN = 0, clinkV = 0, clinkX = 0;
+function hit(v, x){ hitN++; if (v > hitV){ hitV = v; hitX = x; } }
+function clink(v, x){ clinkN++; if (v > clinkV){ clinkV = v; clinkX = x; } }
+
+/* ── 玉どうし ───────────────────────────────────── */
+function pair(i, j, D, D2){
+  const dx = X[j] - X[i], dy = Y[j] - Y[i], d2 = dx * dx + dy * dy;
+  if (d2 >= D2) return;
+  let nx, ny, pen;
+  if (d2 < 1e-9){ const a = rnd() * 6.2832; nx = Math.cos(a); ny = Math.sin(a); pen = D; }
+  else { const d = Math.sqrt(d2); nx = dx / d; ny = dy / d; pen = D - d; }
+  const p = pen * .5 * STIFF;
+  X[i] -= nx * p; Y[i] -= ny * p; X[j] += nx * p; Y[j] += ny * p;
+  PR[i] += pen; PR[j] += pen;
+  if (pen > KICK_AT * D){ const kv = (pen / D - KICK_AT) * V0 * 1.2; VX[i] -= nx * kv; VY[i] -= ny * kv; VX[j] += nx * kv; VY[j] += ny * kv; }
+  const vn = (VX[j] - VX[i]) * nx + (VY[j] - VY[i]) * ny;
+  if (vn < 0){
+    const q = -(1 + E_BB) * vn * .5;
+    VX[i] -= q * nx; VY[i] -= q * ny; VX[j] += q * nx; VY[j] += q * ny;
+    if (-vn > HIT_MIN) hit(-vn, X[i]);
+  }
+}
+function collideBalls(){
+  const D = 2 * rad, D2 = D * D;
+  for (let cy = 0; cy < GH; cy++){
+    for (let cx = 0; cx < GW; cx++){
+      const c = cy * GW + cx, s0 = CST[c], e0 = CST[c + 1];
+      if (s0 === e0) continue;
+      const right = cx + 1 < GW, down = cy + 1 < GH, left = cx > 0;
+      const st = e0 - s0 > CELL_MAX ? Math.ceil((e0 - s0) / CELL_MAX) : 1;   // 詰まりすぎた升目は間引く
+      for (let a = s0; a < e0; a++){
+        const i = ITEM[a];
+        for (let b = a + 1; b < e0; b += st) pair(i, ITEM[b], D, D2);
+        if (right){ for (let b = CST[c + 1], e = CST[c + 2]; b < e; b += st) pair(i, ITEM[b], D, D2); }
+        if (down){
+          const n = c + GW;
+          if (left){ for (let b = CST[n - 1], e = CST[n]; b < e; b += st) pair(i, ITEM[b], D, D2); }
+          for (let b = CST[n], e = CST[n + 1]; b < e; b += st) pair(i, ITEM[b], D, D2);
+          if (right){ for (let b = CST[n + 1], e = CST[n + 2]; b < e; b += st) pair(i, ITEM[b], D, D2); }
+        }
+      }
+    }
+  }
+}
+
+/* 面（仕掛け・円の壁）に触れた向きを覚え、逆向きの面にも押されたら「つぶれた」にする */
+function contact(i, nx, ny, pen){
+  if (CS[i] !== STAMP){ CS[i] = STAMP; CNX[i] = nx; CNY[i] = ny; CNP[i] = pen; return; }
+  if (nx * CNX[i] + ny * CNY[i] < -.5 && pen + CNP[i] > SQZ * rad) CR[i] = 1;
+  if (pen > CNP[i]){ CNX[i] = nx; CNY[i] = ny; CNP[i] = pen; }
+}
+
+/* ── 仕掛けの棒（線分＋太さ）。1 本 10 個: 今の両端・太さ・ひとつ前の両端・挟んでつぶすか ── */
+const SEG = new Float64Array(64 * 10);
+let NSEG = 0, mechClosing = 0;
+function collideMech(h){
+  const inv = 1 / h;
+  for (let s = 0; s < NSEG; s++){
+    const o = s * 10, ax = SEG[o], ay = SEG[o + 1], bx = SEG[o + 2], by = SEG[o + 3], w = SEG[o + 4], crush = SEG[o + 9] > 0;
+    const pax = SEG[o + 5], pay = SEG[o + 6], pbx = SEG[o + 7], pby = SEG[o + 8];
+    const md = w + rad, md2 = md * md;
+    const abx = bx - ax, aby = by - ay, L2 = abx * abx + aby * aby || 1e-9;
+    const ccd = L2 > 1, L = Math.sqrt(L2), lnx = -aby / L, lny = abx / L;
+    const pabx = pbx - pax, paby = pby - pay, PLn = Math.hypot(pabx, paby) || 1, plx = -paby / PLn, ply = pabx / PLn;
+    const x0 = Math.min(ax, bx) - md, x1 = Math.max(ax, bx) + md, y0 = Math.min(ay, by) - md, y1 = Math.max(ay, by) + md;
+    const cx0 = Math.max(0, Math.floor((x0 - G0) * GINV)), cx1 = Math.min(GW - 1, Math.floor((x1 - G0) * GINV));
+    const cy0 = Math.max(0, Math.floor((y0 - G0) * GINV)), cy1 = Math.min(GH - 1, Math.floor((y1 - G0) * GINV));
+    for (let cy = cy0; cy <= cy1; cy++){
+      for (let cx = cx0; cx <= cx1; cx++){
+        const c = cy * GW + cx;
+        for (let k = CST[c], e = CST[c + 1]; k < e; k++){
+          const i = ITEM[k];
+          let px = X[i], py = Y[i], moved = false;
+          let t = ((px - ax) * abx + (py - ay) * aby) / L2;
+          if (ccd && t > 0 && t < 1){
+            // 速い棒が玉を飛び越えたら、もとの側へ戻す
+            const sc = (px - ax) * lnx + (py - ay) * lny, sp = (PX[i] - pax) * plx + (PY[i] - pay) * ply;
+            if (sc * sp < 0 && Math.abs(sp) > w * .3){
+              const want = sp > 0 ? md * 1.001 : -md * 1.001;
+              px += lnx * (want - sc); py += lny * (want - sc); moved = true;
+            }
+          }
+          t = t < 0 ? 0 : t > 1 ? 1 : t;
+          const qx = ax + abx * t, qy = ay + aby * t, dx = px - qx, dy = py - qy, d2 = dx * dx + dy * dy;
+          const svx = (qx - (pax + (pbx - pax) * t)) * inv, svy = (qy - (pay + (pby - pay) * t)) * inv;
+          if (d2 >= md2){
+            if (moved){
+              X[i] = px; Y[i] = py;
+              const sg = (px - ax) * lnx + (py - ay) * lny > 0 ? 1 : -1, nx = lnx * sg, ny = lny * sg;
+              const vn = (VX[i] - svx) * nx + (VY[i] - svy) * ny;
+              if (vn < 0){ VX[i] -= (1 + E_M) * vn * nx; VY[i] -= (1 + E_M) * vn * ny; }
+            }
+            continue;
+          }
+          let nx, ny;
+          const d = Math.sqrt(d2);
+          if (d < 1e-6){
+            nx = -aby; ny = abx; const l = Math.hypot(nx, ny) || 1; nx /= l; ny /= l;
+            if (nx * svx + ny * svy < 0){ nx = -nx; ny = -ny; }
+          } else { nx = dx / d; ny = dy / d; }
+          const pen = md - d;
+          X[i] = px + nx * pen; Y[i] = py + ny * pen;
+          const vn = (VX[i] - svx) * nx + (VY[i] - svy) * ny;
+          if (vn < 0){
+            const tx = (VX[i] - svx) - vn * nx, ty = (VY[i] - svy) - vn * ny;
+            VX[i] -= (1 + E_M) * vn * nx + MU * tx; VY[i] -= (1 + E_M) * vn * ny + MU * ty;
+            if (-vn > HIT_MIN) clink(-vn, px);
+          }
+          if (crush){
+            contact(i, nx, ny, pen);
+            // 閉じていく面に押され、まわりの玉ともひどく重なっていたら、その場でつぶれる
+            if (mechClosing > 0 && svx * nx + svy * ny > 60 && PR[i] > PRESS_CRUSH * 2 * rad) CR[i] = 1;
+          }
+        }
+      }
+    }
+  }
+}
+function collideWall(){
+  const lim = R - rad, lim2 = lim * lim;
+  for (let i = 0; i < N; i++){
+    const x = X[i], y = Y[i], d2 = x * x + y * y;
+    if (d2 <= lim2) continue;
+    const d = Math.sqrt(d2), nx = -x / d, ny = -y / d, pen = d - lim;
+    X[i] = x + nx * pen; Y[i] = y + ny * pen;
+    const vn = VX[i] * nx + VY[i] * ny;
+    if (vn < 0){
+      VX[i] -= (1 + E_W) * vn * nx; VY[i] -= (1 + E_W) * vn * ny;
+      if (-vn > HIT_MIN) clink(-vn * .6, x);
+    }
+    contact(i, nx, ny, pen);
+  }
+}
+
+/* ── 動きの段取り（行き先・時間・動き方を順に） ─────────── */
+class Seq {
+  constructor(v, gen){ this.v = v; this.from = v; this.gen = gen; this.steps = null; this.k = 0; this.t = 0; this.cyc = 0; this.speed = 0; }
+  update(dt, ev){
+    const v0 = this.v;
+    let rem = dt, guard = 0;
+    while (rem > 1e-12 && guard++ < 24){
+      if (!this.steps || this.k >= this.steps.length){ this.steps = this.gen(this.cyc++); this.k = 0; this.t = 0; this.from = this.v; this.enter(ev); }
+      const s = this.steps[this.k], left = s.d - this.t;
+      if (rem < left){
+        this.t += rem; rem = 0;
+        const f = s.e ? s.e(this.t / s.d) : this.t / s.d;
+        this.v = this.from + (s.to - this.from) * f;
+      } else {
+        rem -= Math.max(0, left); this.v = s.to; this.from = s.to; this.t = 0; this.k++;
+        if (s.ev && ev) ev(s.ev);
+        if (this.k < this.steps.length) this.enter(ev);
+      }
+    }
+    this.speed = dt > 0 ? Math.abs(this.v - v0) / dt : 0;
+    return this.v;
+  }
+  enter(ev){ const s = this.steps[this.k]; if (s && s.bev && ev) ev(s.bev); }
+}
+
+/* ── 仕掛け（共通） ─────────────────────────────── */
+let TX = 0, TY = 0;
+class Mech {
+  constructor(n){ this.n = n; this.ang = 0; this.spin = 0; this.area = 0; }
+  rot(x, y){ const c = Math.cos(this.ang), s = Math.sin(this.ang); TX = x * c - y * s; TY = x * s + y * c; }
+  seg(k, ax, ay, bx, by, w, soft){
+    const o = k * 10; this.rot(ax, ay); SEG[o] = TX; SEG[o + 1] = TY;
+    this.rot(bx, by); SEG[o + 2] = TX; SEG[o + 3] = TY; SEG[o + 4] = w; SEG[o + 9] = soft ? 0 : 1;
+  }
+  keep(){ for (let k = 0; k < this.n; k++){ const o = k * 10; SEG[o + 5] = SEG[o]; SEG[o + 6] = SEG[o + 1]; SEG[o + 7] = SEG[o + 2]; SEG[o + 8] = SEG[o + 3]; } }
+  install(){ NSEG = this.n; this.geom(); this.keep(); }
+  step(dt){ this.keep(); this.advance(dt); this.geom(); }
+  motion(){ return 0; }
+  drawBack(){}
+}
+
+/* プレス: 上と下の板が寄って、間の玉をつぶす */
+class Press extends Mech {
+  constructor(){
+    super(4); this.key = "press";
+    this.W = 300; this.tp = 11; this.rw = 7; this.ho = 352; this.hc = this.tp + .8 * rad;
+    this.ang = pick([0, Math.PI / 2]) + (rnd() < .3 ? rr(-.35, .35) : 0);
+    this.spin = rnd() < .25 ? pick([1, -1]) * rr(.06, .15) : 0;
+    const tp = rr(.85, 1.15);
+    this.seq = new Seq(this.ho, c => [
+      { d: (c === 0 ? .55 : rr(.18, .42)) * tp, to: this.ho },
+      { d: rr(.38, .5) * tp, to: this.hc, e: EZ.inQ, bev: "close", ev: "impact" },
+      { d: .12 * tp, to: this.hc },
+      { d: rr(.55, .8) * tp, to: this.ho, e: EZ.outC },
+    ]);
+    this.h = this.ho;
+    this.area = 2 * (2 * this.W + 2 * this.tp) * 2 * this.tp + 2 * 2 * this.rw * (R - this.ho);
+  }
+  start(){ return [0, 0]; }
+  advance(dt){ this.h = this.seq.update(dt, mechEvent); this.ang += this.spin * dt; }
+  motion(){ return this.seq.speed / 1400; }
+  geom(){
+    const h = this.h, W = this.W, t = this.tp;
+    this.seg(0, -W, -h, W, -h, t); this.seg(1, -W, h, W, h, t);
+    this.seg(2, 0, -h - t, 0, -R - 90, this.rw); this.seg(3, 0, h + t, 0, R + 90, this.rw);
+  }
+  draw(c){
+    c.save(); c.rotate(this.ang);
+    rod(c, 0, -R - 20, 0, -this.h, this.rw); rod(c, 0, R + 20, 0, this.h, this.rw);
+    mount(c, -R - 6, 1); mount(c, R + 6, -1);
+    bar(c, -this.W, -this.h, this.W, -this.h, this.tp, true); bar(c, -this.W, this.h, this.W, this.h, this.tp, true);
+    c.restore();
+  }
+}
+
+/* 十字: 斜めの 4 本の棒が寄ってきて四角になり、真ん中をつぶす */
+class Cross extends Mech {
+  constructor(){
+    super(4); this.key = "cross";
+    this.L = 200; this.tb = 10; this.do = 390; this.dl = this.L - this.tb - 6; this.dc = this.tb + .8 * rad;
+    this.ang = rr(0, Math.PI / 2);
+    this.spin = rnd() < .45 ? pick([1, -1]) * rr(.12, .3) : 0;
+    const tp = rr(.85, 1.15);
+    this.seq = new Seq(this.do, c => [
+      { d: (c === 0 ? .5 : rr(.15, .35)) * tp, to: this.do },
+      { d: rr(.45, .6) * tp, to: this.dl, e: EZ.inOut, bev: "close", ev: "lock" },
+      { d: rr(.06, .16) * tp, to: this.dl },
+      { d: rr(.26, .36) * tp, to: this.dc, e: EZ.inQ, ev: "impact" },
+      { d: .12 * tp, to: this.dc },
+      { d: rr(.55, .8) * tp, to: this.do, e: EZ.outC },
+    ]);
+    this.d = this.do; this.area = 4 * (2 * this.L + 2 * this.tb) * 2 * this.tb;
+  }
+  start(){ return [0, 0]; }
+  advance(dt){ this.d = this.seq.update(dt, mechEvent); this.ang += this.spin * dt; }
+  motion(){ return this.seq.speed / 1200; }
+  geom(){
+    for (let i = 0; i < 4; i++){
+      const th = Math.PI / 4 + i * Math.PI / 2, cs = Math.cos(th), sn = Math.sin(th);
+      const cx = cs * this.d, cy = sn * this.d, tx = -sn * this.L, ty = cs * this.L;
+      this.seg(i, cx - tx, cy - ty, cx + tx, cy + ty, this.tb);
+    }
+  }
+  drawBack(c){
+    c.save(); c.rotate(this.ang);
+    for (const th of [Math.PI / 4, -Math.PI / 4]){
+      const cs = Math.cos(th), sn = Math.sin(th);
+      rail(c, -cs * 3 * R, -sn * 3 * R, cs * 3 * R, sn * 3 * R, 5);
+    }
+    c.restore();
+  }
+  draw(c){
+    c.save(); c.rotate(this.ang);
+    for (let i = 0; i < 4; i++){
+      const th = Math.PI / 4 + i * Math.PI / 2, cs = Math.cos(th), sn = Math.sin(th);
+      const cx = cs * this.d, cy = sn * this.d, tx = -sn * this.L, ty = cs * this.L;
+      bar(c, cx - tx, cy - ty, cx + tx, cy + ty, this.tb, false);
+    }
+    c.restore();
+  }
+}
+
+/* はさみ箱: 左右から「[」と「]」が入ってきて箱になり、横から挟んでつぶす */
+class Box extends Mech {
+  constructor(){
+    super(6); this.key = "box";
+    this.H = 120; this.L = 250; this.tb = 9; this.so = R + 30; this.sl = this.L - 6; this.sc = this.tb + .8 * rad;
+    this.ang = pick([0, Math.PI / 2]) + rr(-.5, .5);
+    const tp = rr(.85, 1.15);
+    this.seq = new Seq(this.so, c => [
+      { d: (c === 0 ? .35 : rr(.15, .35)) * tp, to: this.so },
+      { d: rr(.5, .65) * tp, to: this.sl, e: EZ.inOut, bev: "close", ev: "lock" },
+      { d: rr(.06, .14) * tp, to: this.sl },
+      { d: rr(.26, .36) * tp, to: this.sc, e: EZ.inQ, ev: "impact" },
+      { d: .12 * tp, to: this.sc },
+      { d: rr(.6, .85) * tp, to: this.so, e: EZ.outC },
+    ]);
+    this.s = this.so; this.area = 2 * (2 * this.H + 2 * this.L) * 2 * this.tb;
+  }
+  start(){ return [0, 0]; }
+  advance(dt){ this.s = this.seq.update(dt, mechEvent); }
+  motion(){ return this.seq.speed / 1100; }
+  geom(){
+    const s = this.s, H = this.H, L = this.L, w = this.tb;
+    this.seg(0, -s, -H, -s, H, w); this.seg(1, -s, -H, -s + L, -H, w); this.seg(2, -s, H, -s + L, H, w);
+    this.seg(3, s, -H, s, H, w); this.seg(4, s, -H, s - L, -H, w); this.seg(5, s, H, s - L, H, w);
+  }
+  drawBack(c){
+    c.save(); c.rotate(this.ang);
+    rail(c, -3 * R, -this.H, 3 * R, -this.H, 4); rail(c, -3 * R, this.H, 3 * R, this.H, 4);
+    c.restore();
+  }
+  draw(c){
+    const s = this.s, H = this.H, L = this.L, w = this.tb;
+    c.save(); c.rotate(this.ang);
+    bar(c, -s, -H, -s + L, -H, w, false); bar(c, -s, H, -s + L, H, w, false);
+    bar(c, s, -H, s - L, -H, w, false); bar(c, s, H, s - L, H, w, false);
+    bar(c, -s, -H, -s, H, w, false); bar(c, s, -H, s, H, w, false);
+    bolt(c, -s, -H, w * .45); bolt(c, -s, H, w * .45); bolt(c, s, -H, w * .45); bolt(c, s, H, w * .45);
+    c.restore();
+  }
+}
+
+/* 8 の字: 真ん中で留めた 2 組の弧がハサミのように閉じて、輪の中をつぶす。全体はゆっくり回る */
+class Loops extends Mech {
+  constructor(){
+    const P = 10;
+    super(4 * P + 1); this.P = P; this.key = "loops";
+    this.rho = 172; this.g = 36; this.tb = 9; this.hub = 30;
+    this.bo = -1.15; this.bc = Math.asin(clamp(1 - (this.tb + .75 * rad) / this.rho, 0, .995));
+    this.ang = rr(0, Math.PI * 2); this.spin = pick([1, -1]) * rr(.25, .55);
+    this.alt = rnd() < .5;
+    const tp = rr(.9, 1.15);
+    const gen = c => [
+      { d: (c === 0 ? .45 : rr(.15, .32)) * tp, to: this.bo },
+      { d: rr(.38, .5) * tp, to: 0, e: EZ.inOut, bev: "close", ev: "lock" },
+      { d: .08 * tp, to: 0 },
+      { d: rr(.36, .46) * tp, to: this.bc, e: EZ.inQ, ev: "impact" },
+      { d: .12 * tp, to: this.bc },
+      { d: rr(.5, .7) * tp, to: this.bo, e: EZ.outC },
+    ];
+    this.sa = new Seq(this.bo, gen); this.sb = new Seq(this.bo, gen);
+    if (this.alt) this.sb.update(.95, null);
+    this.ba = this.sa.v; this.bb = this.sb.v;
+    this.area = 4 * Math.PI * this.rho * 2 * this.tb + Math.PI * this.hub * this.hub;
+  }
+  start(){ this.rot(this.g + this.rho, 0); return [TX, TY]; }
+  advance(dt){ this.ba = this.sa.update(dt, mechEvent); this.bb = this.sb.update(dt, mechEvent); this.ang += this.spin * dt; }
+  motion(){ return (this.sa.speed + this.sb.speed) / 9; }
+  /* 刃の上の点: sg 右(+1)・左(-1)、up 上(+1)・下(-1)、th 0=先 π=留め具、b 閉じる角度 → TX,TY */
+  bp(sg, up, th, b){
+    const bx = sg * (this.rho + this.rho * Math.cos(th)), by = -up * this.rho * Math.sin(th);
+    const a = sg * up * b, ca = Math.cos(a), sa = Math.sin(a);
+    this.rot(sg * this.g + bx * ca - by * sa, bx * sa + by * ca);
+  }
+  geom(){
+    const P = this.P; let k = 0;
+    for (let side = 0; side < 2; side++){
+      const sg = side ? -1 : 1, b = side ? this.bb : this.ba;
+      for (let u = 0; u < 2; u++){
+        const up = u ? -1 : 1;
+        this.bp(sg, up, 0, b); let px = TX, py = TY;
+        for (let j = 1; j <= P; j++){
+          this.bp(sg, up, Math.PI * j / P, b);
+          const o = k * 10; SEG[o] = px; SEG[o + 1] = py; SEG[o + 2] = TX; SEG[o + 3] = TY; SEG[o + 4] = this.tb; SEG[o + 9] = 1;
+          px = TX; py = TY; k++;
+        }
+      }
+    }
+    const o = k * 10; SEG[o] = 0; SEG[o + 1] = 0; SEG[o + 2] = 0; SEG[o + 3] = 0; SEG[o + 4] = this.hub; SEG[o + 9] = 0;   // 真ん中の軸ではつぶさない
+  }
+  draw(c){
+    const M = 28;
+    for (let side = 0; side < 2; side++){
+      const sg = side ? -1 : 1, b = side ? this.bb : this.ba;
+      for (let u = 0; u < 2; u++){
+        const up = u ? -1 : 1;
+        c.beginPath();
+        for (let j = 0; j <= M; j++){ this.bp(sg, up, Math.PI * j / M, b); j ? c.lineTo(TX, TY) : c.moveTo(TX, TY); }
+        blade(c, this.tb);
+      }
+    }
+    for (const sg of [1, -1]){ this.rot(sg * this.g, 0); bolt(c, TX, TY, this.tb * .55); }
+    hubDraw(c, this.hub);
+  }
+}
+const MECHS = { press: Press, cross: Cross, loops: Loops, box: Box };
+const MECH_NAMES = { press: "プレス", cross: "十字", loops: "8 の字", box: "はさみ箱" };
+
+/* ── 仕掛けの絵 ─────────────────────────────────── */
+function metal(c, w, x0, y0, x1, y1){
+  const g = c.createLinearGradient(x0, y0, x1, y1);
+  g.addColorStop(0, "#eef1f7"); g.addColorStop(.3, "#c3c9d4"); g.addColorStop(.62, "#8d94a1"); g.addColorStop(1, "#5a606b");
+  return g;
+}
+function bar(c, x0, y0, x1, y1, w, groove){
+  const dx = x1 - x0, dy = y1 - y0, L = Math.hypot(dx, dy);
+  c.save(); c.translate(x0, y0); c.rotate(Math.atan2(dy, dx));
+  c.fillStyle = metal(c, w, 0, -w, 0, w);
+  c.beginPath(); c.roundRect(-w, -w, L + 2 * w, 2 * w, w); c.fill();
+  c.lineWidth = Math.max(.8, w * .12); c.strokeStyle = "rgba(20,24,32,.55)"; c.stroke();
+  c.strokeStyle = "rgba(255,255,255,.6)"; c.lineWidth = w * .16;
+  c.beginPath(); c.moveTo(w * .2, -w * .55); c.lineTo(L - w * .2, -w * .55); c.stroke();
+  if (groove && L > 6 * w){
+    c.strokeStyle = "rgba(40,46,58,.45)"; c.lineWidth = w * .14;
+    c.beginPath(); c.moveTo(w * 2, w * .25); c.lineTo(L - w * 2, w * .25); c.stroke();
+    for (const q of [.12, .5, .88]) bolt(c, L * q, 0, w * .32);
+  }
+  c.restore();
+}
+function rod(c, x0, y0, x1, y1, w){
+  const dx = x1 - x0, dy = y1 - y0, L = Math.hypot(dx, dy);
+  c.save(); c.translate(x0, y0); c.rotate(Math.atan2(dy, dx));
+  const g = c.createLinearGradient(0, -w, 0, w);
+  g.addColorStop(0, "#9aa2b0"); g.addColorStop(.4, "#d9dde6"); g.addColorStop(1, "#4d535e");
+  c.fillStyle = g; c.fillRect(0, -w, L, 2 * w);
+  c.restore();
+}
+function mount(c, y, dir){
+  c.save(); c.translate(0, y);
+  const g = c.createLinearGradient(-34, 0, 34, 0);
+  g.addColorStop(0, "#3b404b"); g.addColorStop(.5, "#9ba3b1"); g.addColorStop(1, "#30343d");
+  c.fillStyle = g;
+  c.beginPath(); c.roundRect(-34, -13, 68, 26, 6); c.fill();
+  c.fillStyle = "#1c1f26"; c.fillRect(-12, dir > 0 ? 9 : -15, 24, 6);
+  c.restore();
+}
+function rail(c, x0, y0, x1, y1, w){
+  c.save(); c.lineCap = "round";
+  c.strokeStyle = "rgba(170,180,200,.16)"; c.lineWidth = w * 2.2;
+  c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke();
+  c.strokeStyle = "rgba(230,236,248,.14)"; c.lineWidth = w * .5;
+  c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke();
+  c.restore();
+}
+function blade(c, w){
+  c.lineCap = "round"; c.lineJoin = "round";
+  c.strokeStyle = "#555b67"; c.lineWidth = w * 2 + 1.6; c.stroke();
+  c.strokeStyle = "#a9b0bd"; c.lineWidth = w * 2; c.stroke();
+  c.strokeStyle = "rgba(244,247,252,.75)"; c.lineWidth = w * .55; c.stroke();
+}
+function bolt(c, x, y, r){
+  c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2);
+  c.fillStyle = "#4a505b"; c.fill();
+  c.beginPath(); c.arc(x - r * .2, y - r * .2, r * .55, 0, Math.PI * 2);
+  c.fillStyle = "#c9ced8"; c.fill();
+}
+function hubDraw(c, r){
+  const g = c.createRadialGradient(-r * .3, -r * .3, r * .1, 0, 0, r);
+  g.addColorStop(0, "#f2f4f8"); g.addColorStop(.6, "#9aa1ae"); g.addColorStop(1, "#4f5561");
+  c.beginPath(); c.arc(0, 0, r, 0, Math.PI * 2); c.fillStyle = g; c.fill();
+  c.lineWidth = 2; c.strokeStyle = "rgba(30,34,42,.6)"; c.stroke();
+  c.beginPath(); c.arc(0, 0, r * .45, 0, Math.PI * 2); c.strokeStyle = "rgba(40,44,54,.7)"; c.lineWidth = r * .12; c.stroke();
+  c.beginPath(); c.arc(0, 0, r * .16, 0, Math.PI * 2); c.fillStyle = "#2b2f38"; c.fill();
+}
+
+/* ── 1 回ぶん（1 個から始まって、割れるか金色になるまで） ─── */
+let mech = null, RD = null, lastMech = null;
+const STAT = { crush: 0, rounds: 0 };
+function newRound(){
+  const keys = Object.keys(MECHS);
+  let mk = SET.mech;
+  if (!MECHS[mk]){ do { mk = pick(keys); } while (keys.length > 1 && mk === lastMech); }
+  lastMech = mk;
+  const sz = SIZES[SET.size] ? SET.size : wpick([["l", .22], ["m", .36], ["s", .27], ["t", .15]]);
+  rad = SIZES[sz].r;
+  const k = [2, 3, 4].includes(+SET.split) ? +SET.split : wpick(mk === "loops" ? [[3, .55], [4, .45]] : [[2, .25], [3, .5], [4, .25]]);
+  N = 0; FX.length = 0; wallOn = true; mechClosing = 0;
+  setupGrid();
+  mech = new MECHS[mk](); mech.install();
+  const cap = Math.min(MAXN - 200, Math.floor(PACK * (Math.PI * (R - rad) ** 2 - mech.area) / (Math.PI * rad * rad)));
+  const gold = sz === "t" || rnd() < .15;
+  const start = (rnd() * PAL.length) | 0, pal = [];
+  for (let i = 0; i < PAL.length; i++) pal.push((start + i * 5) % PAL.length);
+  RD = { mk, sz, k, cap, gold, target: gold ? Math.min(GOLD_MAX, cap) : cap, pal, phase: "intro", t: 0,
+         epoch: 0, lastCrush: -99, still: true, convLeft: 0, fade: 1, mAlpha: 0, beads: null, frags: null };
+  STAT.rounds++;
+  cam.zoom = 1;
+  buildSprites(); drawBg();
+  showLabel(MECH_NAMES[mk] + "　" + k + " つに分かれる");
+}
+function mechEvent(name){
+  if (!RD) return;
+  if (name === "impact"){
+    mechClosing = Math.max(0, mechClosing - 1);
+    RD.still = false;
+    if (RD.phase === "full") RD.convLeft--;
+    cam.shake = Math.max(cam.shake, mech.key === "press" ? 7 : 5);
+    AU.sfx(mech.key);
+  } else if (name === "lock"){
+    AU.sfx("lock");
+  } else if (name === "close"){
+    mechClosing++;
+    if (RD.phase === "grow" || RD.phase === "full") RD.epoch++;   // 閉じるたびに、次につぶれた玉から生まれる色を変える
+  }
+}
+
+/* つぶれた玉を分ける（いっぱいのときは、まわりの玉をその色に染める） */
+const CRL = [], CAND = [], PV = [];
+function processCrushes(){
+  for (let i = 0; i < N; i++) if (CR[i]){ CR[i] = 0; if (IMM[i] <= T) CRL.push(i); }
+  if (!CRL.length) return;
+  const ph = RD.phase;
+  if (ph === "burst" || ph === "clear"){
+    // 割れたあとに仕掛けに挟まれた玉は、ぽんと消える（真ん中に閉じこめられたまま残らないように）
+    CRL.sort((a, b) => b - a);
+    for (const i of CRL){ if (FX.length < 200) fxRing(X[i], Y[i], COL[i]); delBall(i); }
+    AU.pops(Math.min(3, CRL.length));
+    CRL.length = 0; return;
+  }
+  if (ph !== "grow" && ph !== "full"){ CRL.length = 0; return; }
+  RD.lastCrush = T;
+  const col = RD.pal[RD.epoch % RD.pal.length], m = CRL.length, k = RD.k;
+  const room = Math.min(RD.target - (N - m), m + Math.max(80, Math.floor(N * .3)));   // 1 回に増える数にも上限（一か所に詰まりすぎないように）
+  const total = Math.max(m, Math.min(m * k, room));
+  const base = Math.floor(total / m), extra = total - base * m;
+  PV.length = 0;
+  for (let q = 0; q < m; q++){ const i = CRL[q]; PV.push(X[i], Y[i], VX[i], VY[i]); }
+  if (total < m * k){
+    for (let q = 0; q < m; q++){
+      const kids = base + (q < extra ? 1 : 0), conv = Math.round((k - kids) * CONV);
+      if (conv > 0) convertNear(PV[q * 4], PV[q * 4 + 1], col, conv);
+    }
+  }
+  CRL.sort((a, b) => b - a);
+  for (const i of CRL) delBall(i);
+  for (let q = 0; q < m; q++){
+    const kids = base + (q < extra ? 1 : 0);
+    spawnKids(PV[q * 4], PV[q * 4 + 1], PV[q * 4 + 2], PV[q * 4 + 3], kids, col);
+    if (q < 60) fxRing(PV[q * 4], PV[q * 4 + 1], col);
+  }
+  AU.pops(m);
+  STAT.crush += m;
+  CRL.length = 0;
+}
+function spawnKids(x, y, vx, vy, n, col){
+  const a0 = rnd() * Math.PI * 2, sp = V0 * 1.05;
+  for (let j = 0; j < n; j++){
+    const a = a0 + j * Math.PI * 2 / n, c = Math.cos(a), s = Math.sin(a);
+    addBall(x + c * rad * .9, y + s * rad * .9, c * sp + vx * .25, s * sp + vy * .25, col, .45);
+  }
+}
+function convertNear(x, y, col, m){
+  const cx = Math.floor((x - G0) * GINV), cy = Math.floor((y - G0) * GINV);
+  for (let ring = 1; ring <= 4 && m > 0; ring++){
+    CAND.length = 0;
+    for (let yy = cy - ring; yy <= cy + ring; yy++){
+      if (yy < 0 || yy >= GH) continue;
+      for (let xx = cx - ring; xx <= cx + ring; xx++){
+        if (xx < 0 || xx >= GW) continue;
+        const c = yy * GW + xx;
+        for (let q = CST[c], e = CST[c + 1]; q < e; q++){
+          const j = ITEM[q];
+          if (j < N && COL[j] !== col) CAND.push(j);
+        }
+      }
+    }
+    if (!CAND.length) continue;
+    CAND.sort((a, b) => ((X[a] - x) ** 2 + (Y[a] - y) ** 2) - ((X[b] - x) ** 2 + (Y[b] - y) ** 2));
+    for (let q = 0; q < CAND.length && m > 0; q++){ const j = CAND[q]; COL[j] = col; FL[j] = T; m--; }
+  }
+}
+
+/* ── 1 こまの中の細かい 1 歩 ───────────────────────── */
+let HS = 1 / 180;
+function substep(h){
+  STAMP++;
+  const vm2 = (V0 * 4) ** 2;
+  for (let i = 0; i < N; i++){
+    let vx = VX[i], vy = VY[i];
+    const s2 = vx * vx + vy * vy;
+    if (s2 > vm2){ const f = Math.sqrt(vm2 / s2); vx *= f; vy *= f; VX[i] = vx; VY[i] = vy; }
+    PX[i] = X[i]; PY[i] = Y[i]; X[i] += vx * h; Y[i] += vy * h; PR[i] = 0;
+  }
+  if (RD.phase === "gold") mech.keep(); else mech.step(h);
+  buildGrid();
+  collideBalls();
+  collideMech(h);
+  if (wallOn) collideWall();
+  processCrushes();
+  T += h;
+}
+
+/* 速さをふだんの速さに寄せる（いっぱいになるほど、ゆっくりに） */
+function governor(dt){
+  const fill = N * rad * rad / ((R - rad) * (R - rad));
+  const vt = V0 * (1 - .72 * smooth(.3, .7, fill));
+  const kk = 1 - Math.exp(-dt * 1.8), vmax = V0 * 3.2;
+  for (let i = 0; i < N; i++){
+    const vx = VX[i], vy = VY[i], s = Math.sqrt(vx * vx + vy * vy);
+    if (X[i] !== X[i] || Y[i] !== Y[i] || s !== s){ delBall(i); i--; continue; }   // 万一の壊れた値は捨てる
+    if (!(s > 1e-3)){
+      if (RD.still && N === 1) continue;
+      const a = rnd() * 6.2832; VX[i] = Math.cos(a) * vt * .5; VY[i] = Math.sin(a) * vt * .5; continue;
+    }
+    let ns = s + (vt - s) * kk; if (ns > vmax) ns = vmax;
+    const f = ns / s; VX[i] = vx * f; VY[i] = vy * f;
+  }
+  return fill;
+}
+
+/* ── 進み方（段取り） ──────────────────────────── */
+function roundUpdate(dt){
+  RD.t += dt;
+  const ph = RD.phase;
+  RD.mAlpha = ph === "clear" ? Math.max(0, RD.mAlpha - dt / .6) : Math.min(1, RD.mAlpha + dt / .5);
+  if (ph === "intro"){
+    if (RD.t > .75){
+      const p = mech.start();
+      addBall(p[0], p[1], 0, 0, RD.pal[0], 0);
+      RD.phase = "grow"; RD.growT = RD.t; RD.lastCrush = T;
+      AU.sfx("pop");
+    }
+  } else if (ph === "grow"){
+    if (N >= (RD.gold ? RD.target : RD.target * .995)){
+      if (RD.gold) startGold();
+      else { RD.phase = "full"; RD.fullT = RD.t; RD.convLeft = 3 + ((rnd() * 3) | 0); }
+    } else if (RD.t - RD.growT > 150 || (N < 6 && T - RD.lastCrush > 14)){
+      if (RD.gold && N > 300) startGold(); else startWarn();
+    }
+  } else if (ph === "full"){
+    if (RD.convLeft <= 0 || RD.t - RD.fullT > 14) startWarn();
+  } else if (ph === "warn"){
+    const e = (RD.t - RD.warnT) / 1.8;
+    cam.shake = Math.max(cam.shake, 1 + 5 * e * e);
+    if (e >= 1) startBurst();
+  } else if (ph === "burst"){
+    const e = RD.t - RD.burstT;
+    cam.zoom = 1 + .32 * EZ.outC(Math.min(1, e / 1.3));
+    if (e > .7) wipeOffscreen();
+    if (N === 0 || e > 4.5) startClear();
+  } else if (ph === "gold"){
+    const e = RD.t - RD.goldT, wr = EZ.outC(Math.min(1, e / 1.1)) * (R + 30), wr2 = wr * wr;
+    for (let i = 0; i < N; i++) if (COL[i] !== GOLD && X[i] * X[i] + Y[i] * Y[i] < wr2){ COL[i] = GOLD; FL[i] = T; }
+    if (e > 1 && Math.random() < .5) fxTwinkle();
+    if (e > 3.2) RD.fade = Math.max(0, 1 - (e - 3.2) / 1.1);
+    if (RD.fade <= 0) startClear();
+  } else if (ph === "clear"){
+    cam.zoom += (1 - cam.zoom) * Math.min(1, dt * 4);
+    if (RD.t - RD.clearT > .75) newRound();
+  }
+}
+function startWarn(){
+  RD.phase = "warn"; RD.warnT = RD.t;
+  RD.beads = []; for (let i = 0; i < 56; i++) RD.beads.push({ a: i / 56 * Math.PI * 2, t: RD.t + rnd() * 1.5 });
+  AU.crackle(1.8);
+}
+function startBurst(){
+  RD.phase = "burst"; RD.burstT = RD.t; wallOn = false;
+  for (let i = 0; i < N; i++){
+    const x = X[i], y = Y[i], d = Math.hypot(x, y);
+    let nx, ny;
+    if (d < 1){ const a = rnd() * 6.2832; nx = Math.cos(a); ny = Math.sin(a); } else { nx = x / d; ny = y / d; }
+    const sp = 320 + 760 * (d / R) + rnd() * 160;
+    VX[i] = VX[i] * .3 + nx * sp; VY[i] = VY[i] * .3 + ny * sp;
+  }
+  RD.frags = [];
+  for (let i = 0; i < 20; i++){
+    const a0 = i / 20 * Math.PI * 2, a1 = (i + 1) / 20 * Math.PI * 2, am = (a0 + a1) / 2, sp = rr(260, 520);
+    RD.frags.push({ a0: a0 - am, a1: a1 - am, x: Math.cos(am) * R, y: Math.sin(am) * R, vx: Math.cos(am) * sp, vy: Math.sin(am) * sp,
+                    rot: am, vr: rr(-1.5, 1.5) });
+  }
+  cam.shake = 12;
+  AU.sfx("boom");
+}
+function startGold(){
+  RD.phase = "gold"; RD.goldT = RD.t;
+  AU.chime();
+}
+function startClear(){ RD.phase = "clear"; RD.clearT = RD.t; }
+/* 割れたあと: 外向きの風で、残った玉も外へ運ぶ */
+function blowOut(dt){
+  const a = 900 * dt;
+  for (let i = 0; i < N; i++){
+    const x = X[i], y = Y[i], d = Math.hypot(x, y) || 1;
+    VX[i] += x / d * a; VY[i] += y / d * a;
+  }
+}
+function wipeOffscreen(){
+  const s = VIEW.s * (CALM ? 1 : cam.zoom), m = rad * 3;
+  const l = -VIEW.cx / s - m, r = (CW - VIEW.cx) / s + m, t = -VIEW.cy / s - m, b = (CH - VIEW.cy) / s + m;
+  for (let i = N - 1; i >= 0; i--){ const x = X[i], y = Y[i]; if (x < l || x > r || y < t || y > b) delBall(i); }
+}
+
+/* ── 進める（描かない） ───────────────────────────── */
+let simAcc = 0, lastFill = 0;
+function advance(dt){
+  simAcc += dt;
+  let n = 0;
+  while (simAcc >= HS && n < 14){ substep(HS); simAcc -= HS; n++; }
+  if (n >= 14) simAcc = 0;
+  const ph = RD.phase;
+  if (ph !== "burst" && ph !== "clear") lastFill = governor(dt);
+  else blowOut(dt);
+  roundUpdate(dt);
+  fxUpdate(dt);
+}
+
+/* ── 演出 ──────────────────────────────────────── */
+const FX = [];
+const cam = { zoom: 1, shake: 0, sx: 0, sy: 0 };
+const CALM = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);   // 動きを控えめにする設定なら、画面を揺らさない
+function fxRing(x, y, col){ FX.push({ k: 0, x, y, col, t0: T, life: .38 }); }
+function fxTwinkle(){
+  if (!N) return;
+  const i = (Math.random() * N) | 0;
+  FX.push({ k: 1, x: X[i], y: Y[i], col: GOLD, t0: T, life: .6 });
+}
+function fxUpdate(dt){
+  for (let i = FX.length - 1; i >= 0; i--) if (T - FX[i].t0 > FX[i].life) FX.splice(i, 1);
+  if (RD.frags) for (const f of RD.frags){ f.x += f.vx * dt; f.y += f.vy * dt; f.rot += f.vr * dt; }
+  cam.shake *= Math.exp(-dt / .12);
+}
+
+/* ── 画面 ──────────────────────────────────────── */
+const cv = $("#cv"), ctx = cv.getContext("2d");
+const bg = $("#bg"), bctx = bg.getContext("2d");
+const under = $("#under"), uctx = under.getContext("2d");
+const glc = $("#gl");
+const countEl = $("#count"), labelEl = $("#label");
+let DPR = 1, CW = 0, CH = 0;
+const VIEW = { s: 1, cx: 0, cy: 0 };
+function layout(){
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  const w = innerWidth, h = innerHeight;
+  CW = Math.max(1, Math.round(w * DPR)); CH = Math.max(1, Math.round(h * DPR));
+  cv.width = bg.width = under.width = glc.width = CW; cv.height = bg.height = under.height = glc.height = CH;
+  const top = SET.count ? Math.max(64, h * .12) : 18;
+  const avail = h - top - 18;
+  const diam = Math.max(60, Math.min(w - 32, avail) * .97);
+  VIEW.s = diam / 2 * DPR / R; VIEW.cx = w / 2 * DPR; VIEW.cy = (top + avail / 2) * DPR;
+  const fs = clamp(top * .5, 28, 74);
+  countEl.style.fontSize = fs + "px";
+  countEl.style.top = Math.max(8, (top - fs) / 2 - 2) + "px";
+  labelEl.style.top = Math.max(8, (top - fs) / 2 - 2) + fs + 8 + "px";
+  $("#hint").style.top = Math.max(8, (top - fs) / 2 - 2) + fs + 28 + "px";
+  countEl.classList.toggle("off", !SET.count);
+  if (RD){ buildSprites(); drawBg(); }
+}
+function hexRgb(h){ const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+function mix(h1, h2, t){ const a = hexRgb(h1), b = hexRgb(h2); return `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(",")})`; }
+function rgba(h, a){ const c = hexRgb(h); return `rgba(${c[0]},${c[1]},${c[2]},${a})`; }
+function drawBg(){
+  const g = bctx, w = CW, h = CH, M = Math.max(w, h);
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  const rg = g.createRadialGradient(VIEW.cx, VIEW.cy, 0, VIEW.cx, VIEW.cy, M * .75);
+  rg.addColorStop(0, "#0d1020"); rg.addColorStop(1, "#030308");
+  g.fillStyle = rg; g.fillRect(0, 0, w, h);
+  for (let i = 0; i < 8; i++){
+    const x = Math.random() * w, y = Math.random() * h, r = (.1 + Math.random() * .2) * M;
+    const col = PAL[(Math.random() * PAL.length) | 0];
+    const gg = g.createRadialGradient(x, y, 0, x, y, r);
+    gg.addColorStop(0, rgba(col, .075)); gg.addColorStop(1, rgba(col, 0));
+    g.fillStyle = gg; g.fillRect(x - r, y - r, 2 * r, 2 * r);
+  }
+}
+const SPR = { img: [], white: null, size: 4, rp: 1 };
+function buildSprites(){
+  const rp = rad * VIEW.s, size = Math.max(4, Math.ceil(rp * 2 + 2));
+  SPR.size = size; SPR.rp = rp;
+  SPR.img = PALX.map(c => ballSprite(c, size, rp, false));
+  SPR.white = ballSprite("#ffffff", size, rp, true);
+}
+function ballSprite(hex, size, rp, flat){
+  const cnv = document.createElement("canvas"); cnv.width = cnv.height = size;
+  const g = cnv.getContext("2d"), m = size / 2;
+  if (flat || rp < 2.2){ g.fillStyle = hex; g.beginPath(); g.arc(m, m, Math.max(.8, rp), 0, Math.PI * 2); g.fill(); return cnv; }
+  const grd = g.createRadialGradient(m - rp * .38, m - rp * .42, rp * .06, m, m, rp);
+  grd.addColorStop(0, mix(hex, "#ffffff", .62)); grd.addColorStop(.36, hex);
+  grd.addColorStop(.86, mix(hex, "#000000", .22)); grd.addColorStop(1, mix(hex, "#000000", .5));
+  g.fillStyle = grd; g.beginPath(); g.arc(m, m, rp, 0, Math.PI * 2); g.fill();
+  if (rp > 4){ g.fillStyle = "rgba(255,255,255,.5)"; g.beginPath(); g.ellipse(m - rp * .34, m - rp * .4, rp * .27, rp * .16, -.6, 0, Math.PI * 2); g.fill(); }
+  return cnv;
+}
+
+/* 玉は WebGL でまとめて描く（使えないときは下の drawBalls で 1 個ずつ描く） */
+const GLR = {
+  gl: null, ok: false, maxPt: 0, data: new Float32Array(MAXN * 5), loc: {},
+  init(){
+    let gl = null;
+    try { gl = glc.getContext("webgl", { alpha: true, premultipliedAlpha: true, antialias: false, depth: false, stencil: false }); } catch (e){}
+    if (!gl) return;
+    const vs = `
+      attribute vec2 aPos; attribute float aSize; attribute float aCol; attribute float aFlash;
+      uniform vec2 uRes; uniform vec3 uPal[${PALX.length}];
+      varying vec3 vCol; varying float vFlash; varying float vSize;
+      void main(){
+        vec2 p = aPos / uRes * 2.0 - 1.0;
+        gl_Position = vec4(p.x, -p.y, 0.0, 1.0);
+        gl_PointSize = aSize; vSize = aSize; vFlash = aFlash;
+        vCol = uPal[int(aCol + 0.5)];
+      }`;
+    const fs = `
+      precision mediump float;
+      varying vec3 vCol; varying float vFlash; varying float vSize;
+      uniform float uAlpha;
+      void main(){
+        vec2 p = gl_PointCoord * 2.0 - 1.0;
+        float d = length(p);
+        float aa = 2.0 / max(vSize, 1.0);
+        float edge = 1.0 - smoothstep(1.0 - aa * 1.5, 1.0, d);
+        if (edge <= 0.0) discard;
+        float t = clamp(length(p - vec2(-0.38, -0.42)) / 1.42, 0.0, 1.0);
+        vec3 lit = mix(vCol, vec3(1.0), 0.62), c;
+        if (t < 0.26) c = mix(lit, vCol, t / 0.26);
+        else if (t < 0.62) c = mix(vCol, vCol * 0.78, (t - 0.26) / 0.36);
+        else c = mix(vCol * 0.78, vCol * 0.5, (t - 0.62) / 0.38);
+        if (vSize > 8.0){
+          vec2 q = p - vec2(-0.34, -0.40);
+          vec2 e = vec2(q.x * 0.8253 - q.y * 0.5646, q.x * 0.5646 + q.y * 0.8253) / vec2(0.27, 0.16);
+          c = mix(c, vec3(1.0), 0.5 * (1.0 - smoothstep(0.75, 1.0, length(e))));
+        }
+        c = mix(c, vec3(1.0), vFlash);
+        float a = edge * uAlpha;
+        gl_FragColor = vec4(c * a, a);
+      }`;
+    const sh = (type, src) => { const o = gl.createShader(type); gl.shaderSource(o, src); gl.compileShader(o); if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(o)); return o; };
+    try {
+      const pr = gl.createProgram();
+      gl.attachShader(pr, sh(gl.VERTEX_SHADER, vs)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, fs));
+      gl.linkProgram(pr);
+      if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(pr));
+      gl.useProgram(pr);
+      for (const a of ["aPos", "aSize", "aCol", "aFlash"]) this.loc[a] = gl.getAttribLocation(pr, a);
+      for (const u of ["uRes", "uPal", "uAlpha"]) this.loc[u] = gl.getUniformLocation(pr, u);
+      const pal = new Float32Array(PALX.length * 3);
+      PALX.forEach((h, i) => { const c = hexRgb(h); pal[i * 3] = c[0] / 255; pal[i * 3 + 1] = c[1] / 255; pal[i * 3 + 2] = c[2] / 255; });
+      gl.uniform3fv(this.loc.uPal, pal);
+      this.buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, this.buf);
+      gl.bufferData(gl.ARRAY_BUFFER, this.data.byteLength, gl.DYNAMIC_DRAW);
+      const L = this.loc, st = 20;
+      gl.enableVertexAttribArray(L.aPos); gl.vertexAttribPointer(L.aPos, 2, gl.FLOAT, false, st, 0);
+      gl.enableVertexAttribArray(L.aSize); gl.vertexAttribPointer(L.aSize, 1, gl.FLOAT, false, st, 8);
+      gl.enableVertexAttribArray(L.aCol); gl.vertexAttribPointer(L.aCol, 1, gl.FLOAT, false, st, 12);
+      gl.enableVertexAttribArray(L.aFlash); gl.vertexAttribPointer(L.aFlash, 1, gl.FLOAT, false, st, 16);
+      gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+      this.maxPt = gl.getParameter(gl.ALIASED_POINT_SIZE_RANGE)[1] || 0;
+      this.gl = gl; this.ok = this.maxPt >= 16;
+    } catch (e){ console.warn("WebGL を使わずに描きます:", e); this.ok = false; }
+    glc.addEventListener("webglcontextlost", e => { e.preventDefault(); this.ok = false; });
+  },
+  clear(){ if (this.gl && !this.gl.isContextLost()){ this.gl.clearColor(0, 0, 0, 0); this.gl.clear(this.gl.COLOR_BUFFER_BIT); } },
+  draw(s, ox, oy, alpha){
+    const gl = this.gl, d = this.data, base = 2 * rad * s + 1.5;
+    if (!this.ok || base > this.maxPt || gl.isContextLost()) return false;
+    const l = -base, r = CW + base, t = -base, b = CH + base;
+    let n = 0;
+    for (let i = 0; i < N; i++){
+      const x = ox + X[i] * s, y = oy + Y[i] * s;
+      if (x < l || x > r || y < t || y > b) continue;
+      const age = T - BORN[i], fe = T - FL[i], o = n * 5;
+      d[o] = x; d[o + 1] = y; d[o + 2] = age < .2 ? base * Math.max(.05, EZ.outBack(age / .2)) : base;
+      d[o + 3] = COL[i]; d[o + 4] = fe < .32 ? .85 * (1 - fe / .32) : 0;
+      n++;
+    }
+    gl.viewport(0, 0, CW, CH); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+    if (n){
+      gl.uniform2f(this.loc.uRes, CW, CH); gl.uniform1f(this.loc.uAlpha, alpha);
+      gl.bufferSubData(gl.ARRAY_BUFFER, 0, d.subarray(0, n * 5));
+      gl.drawArrays(gl.POINTS, 0, n);
+    }
+    return true;
+  },
+};
+
+const ORD = new Int32Array(MAXN), CCNT = new Int32Array(PALX.length + 1);
+function drawBalls(s, ox, oy, alpha){
+  const c = ctx, size = SPR.size * (s / VIEW.s), half = size / 2;
+  const l = -size, r = CW + size, t = -size, b = CH + size;
+  CCNT.fill(0);
+  for (let i = 0; i < N; i++) CCNT[COL[i] + 1]++;
+  for (let k = 0; k < PALX.length; k++) CCNT[k + 1] += CCNT[k];
+  for (let i = 0; i < N; i++) ORD[CCNT[COL[i]]++] = i;
+  c.globalAlpha = alpha;
+  let q = 0;
+  for (let k = 0; k < PALX.length; k++){
+    const img = SPR.img[k], end = CCNT[k];
+    for (; q < end; q++){
+      const i = ORD[q], x = ox + X[i] * s, y = oy + Y[i] * s;
+      if (x < l || x > r || y < t || y > b) continue;
+      const age = T - BORN[i];
+      if (age < .2){ const z = size * Math.max(.05, EZ.outBack(age / .2)); c.drawImage(img, x - z / 2, y - z / 2, z, z); }
+      else c.drawImage(img, x - half, y - half, size, size);
+    }
+  }
+  for (let i = 0; i < N; i++){
+    const e = T - FL[i];
+    if (e < .32){ c.globalAlpha = alpha * .85 * (1 - e / .32); c.drawImage(SPR.white, ox + X[i] * s - half, oy + Y[i] * s - half, size, size); }
+  }
+  c.globalAlpha = 1;
+}
+function drawContainer(c, s){
+  const ph = RD.phase, lw = 2.2 * DPR / s;
+  if (ph === "burst" || ph === "clear"){
+    if (!RD.frags) return;
+    const e = RD.t - RD.burstT, a = Math.max(0, 1 - e / 1.4);
+    if (a <= 0) return;
+    c.strokeStyle = `rgba(255,255,255,${.85 * a})`; c.lineWidth = lw;
+    for (const f of RD.frags){
+      c.save(); c.translate(f.x, f.y); c.rotate(f.rot);
+      c.beginPath(); c.arc(-R, 0, R, f.a0, f.a1); c.stroke();
+      c.restore();
+    }
+    return;
+  }
+  let a0 = -Math.PI / 2, sweep = Math.PI * 2;
+  if (ph === "intro") sweep *= EZ.outC(Math.min(1, RD.t / .6));
+  let alpha = .85 * RD.fade;
+  if (ph === "warn") alpha *= .55 + .45 * Math.random();
+  c.strokeStyle = `rgba(255,255,255,${alpha})`; c.lineWidth = lw;
+  c.beginPath(); c.arc(0, 0, R, a0, a0 + sweep); c.stroke();
+  if (ph === "warn" && RD.beads){
+    for (const b of RD.beads){
+      const e = RD.t - b.t; if (e < 0) continue;
+      const k = Math.min(1, e / .15), rr2 = (5 + 3 * Math.sin(e * 18)) * k * DPR / s * 1.6;
+      c.beginPath(); c.arc(Math.cos(b.a) * R, Math.sin(b.a) * R, Math.max(rr2, lw), 0, Math.PI * 2);
+      c.fillStyle = "rgba(255,255,255,.95)"; c.fill();
+    }
+  }
+}
+function drawFx(c){
+  for (const f of FX){
+    const e = (T - f.t0) / f.life;
+    if (f.k === 0){
+      c.strokeStyle = rgba(PALX[f.col], .9 * (1 - e)); c.lineWidth = rad * .45 * (1 - e) + .5;
+      c.beginPath(); c.arc(f.x, f.y, rad * (1.2 + 3.2 * EZ.outC(e)), 0, Math.PI * 2); c.stroke();
+    } else {
+      const r = rad * 2.6 * Math.sin(Math.PI * e);
+      c.strokeStyle = `rgba(255,240,200,${.9 * (1 - e)})`; c.lineWidth = rad * .25;
+      c.beginPath(); c.moveTo(f.x - r, f.y); c.lineTo(f.x + r, f.y); c.moveTo(f.x, f.y - r); c.lineTo(f.x, f.y + r); c.stroke();
+    }
+  }
+}
+let shownN = -1, bumpAt = 0;
+const NF = new Intl.NumberFormat("en-US");
+function render(){
+  const c = ctx;
+  c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, CW, CH);
+  uctx.setTransform(1, 0, 0, 1, 0, 0); uctx.clearRect(0, 0, CW, CH);
+  if (!RD) return;
+  const shake = CALM ? 0 : cam.shake, zoom = CALM ? 1 : cam.zoom;
+  cam.sx = (Math.random() - .5) * 2 * shake * DPR; cam.sy = (Math.random() - .5) * 2 * shake * DPR;
+  const s = VIEW.s * zoom, ox = VIEW.cx + cam.sx, oy = VIEW.cy + cam.sy;
+  const fade = RD.phase === "clear" ? Math.min(RD.fade, RD.mAlpha) : RD.fade;
+  uctx.setTransform(s, 0, 0, s, ox, oy);
+  uctx.globalAlpha = RD.mAlpha * fade; mech.drawBack(uctx); uctx.globalAlpha = 1;
+  if (!GLR.draw(s, ox, oy, fade)){ GLR.clear(); drawBalls(s, ox, oy, fade); }
+  c.setTransform(s, 0, 0, s, ox, oy);
+  drawContainer(c, s);
+  c.globalAlpha = RD.mAlpha * fade; mech.draw(c); c.globalAlpha = fade;
+  drawFx(c);
+  c.globalAlpha = 1;
+  // 玉の数
+  if (N !== shownN && RD.phase !== "clear"){   // 消えていく間は数字を止めておく
+    if (N > shownN && shownN > 0) bumpAt = performance.now();
+    shownN = N; countEl.textContent = NF.format(N);
+  }
+  const b = Math.exp(-(performance.now() - bumpAt) / 110);
+  countEl.style.transform = b > .01 ? `scale(${1 + .1 * b})` : "";
+  countEl.classList.toggle("gold", RD.phase === "gold" || (RD.phase === "clear" && RD.gold && RD.fade < 1));
+  countEl.style.opacity = RD.phase === "clear" || RD.phase === "intro" ? ".35" : "1";
+}
+
+/* ── 音（その場で作る。ファイルは使わない） ─────────── */
+const AU = {
+  ctx: null, master: null, B: {}, voices: 0, hum: null, ready: false,
+  init(){
+    if (this.ctx) return;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    try { this.ctx = new AC(); } catch (e){ return; }
+    const c = this.ctx;
+    const comp = c.createDynamicsCompressor();
+    comp.threshold.value = -16; comp.knee.value = 12; comp.ratio.value = 5; comp.attack.value = .003; comp.release.value = .2;
+    this.master = c.createGain(); this.master.connect(comp); comp.connect(c.destination);
+    try { this.synth(); } catch (e){ console.error(e); return; }
+    const src = c.createBufferSource(); src.buffer = this.B.hum; src.loop = true;
+    const lp = c.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 420;
+    this.hum = c.createGain(); this.hum.gain.value = 0;
+    src.connect(lp); lp.connect(this.hum); this.hum.connect(this.master); src.start();
+    this.ready = true; this.setVol();
+    c.onstatechange = () => showHint();
+  },
+  running(){ return this.ready && this.ctx.state === "running" && !SET.mute && SET.vol > 0; },
+  resume(){ this.init(); if (this.ctx && this.ctx.state !== "running") this.ctx.resume().then(showHint, () => {}); },
+  setVol(){ if (this.master){ const v = SET.mute ? 0 : (SET.vol / 100) ** 2; this.master.gain.setTargetAtTime(v, this.ctx.currentTime, .03); } },
+  play(buf, gain, rate, pan, when){
+    if (this.voices > 44 || !buf) return;
+    const c = this.ctx, src = c.createBufferSource(), g = c.createGain();
+    src.buffer = buf; src.playbackRate.value = rate || 1; g.gain.value = gain;
+    src.connect(g);
+    if (pan && c.createStereoPanner){ const p = c.createStereoPanner(); p.pan.value = clamp(pan, -1, 1); g.connect(p); p.connect(this.master); }
+    else g.connect(this.master);
+    this.voices++; src.onended = () => { this.voices--; };
+    src.start(when || 0);
+  },
+  any(a){ return a[(Math.random() * a.length) | 0]; },
+  sfx(name){
+    if (!this.running()) return;
+    const B = this.B, now = this.ctx.currentTime, j = () => .94 + Math.random() * .12;
+    if (name === "press"){ this.play(B.clank, .95, .92 * j()); }
+    else if (name === "cross"){ this.play(B.clank, .72, 1.18 * j()); this.play(B.clack, .4, 1); }
+    else if (name === "box"){ this.play(B.clank, .66, 1.32 * j()); this.play(B.clack, .45, .9); }
+    else if (name === "loops"){ this.play(B.snip, .8, j()); }
+    else if (name === "lock"){ this.play(B.clack, .3, 1.05 * j(), 0, now); }
+    else if (name === "pop"){ this.play(this.any(B.pop), .5, j()); }
+    else if (name === "boom"){ this.play(B.boom, 1, 1); }
+  },
+  pops(m){
+    if (!this.running()) return;
+    const n = Math.min(6, m), now = this.ctx.currentTime;
+    for (let q = 0; q < n; q++) this.play(this.any(this.B.pop), .42 / (1 + q * .35), .9 + Math.random() * .35, (Math.random() - .5) * .8, now + q * (.012 + Math.random() * .025));
+  },
+  crackle(sec){
+    if (!this.running()) return;
+    const now = this.ctx.currentTime;
+    for (let q = 0; q < 34; q++){ const t = sec * Math.sqrt(q / 34); this.play(this.any(this.B.tick), .12 + .25 * (t / sec), 1.6 + Math.random() * .8, (Math.random() - .5) * 1.4, now + t); }
+  },
+  chime(){
+    if (!this.running()) return;
+    const now = this.ctx.currentTime;
+    [1, 1.25, 1.5, 2, 2.5].forEach((r, q) => this.play(this.B.bell, .32, r * .5, (q - 2) * .25, now + q * .09));
+  },
+  frame(fill, motion){
+    if (!this.ready) return;
+    const on = this.running();
+    this.hum.gain.setTargetAtTime(on ? Math.min(.16, motion * .16) : 0, this.ctx.currentTime, .05);
+    if (!on) return;
+    const quiet = 1 - .65 * smooth(.25, .7, fill);
+    if (hitN && Math.random() < Math.min(.85, .15 + hitN / 40)){
+      this.play(this.any(this.B.tick), .26 * quiet * Math.min(1, hitV / (V0 * 1.4)) + .02, .8 + Math.random() * .5, hitX / R * .7);
+    }
+    if (clinkN && Math.random() < Math.min(.6, .12 + clinkN / 30)){
+      this.play(this.any(this.B.tick), .2 * quiet * Math.min(1, clinkV / (V0 * 1.4)) + .02, 1.35 + Math.random() * .4, clinkX / R * .7);
+    }
+  },
+  synth(){
+    const c = this.ctx, sr = c.sampleRate, TAU = Math.PI * 2, rn = Math.random;
+    const mk = (sec, fn, peak) => {
+      const n = Math.max(1, Math.floor(sec * sr)), b = c.createBuffer(1, n, sr), d = b.getChannelData(0);
+      fn(d, n); let m = 0; for (let i = 0; i < n; i++) m = Math.max(m, Math.abs(d[i]));
+      if (m > 0){ const g = (peak || .9) / m; for (let i = 0; i < n; i++) d[i] *= g; }
+      const f = Math.min(n, Math.floor(sr * .004)); for (let i = 0; i < f; i++) d[n - 1 - i] *= i / f;
+      return b;
+    };
+    // コツッ（玉どうし）
+    this.B.tick = [0, 1, 2, 3, 4, 5].map(() => mk(.07, (d, n) => {
+      const f1 = 850 + rn() * 900, f2 = f1 * (2.2 + rn() * .6); let lp = 0;
+      for (let i = 0; i < n; i++){
+        const t = i / sr; let v = Math.sin(TAU * f1 * t) * Math.exp(-t / .011) * .8 + Math.sin(TAU * f2 * t) * Math.exp(-t / .005) * .35;
+        if (t < .0025){ lp += ((rn() * 2 - 1) * (1 - t / .0025) - lp) * .5; v += lp * .5; }
+        d[i] = v;
+      }
+    }, .8));
+    // ポン（分かれる）
+    this.B.pop = [0, 1, 2].map(() => mk(.14, (d, n) => {
+      const f0 = 240 + rn() * 90, f1 = f0 * (2.6 + rn() * .7); let ph = 0;
+      for (let i = 0; i < n; i++){
+        const t = i / sr, f = f0 + (f1 - f0) * (1 - Math.exp(-t / .02)); ph += TAU * f / sr;
+        d[i] = Math.sin(ph) * Math.min(1, t / .002) * Math.exp(-t / .03);
+      }
+    }));
+    // ガシャン（閉じる）
+    this.B.clank = mk(1.1, (d, n) => {
+      const P = [[390, .34, .5], [1040, .22, .34], [1730, .16, .26], [2620, .11, .18], [3510, .08, .12], [4890, .05, .08]];
+      let lp = 0, ph = 0;
+      for (let i = 0; i < n; i++){
+        const t = i / sr; let v = 0;
+        const ft = 42 + 80 * Math.exp(-t / .035); ph += TAU * ft / sr; v += Math.sin(ph) * Math.exp(-t / .17);
+        for (const p of P) v += Math.sin(TAU * p[0] * t + p[0]) * Math.exp(-t / p[1]) * p[2];
+        lp += ((rn() * 2 - 1) - lp) * .25; v += lp * Math.exp(-t / .02) * .9;
+        d[i] = v * Math.min(1, t / .001);
+      }
+    });
+    // カチッ（箱が閉じる）
+    this.B.clack = mk(.13, (d, n) => {
+      let hp = 0, prev = 0;
+      for (let i = 0; i < n; i++){
+        const t = i / sr, w = rn() * 2 - 1; hp = .9 * (hp + w - prev); prev = w;
+        d[i] = hp * Math.exp(-t / .006) * .8 + Math.sin(TAU * 2150 * t) * Math.exp(-t / .018) * .5 + Math.sin(TAU * 3320 * t) * Math.exp(-t / .012) * .35;
+      }
+    });
+    // シャキン（8 の字）
+    this.B.snip = mk(.65, (d, n) => {
+      const P = [[2280, .16, .4], [3460, .12, .32], [5120, .09, .22], [1210, .2, .25]]; let ph = 0;
+      for (let i = 0; i < n; i++){
+        const t = i / sr; let v = 0;
+        for (const p of P) v += Math.sin(TAU * p[0] * t) * Math.exp(-t / p[1]) * p[2];
+        v += (rn() * 2 - 1) * Math.exp(-t / .012) * .5;
+        const ft = 70 + 60 * Math.exp(-t / .03); ph += TAU * ft / sr; v += Math.sin(ph) * Math.exp(-t / .09) * .6;
+        d[i] = v;
+      }
+    });
+    // ドーン（割れる）
+    this.B.boom = mk(2.3, (d, n) => {
+      let ph = 0, lp = 0;
+      for (let i = 0; i < n; i++){
+        const t = i / sr, f = 28 + 40 * Math.exp(-t / .25); ph += TAU * f / sr;
+        let v = Math.sin(ph) * Math.exp(-t / .7);
+        lp += ((rn() * 2 - 1) - lp) * (.02 + .5 * Math.exp(-t / .35)); v += lp * Math.exp(-t / .9) * 1.2;
+        d[i] = v * Math.min(1, t / .004);
+      }
+    });
+    // キラン（金色）
+    this.B.bell = mk(2.2, (d, n) => {
+      const f = 1046.5, P = [[1, .9, 1], [2.76, .45, .5], [5.4, .25, .25], [8.93, .12, .12]];
+      for (let i = 0; i < n; i++){
+        const t = i / sr; let v = 0;
+        for (const p of P) v += Math.sin(TAU * f * p[0] * t) * Math.exp(-t / p[1]) * p[2];
+        d[i] = v * Math.min(1, t / .002);
+      }
+    }, .6);
+    // ウィーン（仕掛けが動く音。くり返し）
+    this.B.hum = mk(3, (d, n) => {
+      let b = 0, lp = 0;
+      for (let i = 0; i < n; i++){ const w = rn() * 2 - 1; b = (b + .02 * w) / 1.02; lp += (b - lp) * .08; d[i] = lp + Math.sin(TAU * 55 * i / sr) * .02; }
+      const f = Math.floor(sr * .2); for (let i = 0; i < f; i++){ d[i] *= i / f; }
+    }, .5);
+  },
+};
+function showHint(){
+  const h = $("#hint");
+  h.hidden = !(AU.ctx && AU.ctx.state !== "running" && !SET.mute && SET.vol > 0);
+}
+
+/* ── 名札（仕掛けの名前を少し出す） ─────────────────── */
+let labelTimer = 0;
+function showLabel(text, keep){
+  labelEl.textContent = text; labelEl.classList.add("show");
+  clearTimeout(labelTimer);
+  if (!keep) labelTimer = setTimeout(() => labelEl.classList.remove("show"), 2600);
+}
+
+/* ── 操作 ──────────────────────────────────────── */
+const ICON = {
+  pause: '<svg viewBox="0 0 24 24"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>',
+  play: '<svg viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z"/></svg>',
+  snd: '<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4zM16 8.5a5 5 0 010 7l-1.4-1.4a3 3 0 000-4.2zM18.5 6a8.5 8.5 0 010 12l-1.4-1.4a6.5 6.5 0 000-9.2z"/></svg>',
+  mute: '<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4zM16 9.4l1.4-1.4 2.1 2.1 2.1-2.1L23 9.4 20.9 11.5 23 13.6l-1.4 1.4-2.1-2.1-2.1 2.1-1.4-1.4 2.1-2.1z"/></svg>',
+};
+let paused = Q.get("pause") === "1";   // ?pause=1 で止めた状態から始める（録画用）
+function syncUI(){
+  $("#bPlay").innerHTML = paused ? ICON.play : ICON.pause;
+  $("#bMute").innerHTML = SET.mute ? ICON.mute : ICON.snd;
+  $("#bMute").classList.toggle("on", SET.mute);
+  $("#sMech").value = MECHS[SET.mech] ? SET.mech : "auto";
+  $("#sSize").value = SIZES[SET.size] ? SET.size : "auto";
+  $("#sSplit").value = [2, 3, 4].includes(+SET.split) ? String(SET.split) : "auto";
+  $("#sSpeed").value = String(SET.speed);
+  $("#cCount").checked = !!SET.count;
+  $("#vol").value = SET.vol; $("#vol2").value = SET.vol;
+  $("#ver").textContent = "ふえる玉 v" + VERSION;
+}
+function togglePause(){ paused = !paused; syncUI(); if (paused) showLabel("一時停止中", true); else labelEl.classList.remove("show"); }
+function nextRound(){ paused = false; syncUI(); newRound(); }
+function toggleMute(){ SET.mute = !SET.mute; saveSet(); AU.resume(); AU.setVol(); syncUI(); showHint(); }
+function setVol(v){ SET.vol = clamp(Math.round(v), 0, 100); if (SET.vol > 0) SET.mute = false; saveSet(); AU.resume(); AU.setVol(); syncUI(); showHint(); }
+function setMech(m){ SET.mech = m; saveSet(); syncUI(); nextRound(); }
+function toggleFull(){
+  try {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen().catch(() => {});
+  } catch (e){}
+}
+$("#bPlay").onclick = togglePause;
+$("#bNext").onclick = nextRound;
+$("#bMute").onclick = toggleMute;
+$("#bFull").onclick = toggleFull;
+$("#bSet").onclick = () => { $("#panel").hidden = !$("#panel").hidden; $("#bSet").classList.toggle("on", !$("#panel").hidden); };
+$("#vol").oninput = e => setVol(+e.target.value);
+$("#vol2").oninput = e => setVol(+e.target.value);
+$("#sMech").onchange = e => { e.target.blur(); setMech(e.target.value); };
+$("#sSize").onchange = e => { e.target.blur(); SET.size = e.target.value; saveSet(); nextRound(); };
+$("#sSplit").onchange = e => { e.target.blur(); SET.split = e.target.value; saveSet(); nextRound(); };
+$("#sSpeed").onchange = e => { e.target.blur(); SET.speed = +e.target.value || 1; saveSet(); };
+$("#cCount").onchange = e => { SET.count = e.target.checked; saveSet(); layout(); };
+cv.addEventListener("dblclick", toggleFull);
+addEventListener("keydown", e => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const tag = e.target && e.target.tagName;
+  if (tag === "SELECT" || (tag === "INPUT" && e.target.type !== "range" && e.target.type !== "checkbox")) return;
+  const k = e.key;
+  if (k === " "){ togglePause(); e.preventDefault(); }
+  else if (k === "n" || k === "N" || k === "ArrowRight"){ nextRound(); }
+  else if (k === "f" || k === "F"){ toggleFull(); }
+  else if (k === "m" || k === "M"){ toggleMute(); }
+  else if (k === "ArrowUp"){ setVol(SET.vol + 10); e.preventDefault(); }
+  else if (k === "ArrowDown"){ setVol(SET.vol - 10); e.preventDefault(); }
+  else if (k === "0"){ setMech("auto"); }
+  else if (k >= "1" && k <= "4"){ setMech(["press", "cross", "loops", "box"][+k - 1]); }
+  else if (k === "c" || k === "C"){ SET.count = !SET.count; saveSet(); syncUI(); layout(); }
+  poke();
+});
+/* しばらく触らなければ、操作の帯とマウスの矢印を隠す */
+let idleTimer = 0, overBar = false;
+function poke(){
+  $("#bar").classList.remove("hide"); document.body.classList.remove("idle");
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    if (overBar || !$("#panel").hidden) return poke();
+    $("#bar").classList.add("hide"); document.body.classList.add("idle");
+  }, 2800);
+}
+for (const ev of ["pointermove", "pointerdown", "touchstart"]) addEventListener(ev, poke, { passive: true });
+for (const ev of ["pointerdown", "keydown", "touchend"]) addEventListener(ev, () => AU.resume(), { passive: true });
+$("#bar").addEventListener("pointerenter", () => { overBar = true; });
+$("#bar").addEventListener("pointerleave", () => { overBar = false; });
+cv.addEventListener("pointerdown", () => { if (!$("#panel").hidden){ $("#panel").hidden = true; $("#bSet").classList.remove("on"); } });
+
+/* ── くり返し ──────────────────────────────────── */
+let last = performance.now(), physAvg = 0, fps = 60, fpsN = 0, fpsT = last;
+function frame(now){
+  requestAnimationFrame(frame);
+  try {
+    let dt = (now - last) / 1000; last = now;
+    if (dt > .1) dt = .1;
+    if (dt < 0) dt = 0;
+    fpsN++; if (now - fpsT > 1000){ fps = fpsN * 1000 / (now - fpsT); fpsN = 0; fpsT = now; }
+    hitN = 0; hitV = 0; clinkN = 0; clinkV = 0;
+    if (!paused){
+      const t0 = performance.now();
+      advance(dt * SET.speed);
+      physAvg = physAvg * .95 + (performance.now() - t0) * .05;
+      if (physAvg > 11 && HS < 1 / 121) HS = 1 / 120;
+      else if (physAvg < 4.5 && HS > 1 / 179) HS = 1 / 180;
+      AU.frame(lastFill, paused ? 0 : mech.motion());
+    } else if (AU.ready) AU.frame(lastFill, 0);
+    render();
+  } catch (err){ console.error(err); }
+}
+
+/* 試験用（画面を描かずに速く進めるなど） */
+window.FT = {
+  version: VERSION,
+  state(){ return { N, phase: RD.phase, mech: RD.mk, size: RD.sz, k: RD.k, cap: RD.cap, target: RD.target, gold: RD.gold,
+                    t: +RD.t.toFixed(2), T: +T.toFixed(2), epoch: RD.epoch, crush: STAT.crush, rounds: STAT.rounds,
+                    fps: Math.round(fps), physMs: +physAvg.toFixed(2), hs: Math.round(1 / HS), rad, gl: GLR.ok,
+                    paused, mute: SET.mute, vol: SET.vol, setMech: SET.mech }; },
+  run(sec){ const n = Math.round(sec * 60); for (let i = 0; i < n; i++){ hitN = 0; clinkN = 0; advance(1 / 60); } return this.state(); },
+  next(){ newRound(); return this.state(); },
+  pause(v){ paused = !!v; syncUI(); },
+};
+
+layout();
+if (Q.get("gl") !== "0") GLR.init();
+newRound();
+syncUI();
+AU.init();
+showHint();
+poke();
+addEventListener("resize", layout);
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
