@@ -759,7 +759,8 @@ function hubDraw(c, r){
 }
 
 /* ── 減るもの（増える玉とケンカする） ───────────────────── */
-/* 食べる玉: 円の中をうろうろして、触れた玉を食べる。食べるほど大きく、食べないと小さくなる */
+/* 食べる玉: 円の中をうろうろして、触れた玉を食べる。食べるほど大きく、食べないと小さくなる。
+   1 秒に食べられる数には限りがあり、たくさん食べると遅くなる（混んでいるときは、口の中で順番待ち） */
 const EAT = { list: [] };
 function makeEaters(lv){
   EAT.list = [];
@@ -767,7 +768,7 @@ function makeEaters(lv){
   for (let j = 0; j < lv; j++){
     const a = rnd() * 6.2832 + j * 2.1;
     EAT.list.push({ x: Math.cos(a) * R * .62, y: Math.sin(a) * R * .62, head: a + Math.PI + rr(-.5, .5), turn: 0, turnT: 0,
-                    r0, r: 1, full: 0, born: T, col: 0, gulp: -9, out: 0 });
+                    r0, r: 1, full: 0, born: T, col: 0, gulp: -9, out: 0, rate: [0, 35, 60, 90][lv], bite: 0 });
   }
 }
 function eatersUpdate(dt){
@@ -788,13 +789,14 @@ function eatPass(h){
   for (const e of EAT.list){
     if (e.out) continue;
     const r = e.r, pr = r * 2.4, r2 = r * r, pr2 = pr * pr;
+    e.bite = Math.min(e.rate * .4, e.bite + e.rate * h / (1 + e.full / 150));   // 食べられる数（おなかがいっぱいだと遅くなる）
     const cx0 = Math.max(0, Math.floor((e.x - pr - G0) * GINV)), cx1 = Math.min(GW - 1, Math.floor((e.x + pr - G0) * GINV));
     const cy0 = Math.max(0, Math.floor((e.y - pr - G0) * GINV)), cy1 = Math.min(GH - 1, Math.floor((e.y + pr - G0) * GINV));
     for (let cy = cy0; cy <= cy1; cy++) for (let cx = cx0; cx <= cx1; cx++){
       const c = cy * GW + cx;
       for (let k = CST[c], end = CST[c + 1]; k < end; k++){
         const i = ITEM[k], dx = e.x - X[i], dy = e.y - Y[i], d2 = dx * dx + dy * dy;
-        if (d2 < r2){ if (!RM[i]){ RM[i] = 1; e.full++; e.gulp = T; e.col = COL[i]; } }
+        if (d2 < r2){ if (!RM[i] && e.bite >= 1){ RM[i] = 1; e.bite--; e.full++; e.gulp = T; e.col = COL[i]; } }
         else if (d2 < pr2){ const d = Math.sqrt(d2), a = 1100 * (1 - d / pr) * h; VX[i] += dx / d * a; VY[i] += dy / d * a; }   // 吸いこむ
       }
     }
@@ -1027,11 +1029,15 @@ function roundUpdate(dt){
   } else if (ph === "grow"){
     if (!RD.foeOn && RD.foe && N >= FOE_AT) activateFoe();
     if (N > RD.peak * 1.1){ RD.peak = N; RD.peakT = RD.t; }
-    if (N >= RD.target){ if (RD.gold) startGold(); else startWarn(); }
-    else if (N === 0){ RD.phase = "gone"; RD.goneT = RD.t; stopFoes(); showLabel("全滅"); AU.sfx("gone"); }
-    else if ((N < 6 && T - RD.lastCrush > 14) || RD.t - RD.peakT > 30 || RD.t - RD.growT > 240){
-      // 増えも減りもしなくなった回は、終わりにする
-      if (RD.gold && N > 300) startGold(); else startWarn();
+    if (N >= RD.target){
+      if (RD.foeOn) showLabel("増えるほうの勝ち！");
+      if (RD.gold) startGold(); else startWarn();
+    }
+    else if (N === 0) foeWins(RD.foeOn ? FOE_NAMES[RD.foe] + "の勝ち（全滅）" : "全滅");
+    else if ((N < 6 && T - RD.lastCrush > 14) || RD.t - RD.peakT > (RD.foeOn ? 22 : 30) || RD.t - RD.growT > 240){
+      // 増えも減りもしなくなった回は、終わりにする（減るものに押さえこまれていたら、減るものの勝ち）
+      if (RD.foeOn && N < RD.target * .05) foeWins(FOE_NAMES[RD.foe] + "の勝ち");
+      else if (RD.gold && N > 300) startGold(); else startWarn();
     }
   } else if (ph === "gone"){
     if (RD.t - RD.goneT > 1.8) startClear();
@@ -1080,6 +1086,7 @@ function startBurst(){
 }
 function startGold(){ RD.phase = "gold"; RD.goldT = RD.t; stopFoes(); AU.chime(); }
 function startClear(){ RD.phase = "clear"; RD.clearT = RD.t; }
+function foeWins(text){ RD.phase = "gone"; RD.goneT = RD.t; stopFoes(); showLabel(text); AU.sfx("gone"); }
 /* 割れたあと: 外向きの風で、残った玉も外へ運ぶ */
 function blowOut(dt){
   const a = 900 * dt;

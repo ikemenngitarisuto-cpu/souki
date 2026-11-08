@@ -89,13 +89,20 @@ async function oneRound(page, limit) {
   {
     const { page, errs } = await open(browser, 'seed=131&mech=yose&yn=4&size=m&foe=eater');
     const r = await page.evaluate(() => {
-      FT.run(6);
+      let s, t = 0;
+      while (t < 60){ s = FT.run(.25); t += .25; if (s.foeOn) break; }   // 食べる玉が出てくるまで
       for (let i = 0; i < N; i++) RM[i] = 1;    // 全部食べられたことにする
-      const seen = []; let s, t = 0;
-      while (t < 10){ s = FT.run(.1); t += .1; if (seen[seen.length - 1] !== s.phase) seen.push(s.phase); if (s.rounds > 1) break; }
-      return { seen, rounds: s.rounds };
+      const seen = []; let label = "";
+      t = 0;
+      while (t < 10){
+        s = FT.run(.1); t += .1;
+        if (seen[seen.length - 1] !== s.phase){ seen.push(s.phase); if (s.phase === 'gone') label = document.querySelector('#label').textContent; }
+        if (s.rounds > 1) break;
+      }
+      return { seen, rounds: s.rounds, label };
     });
     ok(r.seen.join(' → ').startsWith('gone → clear → intro') && r.rounds === 2, `全滅: ${r.seen.join(' → ')}`);
+    ok(r.label.includes('食べる玉の勝ち'), `全滅の名札: ${r.label}`);
     noErr(errs, '全滅');
     await page.close();
   }
