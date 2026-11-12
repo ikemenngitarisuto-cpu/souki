@@ -1,0 +1,2950 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>ふえる玉</title>
+<link rel="icon" href="data:image/png;base64,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">
+<style>
+/* いつも暗い画面（夜の実験室のような見た目。明るい設定でも同じ色） */
+:root{
+  --bg:#04050a; --fg:#f3f5ff; --muted:#9ba3bf; --panel:rgba(16,18,30,.92); --line:rgba(255,255,255,.14);
+  --btn:rgba(255,255,255,.07); --btn-hover:rgba(255,255,255,.16); --gold:#f6c445; --focus:#9fb4ff; --warn:#ff8f8f;
+  --sans:system-ui,-apple-system,"Segoe UI","Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;
+  color-scheme:dark;
+}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--fg)}
+body{font-family:var(--sans);-webkit-user-select:none;user-select:none;touch-action:manipulation}
+body.idle{cursor:none}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+#count{position:fixed;left:0;right:0;text-align:center;font-weight:800;letter-spacing:.01em;
+  font-variant-numeric:tabular-nums;pointer-events:none;line-height:1;
+  text-shadow:0 2px 20px rgba(0,0,0,.7);transform-origin:50% 60%;transition:color .4s}
+#count.gold{color:var(--gold);text-shadow:0 0 26px rgba(246,196,69,.45)}
+#count.off{display:none}
+#label,#fight{position:fixed;left:16px;right:16px;text-align:center;pointer-events:none;letter-spacing:.08em}
+#label{font-size:13px;color:var(--muted);opacity:0;transition:opacity .8s}
+#label.show{opacity:1}
+#fight{font-size:12px;color:var(--warn);opacity:0;transition:opacity .5s;font-variant-numeric:tabular-nums}
+#fight.show{opacity:.95}
+#hint{position:fixed;left:16px;right:16px;text-align:center;font-size:12px;color:var(--muted);pointer-events:none;
+  letter-spacing:.06em;transition:opacity .5s}
+#hint[hidden]{display:block;opacity:0}
+#bar{position:fixed;left:50%;bottom:max(16px,env(safe-area-inset-bottom));transform:translateX(-50%);
+  display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px;padding:7px 9px;
+  width:max-content;max-width:calc(100vw - 32px);box-sizing:border-box;background:var(--panel);border:1px solid var(--line);
+  border-radius:14px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  transition:opacity .35s,transform .35s}
+#bar.hide{opacity:0;pointer-events:none;transform:translateX(-50%) translateY(12px)}
+#bar button,#panel select,#bar select,.chips button{font:inherit;font-size:13px;color:var(--fg);background:var(--btn);
+  border:1px solid transparent;border-radius:9px;height:34px;cursor:pointer}
+#bar button{width:38px;display:grid;place-items:center;padding:0}
+#bar button:hover,#bar select:hover,#panel select:hover,.chips button:hover{background:var(--btn-hover)}
+#bar button.on,.chips button.on{border-color:rgba(255,255,255,.4);background:rgba(159,180,255,.18)}
+#bar select,#panel select{padding:0 8px}
+#bar select option,#panel select option{background:#151827;color:var(--fg)}
+#bar svg{width:18px;height:18px;fill:currentColor}
+#bar :focus-visible,#panel :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+#vol{width:84px;accent-color:var(--focus);cursor:pointer}
+#panel{position:fixed;left:50%;transform:translateX(-50%);bottom:76px;width:min(390px,calc(100vw - 32px));
+  max-height:calc(100% - 110px);overflow-y:auto;overscroll-behavior:contain;
+  box-sizing:border-box;padding:8px 14px 12px;background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);font-size:13px}
+#panel[hidden]{display:none}
+#panel h3{margin:13px 0 3px;font-size:11px;font-weight:600;letter-spacing:.16em;color:var(--muted)}
+#panel h3:first-child{margin-top:4px}
+#panel .row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:5px 0}
+#panel .row span{color:var(--fg)}
+#panel select{height:32px;max-width:215px}
+#panel input[type=checkbox]{width:18px;height:18px;accent-color:var(--focus)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 2px}
+.chips button{height:30px;padding:0 11px;border-radius:999px}
+#pinrow{margin:8px 0 2px;padding:7px 10px;border:1px solid var(--line);border-radius:10px;color:var(--muted);font-size:12px;line-height:1.5}
+#pinrow b{color:var(--fg);font-weight:600}
+.stats{color:var(--muted);font-size:12px;line-height:1.7;font-variant-numeric:tabular-nums}
+.stats b{color:var(--fg);font-weight:600}
+#panel .keys{margin-top:10px;display:grid;grid-template-columns:auto 1fr;gap:2px 10px;color:var(--muted);font-size:12px;line-height:1.6}
+#panel .keys b{color:var(--fg);font-weight:600;white-space:nowrap}
+#panel .row.vol{display:none}
+#vol2{width:150px;accent-color:var(--focus)}
+#panel .ver{margin-top:6px;color:var(--muted);font-size:11px;text-align:right}
+@media (max-width:560px){ #vol{display:none} #panel .row.vol{display:flex} }
+@media (max-width:440px){ #bar button{width:34px} #bar{gap:4px;padding:6px 7px} #bar select{max-width:96px;padding:0 4px} }
+@media (max-width:350px){ #bar button{width:30px} #bar select{max-width:80px} }
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+<canvas id="gl"></canvas>
+<canvas id="cv"></canvas>
+<div id="count">0</div>
+<div id="label"></div>
+<div id="fight"></div>
+<div id="hint" hidden>画面をクリックすると音が出ます</div>
+<div id="panel" hidden>
+  <h3>プリセット</h3>
+  <div id="presets" class="chips"></div>
+  <div id="pinrow"></div>
+  <div id="opts"></div>
+  <h3>表示と音</h3>
+  <div class="row vol"><span>音量</span><input id="vol2" type="range" min="0" max="100"></div>
+  <label class="row"><span>玉の数を出す</span><input type="checkbox" id="cCount"></label>
+  <h3>記録</h3>
+  <div id="stats" class="stats"></div>
+  <div class="keys">
+    <b>スペース</b><span>止める・動かす</span><b>N</b><span>次へ</span><b>F・ダブルクリック</b><span>全画面</span>
+    <b>P</b><span>今の組み合わせを固定・外す</span><b>M</b><span>音を消す・出す</span><b>↑ ↓</b><span>音量</span>
+    <b>1〜3 ・ 0</b><span>仕掛けを選ぶ・おまかせ</span>
+  </div>
+  <div class="ver" id="ver"></div>
+</div>
+<div id="bar">
+  <button id="bPlay" title="止める・動かす（スペース）"></button>
+  <button id="bNext" title="次へ（N）"><svg viewBox="0 0 24 24"><path d="M5 5l9 7-9 7zM16 5h3v14h-3z"/></svg></button>
+  <select id="sMech" title="仕掛け（0〜3）">
+    <option value="auto">おまかせ</option><option value="yose">寄せ刃</option>
+    <option value="loops">8 の字</option><option value="box">はさみ箱</option>
+  </select>
+  <button id="bPin" title="今の組み合わせを固定する・外す（P）"><svg viewBox="0 0 24 24"><path d="M14.5 3l6.5 6.5-2 .9-3.2 3.2.5 4.4-1.4 1.4-4-4L5 21l-1-1 5.6-5.9-4-4L7 8.7l4.4.5 3.2-3.2z"/></svg></button>
+  <button id="bMute" title="音を消す・出す（M）"></button>
+  <input id="vol" type="range" min="0" max="100" title="音量（↑↓）">
+  <button id="bSet" title="設定"><svg viewBox="0 0 24 24"><path d="M19.4 13a7.6 7.6 0 000-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 00-1.7-1L15 3h-4l-.4 2.9a7.4 7.4 0 00-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 000 2l-2.1 1.6 2 3.5 2.5-1a7.4 7.4 0 001.7 1L11 21h4l.4-2.9a7.4 7.4 0 001.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 110-7 3.5 3.5 0 010 7z"/></svg></button>
+  <button id="bFull" title="全画面（F）"><svg viewBox="0 0 24 24"><path d="M4 4h6v2H6v4H4zM14 4h6v6h-2V6h-4zM4 14h2v4h4v2H4zM18 14h2v6h-6v-2h4z"/></svg></button>
+</div>
+<script>
+"use strict";
+/* ふえる玉 v2 — 刃が寄る → 締める（玉が白く光る）→ はじける → 出口からかたまりで飛び出す。
+   円がいっぱいになっても重なりながら増えつづけ、最後は割れて、また 1 個から。 */
+const VERSION = "2.0.0";
+const $ = s => document.querySelector(s);
+const Q = new URLSearchParams(location.search);
+const TAU = Math.PI * 2;
+
+/* ── 乱数（?seed= で固定できる。玉の動きにはこれだけを使う。絵の飾りと音は Math.random） ── */
+let seed = (parseInt(Q.get("seed"), 10) | 0) || ((Math.random() * 2147483647) | 0);
+function rnd(){
+  seed = (seed + 0x6D2B79F5) | 0;
+  let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+const rr = (a, b) => a + (b - a) * rnd();
+const pick = a => a[(rnd() * a.length) | 0];
+function wpick(list){ let s = 0; for (const x of list) s += x[1]; let v = rnd() * s; for (const x of list){ if ((v -= x[1]) < 0) return x[0]; } return list[list.length - 1][0]; }
+function shuffle(a){ for (let i = a.length - 1; i > 0; i--){ const j = (rnd() * (i + 1)) | 0, t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+const clamp = (x, a, b) => x < a ? a : x > b ? b : x;
+const smooth = (a, b, x) => { x = clamp((x - a) / (b - a), 0, 1); return x * x * (3 - 2 * x); };
+const wrapPi = a => a - Math.round(a / TAU) * TAU;                    // 角度を -π〜π に
+const tri = u => 2 / Math.PI * Math.asin(Math.sin(TAU * u));         // ギザギザ用の三角の波（-1〜1）
+function round2(x){ if (x < 100) return Math.max(10, Math.round(x)); const p = 10 ** (Math.floor(Math.log10(x)) - 1); return Math.round(x / p) * p; }
+const EZ = {
+  inQ: t => t * t, outC: t => 1 - (1 - t) ** 3,
+  inOut: t => t < .5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2,
+  outBack: t => 1 + 2.70158 * (t - 1) ** 3 + 1.70158 * (t - 1) ** 2,
+  press: t => .55 * t + .45 * t * t,        // プレスが閉じるとき（ほぼ等速で、少しだけ加速）
+};
+
+/* ── 設定（この PC のブラウザに覚える）。込み入ったものはここに逃がしてある ──
+   [見出し, 名前, 表示, [[値, 表示], …]]  先頭が既定 */
+const OPTS = [
+  ["基本", "size", "玉の大きさ", [["auto", "おまかせ"], ["xl", "特大"], ["l", "大"], ["m", "中"], ["s", "小"], ["t", "極小"]]],
+  ["基本", "split", "分かれる数", [["auto", "おまかせ"], ["2", "2 つ"], ["3", "3 つ"], ["4", "4 つ"]]],
+  ["基本", "speed", "速さ", [["1", "ふつう"], ["0.5", "ゆっくり"], ["1.5", "はやい"], ["2", "とてもはやい"]]],
+  ["増え方", "limit", "どこまで増やす", [["auto", "おまかせ（円の 3 倍）"], ["x1", "円いっぱいまで"], ["x2", "円の 2 倍"], ["x5", "円の 5 倍"], ["10000", "1 万個"], ["30000", "3 万個"], ["100000", "10 万個"]]],
+  ["増え方", "crowd", "混んできたら", [["over", "重なる"], ["half", "少し小さくなる"], ["shrink", "小さくなる"]]],
+  ["増え方", "guard", "生まれた玉を守る", [["1", "次の 1 回"], ["2", "次の 2 回"], ["0", "守らない"]]],
+  ["増え方", "eject", "飛び出す勢い", [["1", "ふつう"], ["2", "強く"], ["0", "弱く"]]],
+  ["減るもの", "foe", "減らすもの", [["auto", "おまかせ"], ["any", "かならず出す"], ["none", "なし"], ["eater", "食べる玉"], ["hole", "穴"], ["life", "寿命"], ["red", "消し刃"]]],
+  ["減るもの", "foeLv", "強さ", [["2", "ふつう"], ["1", "弱い"], ["3", "強い"]]],
+  ["寄せ刃", "yoseN", "刃の数", [["auto", "おまかせ"], ["2", "2 枚（プレス）"], ["3", "3 枚"], ["4", "4 枚（十字）"], ["5", "5 枚"], ["6", "6 枚"], ["8", "8 枚"]]],
+  ["寄せ刃", "yoseShape", "刃の形", [["auto", "おまかせ"], ["bar", "まっすぐ"], ["arc", "弧"], ["saw", "ギザギザ"], ["chev", "くの字"]]],
+  ["8 の字", "loopN", "輪の数", [["auto", "おまかせ"], ["2", "2 つ"], ["3", "3 つ"], ["4", "4 つ"], ["5", "5 つ"]]],
+  ["8 の字", "loopShape", "刃の形", [["auto", "おまかせ"], ["arc", "弧"], ["bar", "まっすぐ"]]],
+  ["見え方", "ring", "進み具合の輪", [["1", "出す"], ["0", "出さない"]]],
+  ["見え方", "shake", "画面の揺れ", [["1", "あり"], ["0", "なし"]]],
+  ["見え方", "quality", "計算の細かさ", [["1", "ふつう"], ["0", "軽く（玉がとても多いとき）"], ["2", "なめらか"]]],
+];
+const LIVE = new Set(["speed", "crowd", "guard", "eject", "ring", "shake", "quality"]);   // 変えても、いまの回をそのまま続けるもの
+const DEF = { mech: "auto", vol: 60, mute: false, count: true, pin: null };
+for (const o of OPTS) DEF[o[1]] = o[3][0][0];
+/* プリセット（まとめて切りかえる。書いていない項目は既定に戻す） */
+const PRESETS = [
+  ["おまかせ", {}],
+  ["動画ふう", { size: "xl", split: "4", guard: "0", foe: "none" }],
+  ["大洪水", { size: "t", split: "4", speed: "1.5", limit: "100000", eject: "2", foe: "none", quality: "0" }],
+  ["ケンカ", { foe: "any" }],
+  ["ゆったり", { size: "l", split: "3", speed: "0.5", limit: "x2", foe: "none" }],
+];
+const PRESET_KEYS = ["mech", "size", "split", "speed", "limit", "crowd", "guard", "eject", "foe", "foeLv", "yoseN", "yoseShape", "loopN", "loopShape", "quality"];
+function loadJSON(key){ try { return JSON.parse(localStorage.getItem(key) || "{}") || {}; } catch (e){ return {}; } }
+function saveJSON(key, v){ try { localStorage.setItem(key, JSON.stringify(v)); } catch (e){} }
+const SET = Object.assign({}, DEF, loadJSON("fuerutama"));
+const saveSet = () => saveJSON("fuerutama", SET);
+const QK = { mech: "mech", size: "size", split: "split", speed: "speed", limit: "limit", crowd: "crowd", guard: "guard", eject: "eject",
+             foe: "foe", fl: "foeLv", yn: "yoseN", ys: "yoseShape", ln: "loopN", ls: "loopShape", q: "quality" };
+for (const [q, k] of Object.entries(QK)) if (Q.get(q)) SET[k] = Q.get(q);
+if (Q.get("seed") || Q.get("mech")) SET.pin = null;          // 試験のときは固定を使わない
+// v1.0 の言い方を読みかえる（プレス＝寄せ刃 2 枚、十字＝寄せ刃 4 枚）
+if (SET.mech === "press"){ SET.mech = "yose"; SET.yoseN = "2"; }
+else if (SET.mech === "cross"){ SET.mech = "yose"; SET.yoseN = "4"; }
+if (!["auto", "yose", "loops", "box"].includes(SET.mech)) SET.mech = "auto";
+for (const o of OPTS){
+  SET[o[1]] = String(SET[o[1]]);
+  const okNum = o[1] === "limit" && /^\d+$/.test(SET.limit);   // 試験用に ?limit=数 も受ける
+  if (!okNum && !o[3].some(v => v[0] === SET[o[1]])) SET[o[1]] = o[3][0][0];
+}
+/* 記録（回数・最大の玉数・勝ち負け） */
+const REC = Object.assign({ rounds: 0, maxN: 0, win: {}, lose: {} }, loadJSON("fuerutama.rec"));
+const saveRec = () => saveJSON("fuerutama.rec", REC);
+
+/* ══════════════════════════════════════════════════════════════════
+   世界（玉と、玉どうし・刃・円のふちとの当たり）
+   ══════════════════════════════════════════════════════════════════ */
+const R = 500;            // 円の半径（世界の単位）
+const MAXN = 101000;      // 玉の数の上限（「10 万個」まで）
+const MAXC = 190000;      // 升目の数の上限
+const V0 = 440;           // 玉のふだんの速さ（単位/秒）
+const VMAX = V0 * 4.2;    // 玉の速さの上限
+const STIFF = .85;        // 重なった玉どうしを 1 歩でどれだけ押し戻すか
+const E_BB = 1, E_W = .86, E_M = .4;    // はね返り: 玉どうし・円のふち・刃
+// 玉どうしは勢いを減らさない（1）。少しでも減らすと、混んだ所でぶつかるたびに勢いを失い、ふちに固まった輪になって、仕掛けへ来なくなる
+const MU = .45;           // 刃に押されたとき、面に沿った動きをどれだけ止めるか（すべり止め）
+const PINCH_DOT = -.45;   // 2 枚の刃の押す向きがこれより逆向き（内積）で…
+const PINCH_PEN = .16;    // …めり込みの合計が玉の半径のこの割合を超えたら「挟まれた」
+const PACK = .74;         // 「円 1 杯」の詰め具合（面積の割合）。どこまで増やすかの物差し
+const PHI_C = .8;         // これより詰まったら、当たりの大きさを数に合わせて縮める（重なって見える）
+const SC0 = .36;          // 生まれたての玉の大きさ（ふつうの何倍か）
+const GROW_T = .34;       // 生まれた玉がふつうの大きさになるまでの時間（秒）
+const CELL_MAX = 10;      // 1 つの升目でまともに押し合う玉の数（それより詰まったら間引く）
+const CELL_SOLO = 16;     // これより詰まった升目は、その升目の中どうしだけ押し合う（生まれたてのかたまりで計算が跳ね上がらないように）
+const HIT_MIN = 60;       // 音を鳴らすぶつかりの強さ
+const SIZES = { xl: { r: 20, n: "特大" }, l: { r: 13, n: "大" }, m: { r: 9, n: "中" }, s: { r: 6.3, n: "小" }, t: { r: 4.2, n: "極小" } };
+const GAMMAS = { over: 0, half: .5, shrink: 1 };   // 混んできたとき、見た目をどれだけ縮めるか（0 = 縮めず重ねる）
+
+/* 色（色相の順。1 回ごとに 5 つ飛ばしで使うので、となりの色がはっきり違う） */
+const PAL = ["#ff3b4a","#ff8a2b","#ffd43b","#c4f23a","#38e070","#22e8c0","#2fd0ff","#3d6bff","#8c5cff","#b14dff","#ff45b5","#ff6b8b"];
+const GOLD = PAL.length;
+const PALX = [...PAL, "#f6c445"];
+
+/* ── 玉（生まれた順に並べておく。新しい玉ほどうしろ＝上に描く） ── */
+const X = new Float32Array(MAXN), Y = new Float32Array(MAXN), VX = new Float32Array(MAXN), VY = new Float32Array(MAXN);
+const PX = new Float32Array(MAXN), PY = new Float32Array(MAXN);   // 1 歩前の場所（刃をすり抜けたかを見る）
+const SC = new Float32Array(MAXN);      // 大きさの倍率（生まれたて・しぼむとき < 1）
+const TMP = new Float32Array(MAXN);     // その玉の「せっかちさ」（速さの倍率）
+const HEAT = new Float32Array(MAXN);    // 白く光る度合い（挟まれる前ぶれ）
+const COL = new Uint8Array(MAXN);
+const ST = new Uint8Array(MAXN);        // 状態: 1 消えた / 2 挟まれた（はじける前）/ 4 穴から出ていく途中 / 8 消し刃で消える / 16 しぼんでいる
+const EXI = new Uint8Array(MAXN);       // 挟まれた玉が使う出口の番号
+const BORN = new Float64Array(MAXN), IMM = new Float64Array(MAXN), FL = new Float64Array(MAXN);
+const DIE = new Float64Array(MAXN), GHO = new Float64Array(MAXN), DT = new Float64Array(MAXN);
+const CS = new Int32Array(MAXN), CNX = new Float32Array(MAXN), CNY = new Float32Array(MAXN), CNP = new Float32Array(MAXN);
+const CG = new Int8Array(MAXN), CU = new Uint8Array(MAXN), CK = new Uint8Array(MAXN);   // 触れた刃の組・番号・種類
+let M = 0;                // 使っている場所の数（消えた玉の空きも含む）
+let N = 0;                // 円の中にいる玉の数（画面の数字）
+let DEAD = 0, doomedN = 0;
+let rad = 9;              // この回の玉の半径
+let RC = 9;               // 玉どうしの当たりの半径（混むと縮む）
+let RV = 9;               // 見た目の半径（刃・円のふちとの当たりにも使う）
+let GAMMA = 0, AFREE = 1, CAPC = 1;
+let T = 0, STAMP = 0, wallOn = true;
+let OUT_D = 170;          // 穴から外へ出た玉が、消えるまでに飛ぶ距離
+const STAT = { crush: 0, erased: 0, eaten: 0, drained: 0, expired: 0, spilled: 0, rounds: 0, ghost: 0 };
+
+function addBall(x, y, vx, vy, c, imm, sc){
+  if (M >= MAXN) return -1;
+  const i = M++;
+  X[i] = PX[i] = x; Y[i] = PY[i] = y; VX[i] = vx; VY[i] = vy; COL[i] = c; ST[i] = 0;
+  SC[i] = sc === undefined ? 1 : sc; TMP[i] = .72 + .6 * rnd(); HEAT[i] = 0; EXI[i] = 0;
+  BORN[i] = T; IMM[i] = T + (imm || 0); FL[i] = -9; DIE[i] = Infinity; GHO[i] = 0; DT[i] = 0; CS[i] = -1;
+  N++;
+  return i;
+}
+/* 消す（その場では空きにしておき、こまの終わりにまとめて詰める） */
+function kill(i){
+  const st = ST[i];
+  if (st & 1) return;
+  if (st & 2) doomedN--;
+  if (!(st & 4)) N--;
+  ST[i] = st | 1; DEAD++;
+}
+/* 穴から外へ出た（数からは外すが、消えるまでは飛んでいるのを描く） */
+function escapeBall(i){
+  const st = ST[i];
+  if (st & 5) return;
+  if (st & 2) doomedN--;
+  ST[i] = (st & ~2) | 4; N--; STAT.drained++;
+}
+/* 空きを詰める（並び順は変えない） */
+function compact(){
+  if (!DEAD) return;
+  let w = 0;
+  for (let i = 0; i < M; i++){
+    if (ST[i] & 1) continue;
+    if (w !== i){
+      X[w] = X[i]; Y[w] = Y[i]; VX[w] = VX[i]; VY[w] = VY[i]; PX[w] = PX[i]; PY[w] = PY[i];
+      SC[w] = SC[i]; TMP[w] = TMP[i]; HEAT[w] = HEAT[i]; COL[w] = COL[i]; ST[w] = ST[i]; EXI[w] = EXI[i];
+      BORN[w] = BORN[i]; IMM[w] = IMM[i]; FL[w] = FL[i]; DIE[w] = DIE[i]; GHO[w] = GHO[i]; DT[w] = DT[i];
+    }
+    CS[w] = -1;
+    w++;
+  }
+  M = w; DEAD = 0;
+}
+
+/* ── 近くの玉を探すための升目（升目の大きさ＝当たりの直径。混んで当たりが縮むと、升目も細かくする） ── */
+let GW = 1, GHt = 1, G0 = -R, GINV = 1, GCELL = 1, D2MAX = 1;
+const CST = new Int32Array(MAXC + 2), CUR = new Int32Array(MAXC + 1);
+const ITEM = new Int32Array(MAXN), BC = new Int32Array(MAXN);
+function gridFit(){
+  let cell = Math.max(2 * RC * 1.05, 2.2);
+  const half = R + 4 * rad + 8;
+  let g = Math.ceil(2 * half / cell);
+  if (g * g > MAXC){ g = Math.floor(Math.sqrt(MAXC)); cell = 2 * half / g; }
+  GCELL = cell; GINV = 1 / cell; G0 = -half; GW = GHt = g;
+}
+function buildGrid(){
+  const nc = GW * GHt, g0 = G0, gi = GINV, gw = GW;
+  CST.fill(0, 0, nc + 1);
+  for (let i = 0; i < M; i++){
+    if (ST[i] & 7){ BC[i] = -1; continue; }           // 消えた・挟まれた・出ていく玉は、ほかの玉に当たらない
+    const x = X[i], y = Y[i];
+    if (x < g0 || y < g0){ BC[i] = -1; continue; }
+    const cx = ((x - g0) * gi) | 0, cy = ((y - g0) * gi) | 0;
+    if (cx >= gw || cy >= gw){ BC[i] = -1; continue; }
+    const c = cy * gw + cx; BC[i] = c; CST[c + 1]++;
+  }
+  for (let c = 0; c < nc; c++) CST[c + 1] += CST[c];
+  CUR.set(CST.subarray(0, nc));
+  for (let i = 0; i < M; i++){ const c = BC[i]; if (c >= 0) ITEM[CUR[c]++] = i; }
+}
+
+/* ── 音を鳴らすぶつかりの記録（1 こまぶん） ── */
+let hitN = 0, hitV = 0, hitX = 0, clinkN = 0, clinkV = 0, clinkX = 0;
+function hit(v, x){ hitN++; if (v > hitV){ hitV = v; hitX = x; } }
+function clink(v, x){ clinkN++; if (v > clinkV){ clinkV = v; clinkX = x; } }
+
+/* ── 玉どうし（重なりを押し戻し、近づいていればはね返す） ── */
+function pair(i, j){
+  const dx = X[j] - X[i], dy = Y[j] - Y[i], d2 = dx * dx + dy * dy;
+  if (d2 >= D2MAX) return;
+  const D = (SC[i] + SC[j]) * RC;
+  if (d2 >= D * D) return;
+  let nx, ny, pen;
+  if (d2 < 1e-8){ const a = (i * 12.9898 + j * 78.233 + STAMP) % TAU; nx = Math.cos(a); ny = Math.sin(a); pen = D; }
+  else { const d = Math.sqrt(d2); nx = dx / d; ny = dy / d; pen = D - d; }
+  const p = pen * .5 * STIFF;
+  X[i] -= nx * p; Y[i] -= ny * p; X[j] += nx * p; Y[j] += ny * p;
+  const vn = (VX[j] - VX[i]) * nx + (VY[j] - VY[i]) * ny;
+  if (vn < 0){
+    const q = -(1 + E_BB) * vn * .5;
+    VX[i] -= q * nx; VY[i] -= q * ny; VX[j] += q * nx; VY[j] += q * ny;
+    if (-vn > HIT_MIN) hit(-vn, X[i]);
+  }
+}
+function pairCell(i, m){
+  const s = CST[m], e = CST[m + 1], n = e - s;
+  if (!n) return;
+  if (n <= CELL_MAX){ for (let b = s; b < e; b++) pair(i, ITEM[b]); return; }
+  const st = Math.ceil(n / CELL_MAX);                                  // 詰まりすぎた升目は間引く（重くならないように）
+  for (let b = s + (STAMP + i) % st; b < e; b += st) pair(i, ITEM[b]);
+}
+function collideBalls(){
+  const gw = GW, gh = GHt;
+  const half = N > 50000 ? 1 : 0;        // 玉がとても多いときは、升目を市松もようにして 1 歩おきに調べる（重さを半分に）
+  for (let cy = 0; cy < gh; cy++){
+    const row = cy * gw, down = cy + 1 < gh;
+    for (let cx = (cy + STAMP) & half; cx < gw; cx += 1 + half){
+      const c = row + cx, s0 = CST[c], e0 = CST[c + 1], n = e0 - s0;
+      if (!n) continue;
+      const st = n > CELL_MAX ? Math.ceil(n / CELL_MAX) : 1;
+      if (n > CELL_SOLO){
+        for (let a = s0; a < e0; a++){ const i = ITEM[a]; for (let b = a + 1 + (STAMP + a) % st; b < e0; b += st) pair(i, ITEM[b]); }
+        continue;
+      }
+      const right = cx + 1 < gw, left = cx > 0;
+      for (let a = s0; a < e0; a++){
+        const i = ITEM[a];
+        for (let b = a + 1; b < e0; b += st) pair(i, ITEM[b]);
+        if (right) pairCell(i, c + 1);
+        if (down){
+          if (left) pairCell(i, c + gw - 1);
+          pairCell(i, c + gw);
+          if (right) pairCell(i, c + gw + 1);
+        }
+      }
+    }
+  }
+}
+
+/* ── 刃（太さのある線分の集まり）。1 本 12 個:
+      今の両端(0-3)・太さ(4)・ひとつ前の両端(5-8)・種類(9: 0 押すだけ / 1 刃 / 2 消し刃)・組(10)・刃の番号(11) ── */
+const SS = 12;
+const SEG = new Float32Array(400 * SS);
+let NSEG = 0;
+function setSeg(k, ax, ay, bx, by, w, kind, grp, unit){
+  const o = k * SS;
+  SEG[o] = ax; SEG[o + 1] = ay; SEG[o + 2] = bx; SEG[o + 3] = by; SEG[o + 4] = w; SEG[o + 9] = kind; SEG[o + 10] = grp; SEG[o + 11] = unit;
+}
+/* 刃に触れた向きを覚え、別の組の刃からも逆向きに押されたら「挟まれた」 */
+function contact(i, nx, ny, pen, grp, unit, kind){
+  if (CS[i] !== STAMP){ CS[i] = STAMP; CNX[i] = nx; CNY[i] = ny; CNP[i] = pen; CG[i] = grp; CU[i] = unit; CK[i] = kind; return; }
+  if (grp !== CG[i] && nx * CNX[i] + ny * CNY[i] < PINCH_DOT && pen + CNP[i] > PINCH_PEN * RV * SC[i]) pinch(i, kind, CK[i]);
+  if (pen > CNP[i]){ CNX[i] = nx; CNY[i] = ny; CNP[i] = pen; CG[i] = grp; CU[i] = unit; CK[i] = kind; }
+}
+function pinch(i, k1, k2){
+  if (ST[i] & 2) return;
+  const ph = RD.phase;
+  if (IMM[i] > T || (ph !== "grow" && ph !== "burst" && ph !== "clear")){   // 守られている玉は、刃の下をすり抜ける
+    GHO[i] = T + .45; STAT.ghost++; return;
+  }
+  if (ph !== "grow"){ if (FX.length < 220) fxRing(X[i], Y[i], COL[i]); kill(i); return; }   // 割れたあとは、ぽんと消える
+  if (!rig.live){ GHO[i] = T + .3; return; }               // 刃が開いていくときに挟まった玉は、つぶさずに逃がす
+  ST[i] |= 2; doomedN++; DT[i] = T; HEAT[i] = 1; VX[i] = 0; VY[i] = 0;
+  EXI[i] = rig.exitFor(X[i], Y[i]);
+  const reds = (k1 === 2 ? 1 : 0) + (k2 === 2 ? 1 : 0);
+  if (reds === 2 || (reds === 1 && rnd() < .5)) ST[i] |= 8;             // 消し刃に挟まれた（ふつうの刃と半々なら、半分の確率で）
+}
+function collideMech(h){
+  const inv = 1 / h, g0 = G0, gi = GINV, gw = GW, gh = GHt, up = rig.up;
+  for (let s = 0; s < NSEG; s++){
+    const o = s * SS, ax = SEG[o], ay = SEG[o + 1], bx = SEG[o + 2], by = SEG[o + 3], w = SEG[o + 4];
+    const pax = SEG[o + 5], pay = SEG[o + 6], pbx = SEG[o + 7], pby = SEG[o + 8];
+    const kind = SEG[o + 9], grp = SEG[o + 10], unit = SEG[o + 11];
+    if (up && kind > 0) continue;                      // 浮いている刃は、玉に当たらない
+    const mdm = w + RV;
+    const abx = bx - ax, aby = by - ay, L2 = abx * abx + aby * aby || 1e-9;
+    const ccd = L2 > 1, L = Math.sqrt(L2), lnx = -aby / L, lny = abx / L;
+    const pabx = pbx - pax, paby = pby - pay, PLn = Math.hypot(pabx, paby) || 1, plx = -paby / PLn, ply = pabx / PLn;
+    const x0 = Math.min(ax, bx, pax, pbx) - mdm, x1 = Math.max(ax, bx, pax, pbx) + mdm;
+    const y0 = Math.min(ay, by, pay, pby) - mdm, y1 = Math.max(ay, by, pay, pby) + mdm;
+    const cx0 = Math.max(0, Math.floor((x0 - g0) * gi)), cx1 = Math.min(gw - 1, Math.floor((x1 - g0) * gi));
+    const cy0 = Math.max(0, Math.floor((y0 - g0) * gi)), cy1 = Math.min(gh - 1, Math.floor((y1 - g0) * gi));
+    for (let cy = cy0; cy <= cy1; cy++){
+      for (let cx = cx0; cx <= cx1; cx++){
+        const c = cy * gw + cx;
+        for (let k = CST[c], e = CST[c + 1]; k < e; k++){
+          const i = ITEM[k];
+          if (GHO[i] > T || (ST[i] & 3)) continue;
+          const md = w + RV * SC[i], md2 = md * md;
+          let px = X[i], py = Y[i], moved = false;
+          let t = ((px - ax) * abx + (py - ay) * aby) / L2;
+          if (ccd && t > 0 && t < 1){
+            // 速い刃が玉を飛び越えたら、もとの側へ戻す
+            const sc = (px - ax) * lnx + (py - ay) * lny, sp = (PX[i] - pax) * plx + (PY[i] - pay) * ply;
+            if (sc * sp < 0 && Math.abs(sp) > w * .3){
+              const want = sp > 0 ? md * 1.001 : -md * 1.001;
+              px += lnx * (want - sc); py += lny * (want - sc); moved = true;
+            }
+          }
+          t = t < 0 ? 0 : t > 1 ? 1 : t;
+          const qx = ax + abx * t, qy = ay + aby * t, dx = px - qx, dy = py - qy, d2 = dx * dx + dy * dy;
+          const svx = (qx - (pax + (pbx - pax) * t)) * inv, svy = (qy - (pay + (pby - pay) * t)) * inv;
+          if (d2 >= md2){
+            if (moved){
+              X[i] = px; Y[i] = py;
+              const sg = (px - ax) * lnx + (py - ay) * lny > 0 ? 1 : -1, nx = lnx * sg, ny = lny * sg;
+              const vn = (VX[i] - svx) * nx + (VY[i] - svy) * ny;
+              if (vn < 0){ VX[i] -= (1 + E_M) * vn * nx; VY[i] -= (1 + E_M) * vn * ny; }
+              if (kind > 0) contact(i, nx, ny, 0, grp, unit, kind);
+            }
+            continue;
+          }
+          let nx, ny;
+          const d = Math.sqrt(d2);
+          if (d < 1e-6){
+            nx = lnx; ny = lny;
+            if (nx * svx + ny * svy < 0){ nx = -nx; ny = -ny; }
+          } else { nx = dx / d; ny = dy / d; }
+          const pen = md - d;
+          X[i] = px + nx * pen; Y[i] = py + ny * pen;
+          const vn = (VX[i] - svx) * nx + (VY[i] - svy) * ny;
+          if (vn < 0){
+            const tx = (VX[i] - svx) - vn * nx, ty = (VY[i] - svy) - vn * ny;
+            VX[i] -= (1 + E_M) * vn * nx + MU * tx; VY[i] -= (1 + E_M) * vn * ny + MU * ty;
+            if (-vn > HIT_MIN) clink(-vn, px);
+          }
+          if (kind > 0) contact(i, nx, ny, pen, grp, unit, kind);
+        }
+      }
+    }
+  }
+}
+
+/* ── 円のふち。穴（すき間）では押し返さず、外へ出た玉は数から外れる ── */
+let GAPS = null;          // 穴: [{a: 真ん中の角度, hw: 半分の幅（角度）}]
+function collideWall(){
+  const gaps = GAPS, RR = R * R, out2 = (R + OUT_D) ** 2;
+  for (let i = 0; i < M; i++){
+    const st = ST[i];
+    if (st & 1) continue;
+    const x = X[i], y = Y[i], d2 = x * x + y * y;
+    if (st & 4){ if (d2 > out2) kill(i); continue; }
+    const lim = R - RV * SC[i];
+    if (d2 <= lim * lim) continue;
+    if (gaps){
+      const a = Math.atan2(y, x), slack = RV * SC[i] / R * .6;
+      let open = false;
+      for (let g = 0; g < gaps.length; g++){
+        const hw = gaps[g].hw;
+        if (hw > .001 && Math.abs(wrapPi(a - gaps[g].a)) < hw - slack){ open = true; break; }
+      }
+      if (open){ if (d2 > RR) escapeBall(i); continue; }
+    }
+    const d = Math.sqrt(d2), nx = -x / d, ny = -y / d, pen = d - lim;
+    X[i] = x + nx * pen; Y[i] = y + ny * pen;
+    const vn = VX[i] * nx + VY[i] * ny;
+    if (vn < 0){
+      let vx = VX[i] - (1 + E_W) * vn * nx, vy = VY[i] - (1 + E_W) * vn * ny;
+      // はね返るたびに、少しだけ真ん中のほうへ向きを寄せる
+      // （まん丸の器では、ふち寄りを回る玉はいつまでも真ん中へ来ない。仕掛けに近寄らない玉をなくすため）
+      const sp = Math.sqrt(vx * vx + vy * vy), vin = vx * nx + vy * ny;
+      if (sp > 1 && vin < .97 * sp){
+        const tx = vx - vin * nx, ty = vy - vin * ny, tl = Math.sqrt(tx * tx + ty * ty) || 1;
+        let sn = vin / sp; sn += (1 - sn) * (.1 + .4 * rnd());
+        const cs = Math.sqrt(1 - sn * sn);
+        vx = (nx * sn + tx / tl * cs) * sp; vy = (ny * sn + ty / tl * cs) * sp;
+      }
+      VX[i] = vx; VY[i] = vy;
+      if (-vn > HIT_MIN) clink(-vn * .6, x);
+    }
+  }
+}
+/* 穴のふちの小さな柱（玉がふちに引っかからないように）。仕掛けの刃のうしろに足す */
+function extraSegs(){
+  let k = rig.n;
+  if (GAPS) for (const g of GAPS){
+    if (g.hw <= .001) continue;
+    for (let sg = -1; sg <= 1; sg += 2){
+      const a = g.a + sg * g.hw, x = Math.cos(a) * R, y = Math.sin(a) * R, o = k * SS;
+      SEG[o] = SEG[o + 2] = SEG[o + 5] = SEG[o + 7] = x; SEG[o + 1] = SEG[o + 3] = SEG[o + 6] = SEG[o + 8] = y;
+      SEG[o + 4] = 4; SEG[o + 9] = 0; SEG[o + 10] = -1; SEG[o + 11] = 255; k++;
+    }
+  }
+  NSEG = k;
+}
+
+/* ── 挟まれた玉は、はじけるまで白いかたまりになって集まる ── */
+const LUMP = { x: 0, y: 0 };
+function doomedPass(h){
+  const gather = Math.min(1, 10 * h), spread = RV * .55 * Math.sqrt(Math.max(1, doomedN));
+  for (let i = 0; i < M; i++){
+    if ((ST[i] & 3) !== 2) continue;
+    if (T - DT[i] > 1.4){ splitOne(i); continue; }     // はじける合図が来なかった玉は、その場で分かれる
+    if (SC[i] > .62) SC[i] = Math.max(.62, SC[i] - 1.4 * h);
+    if (rig.lump(EXI[i], LUMP)){
+      const dx = LUMP.x - X[i], dy = LUMP.y - Y[i], d = Math.hypot(dx, dy), keep = Math.min(spread, 60);
+      if (d > keep){ const f = (d - keep) / d * gather; X[i] += dx * f; Y[i] += dy * f; }
+    }
+  }
+}
+
+/* ── こまごとの手入れ ── */
+/* 生まれたての玉をふくらませる（生まれた順に並んでいるので、うしろから見ていけば足りる） */
+function growYoung(){
+  for (let i = M - 1; i >= 0; i--){
+    const age = T - BORN[i];
+    if (age >= GROW_T){
+      if (age > GROW_T + .25) break;
+      if (SC[i] < 1 && !(ST[i] & 19)) SC[i] = 1;
+      continue;
+    }
+    if (ST[i] & 19) continue;
+    SC[i] = SC0 + (1 - SC0) * EZ.outC(age / GROW_T);
+  }
+}
+/* 速さをふだんの速さに寄せる（混むほど、ゆっくりに。玉ごとにせっかちさが違う） */
+function governor(dt){
+  const fill = N * RC * RC / ((R - RV) * (R - RV));
+  const vt = V0 * (1 - .68 * smooth(.3, .72, fill));
+  const kk = 1 - Math.exp(-dt * 1.5);
+  const still = RD.still;
+  for (let i = 0; i < M; i++){
+    if (ST[i] & 7) continue;
+    const vx = VX[i], vy = VY[i], s = Math.sqrt(vx * vx + vy * vy);
+    if (X[i] !== X[i] || Y[i] !== Y[i] || s !== s){ kill(i); continue; }   // 万一の壊れた値は捨てる
+    const want = vt * TMP[i];
+    if (!(s > 1e-3)){
+      if (still) continue;
+      const a = rnd() * TAU; VX[i] = Math.cos(a) * want * .5; VY[i] = Math.sin(a) * want * .5; continue;
+    }
+    const f = (s + (want - s) * kk) / s;
+    VX[i] = vx * f; VY[i] = vy * f;
+  }
+  return fill;
+}
+/* 混んでいるのに空いた所が残らないよう、混んだ所から空いた所へ玉を流す。
+   当たりの大きさを縮めただけでは、玉は詰まったままでいられるので、刃が通ったあとに黒いすき間が残る。
+   粗い升目で混み具合を見て、差の大きい所だけ、空いたほうへ少しずつ動かす（円がいっぱいに近いときだけ） */
+const SGMAX = 40;
+const SDN = new Float32Array(SGMAX * SGMAX), SDB = new Float32Array(SGMAX * SGMAX), SFR = new Float32Array(SGMAX * SGMAX);
+const SGX = new Float32Array(SGMAX * SGMAX), SGY = new Float32Array(SGMAX * SGMAX);       // 升目ごとの、流す向きと速さ
+let sfrG = 0;
+function spread(dt){
+  const lim = R - RV, fillC = N * RC * RC / (lim * lim);
+  if (N < 300 || fillC < .5) return;
+  const g = clamp(Math.floor(2 * R / (5 * RC)), 8, SGMAX), cs = 2 * R / g, inv = 1 / cs, unit = Math.PI * RC * RC / (cs * cs);
+  if (sfrG !== g){                                       // 升目ごとの「円の中に入っている割合」
+    sfrG = g;
+    for (let cy = 0; cy < g; cy++) for (let cx = 0; cx < g; cx++){
+      let n = 0;
+      for (let a = 0; a < 4; a++) for (let b = 0; b < 4; b++){ const x = -R + (cx + (a + .5) / 4) * cs, y = -R + (cy + (b + .5) / 4) * cs; if (x * x + y * y < lim * lim) n++; }
+      SFR[cy * g + cx] = n / 16;
+    }
+  }
+  const nc = g * g;
+  SDN.fill(0, 0, nc);
+  for (let i = 0; i < M; i++){
+    if (ST[i] & 7) continue;
+    const cx = ((X[i] + R) * inv) | 0, cy = ((Y[i] + R) * inv) | 0;
+    if (cx < 0 || cy < 0 || cx >= g || cy >= g) continue;
+    SDN[cy * g + cx] += SC[i] * SC[i];
+  }
+  for (let c = 0; c < nc; c++){ const f = SFR[c]; SDN[c] = f > .2 ? SDN[c] * unit / f : fillC; }      // ふちの外は「ふつうの混み具合」と見なす（ふちへ押しつけない）
+  for (let cy = 0; cy < g; cy++) for (let cx = 0; cx < g; cx++){                                    // 3×3 でならす
+    const x0 = cx > 0 ? cx - 1 : cx, x1 = cx < g - 1 ? cx + 1 : cx, y0 = cy > 0 ? cy - 1 : cy, y1 = cy < g - 1 ? cy + 1 : cy;
+    SDB[cy * g + cx] = (SDN[y0 * g + x0] + 2 * SDN[y0 * g + cx] + SDN[y0 * g + x1] + 2 * SDN[cy * g + x0] + 4 * SDN[cy * g + cx] + 2 * SDN[cy * g + x1]
+                      + SDN[y1 * g + x0] + 2 * SDN[y1 * g + cx] + SDN[y1 * g + x1]) / 16;
+  }
+  // 流す速さは 1 こまで 10 まで（刃の太さより小さく。刃をすり抜けない）。玉が少ない升目は数のばらつきが大きいので、差が小さいうちは動かさない
+  const k = smooth(.5, .7, fillC), vmax = Math.min(700 * dt, 10), dead = clamp(Math.sqrt(unit / PHI_C), .08, .2);
+  SGX.fill(0, 0, nc); SGY.fill(0, 0, nc);
+  for (let cy = 1; cy < g - 1; cy++) for (let cx = 1; cx < g - 1; cx++){
+    const c = cy * g + cx, gx = SDB[c + 1] - SDB[c - 1], gy = SDB[c + g] - SDB[c - g], m = Math.sqrt(gx * gx + gy * gy) * .5;
+    if (m < dead) continue;
+    const v = Math.min(vmax, 1500 * (m - dead) * dt) * k / (2 * m);
+    SGX[c] = -gx * v; SGY[c] = -gy * v;
+  }
+  // 玉ごとに、まわり 4 つの升目の値をなめらかにつないで使う（升目の境目で向きが急に変わると、玉の並びに升目のあとが出る）
+  const gm = g - 1.001;
+  for (let i = 0; i < M; i++){
+    if (ST[i] & 7) continue;
+    const fx = (X[i] + R) * inv - .5, fy = (Y[i] + R) * inv - .5;
+    if (fx < 0 || fy < 0 || fx > gm || fy > gm) continue;
+    const cx = fx | 0, cy = fy | 0, u = fx - cx, w = fy - cy, c = cy * g + cx;
+    const a00 = (1 - u) * (1 - w), a10 = u * (1 - w), a01 = (1 - u) * w, a11 = u * w;
+    X[i] += SGX[c] * a00 + SGX[c + 1] * a10 + SGX[c + g] * a01 + SGX[c + g + 1] * a11;
+    Y[i] += SGY[c] * a00 + SGY[c + 1] * a10 + SGY[c + g] * a01 + SGY[c + g + 1] * a11;
+  }
+}
+/* 混んできたら、玉どうしの当たりの大きさを数に合わせて縮める（詰め具合を保つ → 重なって見える） */
+function updateRadius(dt){
+  CAPC = PHI_C * AFREE / (Math.PI * rad * rad);
+  const want = rad * Math.min(1, Math.sqrt(CAPC / Math.max(1, N)));
+  RC += (want - RC) * (1 - Math.exp(-dt / .25));
+  RV = rad * Math.pow(RC / rad, GAMMA);
+  D2MAX = 4 * RC * RC;
+  if (2 * RC > GCELL || 2 * RC * 1.16 < GCELL) gridFit();
+}
+/* 囲まれた玉を、締まり具合に合わせて白く光らせる（外へ出たら冷める） */
+const ZB = [0, 0, 0, 0];
+function heatPass(dt){
+  const dk = Math.exp(-dt / .12);
+  for (let i = 0; i < M; i++){ if (HEAT[i] > .004 && !(ST[i] & 2)) HEAT[i] *= dk; }
+  if (!rig.box(ZB)) return;
+  const cx0 = Math.max(0, Math.floor((ZB[0] - G0) * GINV)), cx1 = Math.min(GW - 1, Math.floor((ZB[2] - G0) * GINV));
+  const cy0 = Math.max(0, Math.floor((ZB[1] - G0) * GINV)), cy1 = Math.min(GHt - 1, Math.floor((ZB[3] - G0) * GINV));
+  for (let cy = cy0; cy <= cy1; cy++) for (let cx = cx0; cx <= cx1; cx++){
+    const c = cy * GW + cx;
+    for (let k = CST[c], e = CST[c + 1]; k < e; k++){
+      const i = ITEM[k];
+      if (i >= M || (ST[i] & 7) || IMM[i] > T) continue;
+      const q = rig.heat(X[i], Y[i]);
+      if (q > HEAT[i]) HEAT[i] = q;
+    }
+  }
+}
+
+/* ── 1 こまの中の細かい 1 歩 ── */
+const HS_Q = { "0": 1 / 120, "1": 1 / 180, "2": 1 / 240 };
+let HS = HS_Q[SET.quality] || 1 / 180;
+function substep(h){
+  STAMP++;
+  const vm2 = VMAX * VMAX;
+  for (let i = 0; i < M; i++){
+    const st = ST[i];
+    if (st & 3) continue;
+    let vx = VX[i], vy = VY[i];
+    const s2 = vx * vx + vy * vy;
+    if (s2 > vm2){ const f = Math.sqrt(vm2 / s2); vx *= f; vy *= f; VX[i] = vx; VY[i] = vy; }
+    PX[i] = X[i]; PY[i] = Y[i]; X[i] += vx * h; Y[i] += vy * h;
+  }
+  if (RD.phase === "gold") rig.keep(); else rig.step(h);      // 金色のあいだは仕掛けを止める
+  extraSegs();
+  buildGrid();
+  collideBalls();
+  collideMech(h);
+  if (wallOn) collideWall();
+  if (FOE && FOE.substep) FOE.substep(h);
+  if (impactDue) doImpact();
+  else if (doomedN && rig.closed) splitAll();          // 閉じたままの刃に、あとから挟まれた玉も、すぐ分かれる
+  if (doomedN) doomedPass(h);
+  T += h;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   仕掛け（刃の集まりと、その動き）
+   どの仕掛けも同じ合図を出す:
+     close  … 刃が寄りはじめた（生まれる玉の色を次へ）
+     seal   … 囲いこんだ（ここから中の玉が白く光る）
+     lock   … 音だけ
+     impact … 閉じきった（挟まれた玉がいっせいに分かれる）
+   ══════════════════════════════════════════════════════════════════ */
+const SHAPE_NAMES = { bar: "まっすぐ", arc: "弧", saw: "ギザギザ", chev: "くの字" };
+
+/* 動きの段取り（いくつかの数を、段ごとに行き先・時間・動き方で動かす。待ちの段は、玉が来るまでのばせる） */
+class Phases {
+  constructor(vals, gen){
+    this.v = Object.assign({}, vals); this.from = Object.assign({}, vals); this.gen = gen;
+    this.list = null; this.k = 0; this.t = 0; this.cyc = 0; this.held = 0; this.name = "";
+  }
+  begin(){ const s = this.list[this.k]; this.name = s.n || ""; if (s.enter) s.enter(); }
+  update(dt){
+    let rem = dt, guard = 0;
+    while (rem > 1e-9 && guard++ < 40){
+      if (!this.list || this.k >= this.list.length){
+        this.list = this.gen(this.cyc++); this.k = 0; this.t = 0; this.held = 0;
+        Object.assign(this.from, this.v); this.begin();
+      }
+      const s = this.list[this.k];
+      if (this.t >= s.d){
+        if (s.hold && this.held < (s.maxHold || 0) && s.hold()){ this.held += rem; return; }   // 待ちをのばす
+        if (s.to) for (const key in s.to) this.v[key] = s.to[key];
+        Object.assign(this.from, this.v);
+        this.t = 0; this.k++; this.held = 0;
+        if (s.exit) s.exit();
+        if (this.k < this.list.length) this.begin();
+        continue;
+      }
+      const step = Math.min(rem, s.d - this.t);
+      this.t += step; rem -= step;
+      if (s.to){
+        const u = Math.min(1, this.t / s.d), f = s.e ? s.e(u) : u;
+        for (const key in s.to) this.v[key] = this.from[key] + (s.to[key] - this.from[key]) * f;
+      }
+    }
+  }
+}
+
+const RED = { on: false, set: new Set() };      // 消し刃（赤い刃の番号）
+const ASSIST = [1, .5, 0];                       // ケンカ中に、仕掛けが玉を待つ長さ（減るものの強さ: 弱い・ふつう・強い）
+let SMART = Q.get("smart") !== "0";              // 玉が少ないうちは、玉が来るまで待ってから閉じる
+class Rig {
+  constructor(){ this.n = 0; this.ang = 0; this.spin = 0; this.area = 0; this.cycle = 2; this.units = 0; this.redK = null; this.q = 0; this.nex = 0; this.closed = false; this.live = true;
+                 this.up = false; this.upK = 0; }     // up: 刃が浮いている（玉に当たらない）
+  keep(){ for (let k = 0; k < this.n; k++){ const o = k * SS; SEG[o + 5] = SEG[o]; SEG[o + 6] = SEG[o + 1]; SEG[o + 7] = SEG[o + 2]; SEG[o + 8] = SEG[o + 3]; } }
+  install(){ this.redK = new Float32Array(Math.max(1, this.units)); this.geom(); this.keep(); NSEG = this.n; }
+  step(dt){
+    this.keep(); this.advance(dt); this.geom();
+    for (let u = 0; u < this.units; u++){                 // 赤くなる・戻るのは、じわっと
+      const want = RED.on && RED.set.has(u) ? 1 : 0, k = this.redK[u];
+      if (k !== want) this.redK[u] = want > k ? Math.min(1, k + dt / .7) : Math.max(0, k - dt / .5);
+    }
+  }
+  kindOf(u){ return RED.on && RED.set.has(u) && this.redK[u] > .6 ? 2 : 1; }
+  /* 待ち時間の倍率。玉が増えるほど短くして、テンポを上げていく */
+  wk(){ return 1 - .75 * smooth(40, 400, N); }
+  /* 玉がひとつも来そうにないなら待つ（玉が少ないうちだけ）。
+     減るものとケンカしている間は、相手が強いほど待たない（待ってばかりいると、玉がいつまでも減らない） */
+  patience(){ return RD.foeOn && !RD.foeDone ? ASSIST[RD.foeLv - 1] : 1; }
+  noPrey(tau){ return SMART && RD.phase === "grow" && N < 60 && this.ph.held < 2.6 * this.patience() && this.prey(tau) === 0; }
+  motion(){ return 0; }
+  drawBack(){}
+  snd(){ return "cross"; }
+  /* 囲いに挟まれた大きなもの（食べる玉）の置き場所 o.x, o.y・つぶれる向き o.ax, o.ay（0 なら丸のまま縮む）・すき間の半分 o.half */
+  vise(e, x, y, o){ o.x = x; o.y = y; o.ax = 0; o.ay = 0; o.half = 1e9; }
+  /* (x, y) からいちばん近い「次に囲いこまれる所」 */
+  bait(x, y, o){ o.x = 0; o.y = 0; }
+}
+
+/* ── 寄せ刃: N 枚の刃がまわりから真ん中へ寄ってきて、間の玉をつぶす（2 枚＝プレス、4 枚＝十字） ── */
+class Yose extends Rig {
+  constructor(NB, shape){
+    super();
+    this.key = "yose"; this.NB = NB; this.shape = shape; this.units = NB; this.nex = NB === 2 ? 0 : NB;
+    const tb = this.tb = NB === 2 ? 11 : 10; this.rw = 7;
+    let L, dOpen, dLock = 0;
+    if (NB === 2){ L = 318; dOpen = 262; }
+    else {
+      // 3 枚以上: 開いているあいだ、刃は円の外にいる（刃のうしろに玉がたまると、中へ来なくなるため）。
+      // 外から寄ってきて、円の半径の 4 割の所で角がふさがり（多角形になり）、そこからゆっくり締まる
+      dLock = 205; dOpen = R + tb + 8;
+      L = (dLock + tb + 3) * Math.tan(Math.PI / NB);
+    }
+    this.L = L; this.dOpen = dOpen; this.dLock = dLock;
+    // 刃の形（刃の上の点。x は刃に沿って、y は真ん中へ向かう向き）
+    const lp = [];
+    if (shape === "arc"){
+      const sag = L * (NB === 2 ? .18 : .2);        // 端が真ん中のほうへ反る量
+      for (let j = 0; j <= 8; j++){ const u = -1 + 2 * j / 8; lp.push(u * L, sag * u * u); }
+    } else if (shape === "chev"){
+      const hh = L * .2; lp.push(-L, hh, 0, 0, L, hh);
+    } else if (shape === "saw"){
+      // 2 枚のときは上下の刃がかみ合う形。3 枚以上は、真ん中だけ平らにして、その外にギザギザ
+      // （真ん中までギザギザだと、歯の谷に玉が隠れて挟まれない）
+      const P = NB === 2 ? 64 : 46, A = P * .42, q = P / 4, K = Math.floor((L - 1) / q);
+      this.sawA = A; this.sawP = P;
+      const w0 = NB === 2 ? 0 : Math.min(L * .5, 1.8 * rad + 8);
+      const f = x => NB === 2 ? tri(x / P) * A / 2 : (Math.abs(x) <= w0 ? A / 2 : tri((Math.abs(x) - w0) / P + .25) * A / 2);
+      lp.push(-L, f(-L));
+      for (let j = -K; j <= K; j++){ const x = j * q; if (NB > 2 && Math.abs(x) < w0) continue; lp.push(x, f(x)); }
+      lp.push(L, f(L));
+      if (NB > 2){                                   // 平らな所の両端を足して、並べ直す
+        lp.push(-w0, A / 2, w0, A / 2);
+        const pts = []; for (let j = 0; j < lp.length; j += 2) pts.push([lp[j], lp[j + 1]]);
+        pts.sort((a, b) => a[0] - b[0]); lp.length = 0;
+        for (const p of pts){ if (lp.length && Math.abs(lp[lp.length - 2] - p[0]) < .5) continue; lp.push(p[0], p[1]); }
+      }
+    } else lp.push(-L, 0, L, 0);
+    this.lp = lp; this.np = lp.length / 2;
+    this.n = NB === 2 ? NB * this.np : NB * (this.np - 1);   // 1 枚につき、刃のかけら (np-1) 本。2 枚（プレス）は押し棒も当たる
+    this.wp = new Float32Array(NB * this.np * 2);
+    this.ang = NB === 2 ? pick([0, Math.PI / 2]) + (rnd() < .3 ? rr(-.35, .35) : 0) : rr(0, TAU / NB);
+    this.spin = rnd() < (NB === 2 ? .25 : .4) ? pick([1, -1]) * rr(.05, .2) : 0;
+    const tp = this.tp = rr(.9, 1.12);
+    this.dCn = this.dC(); this.dHeat = this.dCn + Math.max(70, 5.5 * RV); this.sealed = false;
+    const ev = rigEvent;
+    if (NB === 2){
+      // 動画のプレス: 待つ → 閉じる（ほぼ等速）→ すぐ開く
+      this.cycle = 1.62 * tp;
+      this.ph = new Phases({ d: dOpen }, c => {
+        this.dCn = this.dC(); this.dHeat = this.dCn + Math.max(70, 5.5 * RV);
+        return [
+          { n: "wait", d: (c ? rr(.45, .7) * this.wk() : .7) * tp, hold: () => this.noPrey(.6 * tp), maxHold: 2.6 },
+          { n: "close", d: .6 * tp, to: { d: this.dCn }, e: EZ.press, enter: () => ev("close"), exit: () => ev("impact") },
+          { n: "hold", d: .09 * tp },
+          { n: "open", d: .34 * tp, to: { d: dOpen }, e: EZ.outC },
+        ];
+      });
+    } else {
+      // 動画の 4 本の棒: 線路をすべって寄る → 閉じる → ゆっくり締める → 閉じたまま少し → 開く
+      this.cycle = 2.2 * tp;
+      this.ph = new Phases({ d: dOpen }, c => {
+        this.dCn = this.dC();
+        return [
+          { n: "wait", d: (c ? rr(.3, .5) * this.wk() : .45) * tp, hold: () => this.noPrey(.5 * tp), maxHold: 2.6 },
+          { n: "approach", d: .5 * tp, to: { d: dLock }, e: EZ.inOut, enter: () => { ev("close"); this.grab = this.grabAt(); this.up = this.d > this.grab; },
+            exit: () => { this.up = false; ev("lock"); ev("seal"); } },
+          { n: "pause", d: .07 * tp },
+          { n: "squeeze", d: .62 * tp, to: { d: this.dCn }, e: EZ.inQ, exit: () => ev("impact") },
+          { n: "hold", d: .2 * tp },
+          { n: "open", d: .5 * tp, to: { d: dOpen }, e: EZ.outC },
+        ];
+      });
+    }
+    this.d = dOpen; this.dPrev = dOpen; this.vel = 0; this.grab = dOpen + 1;
+    this.area = NB === 2 ? NB * ((2 * L + 2 * tb) * 2 * tb + 2 * this.rw * (R - dOpen)) : 0;   // 3 枚以上は、ふだん円の外にいる
+  }
+  /* 刃が降りて玉をつかまえはじめる距離。玉が少ないうちは円の外から全部かき集め、
+     増えてきたら真ん中の近くだけにする（全部かき集めると、増え方が速すぎて、円の中がいつも空っぽに見える） */
+  grabAt(){ const near = this.dLock * 1.45; return near + (this.dOpen + 1 - near) * (1 - smooth(60, 300, N)); }
+  name(){ return "寄せ刃 " + this.NB + " 枚・" + SHAPE_NAMES[this.shape]; }
+  snd(){ return this.NB === 2 ? "press" : "cross"; }
+  start(){ return [0, 0]; }
+  /* 閉じきったときの、真ん中から刃までの距離（玉の大きさに合わせる） */
+  dC(){
+    const g = this.tb + .8 * RV;
+    if (this.shape !== "saw") return g;
+    return this.NB === 2 ? g / Math.cos(Math.atan(2 * this.sawA / this.sawP)) : g + this.sawA / 2;
+  }
+  advance(dt){
+    this.ph.update(dt);
+    const d = this.ph.v.d, nm = this.ph.name;
+    this.vel = Math.abs(d - this.dPrev) / dt; this.dPrev = d; this.d = d;
+    this.ang += this.spin * dt; this.closed = nm === "hold"; this.live = nm !== "open" && nm !== "wait";
+    if (this.NB === 2){
+      if (nm === "close"){
+        if (!this.sealed && d < this.dHeat){ this.sealed = true; rigEvent("seal"); }
+        this.q = d < this.dHeat ? clamp(1 - (d - this.dCn) / (this.dHeat - this.dCn), 0, 1) : 0;
+      } else if (nm === "hold") this.q = 1;
+      else { this.q = 0; this.sealed = false; }
+    } else {
+      this.sealed = nm === "pause" || nm === "squeeze" || nm === "hold";
+      this.q = nm === "squeeze" || nm === "pause" ? clamp((this.dLock - d) / (this.dLock - this.dCn), 0, 1) : nm === "hold" ? 1 : 0;
+      if (nm === "approach"){ if (this.up && d <= this.grab) this.up = false; }
+      else if (nm === "open" || nm === "wait") this.up = d > this.grab;         // 開くときも、同じ所で浮く（玉を外へ押しのけない）
+      this.upK += ((this.up ? 1 : 0) - this.upK) * Math.min(1, dt * 16);
+    }
+  }
+  motion(){ return this.vel / 1300; }
+  geom(){
+    const NB = this.NB, lp = this.lp, np = this.np, d = this.d, tb = this.tb, wp = this.wp;
+    let k = 0;
+    for (let i = 0; i < NB; i++){
+      const th = this.ang + TAU * i / NB, ux = Math.cos(th), uy = Math.sin(th), cx = ux * d, cy = uy * d;
+      for (let j = 0; j < np; j++){   // 刃に沿う向き (-uy, ux)、真ん中へ向かう向き (-ux, -uy)
+        const x = lp[j * 2], y = lp[j * 2 + 1], o = (i * np + j) * 2;
+        wp[o] = cx - uy * x - ux * y; wp[o + 1] = cy + ux * x - uy * y;
+      }
+      const kind = this.kindOf(i);
+      for (let j = 0; j < np - 1; j++){ const o = (i * np + j) * 2; setSeg(k++, wp[o], wp[o + 1], wp[o + 2], wp[o + 3], tb, kind, i, i); }
+      // 押し棒（刃の背中から円の外へ）。3 枚以上のときは絵だけ（動画の線路と同じ。玉の通り道をふさがない）
+      if (NB === 2) setSeg(k++, cx + ux * tb, cy + uy * tb, ux * (R + 90), uy * (R + 90), this.rw, 0, -1, 255);
+    }
+  }
+  inPoly(x, y, apo){
+    const NB = this.NB;
+    for (let i = 0; i < NB; i++){ const th = this.ang + TAU * i / NB; if (x * Math.cos(th) + y * Math.sin(th) > apo) return false; }
+    return true;
+  }
+  /* 囲まれている所なら、締まり具合（0〜1）を返す */
+  heat(x, y){
+    if (this.q <= 0) return 0;
+    if (this.NB === 2){
+      const c = Math.cos(this.ang), s = Math.sin(this.ang), yn = x * c + y * s, xt = -x * s + y * c;
+      return Math.abs(xt) < this.L + this.tb && Math.abs(yn) < this.d - this.tb + RV ? this.q * .8 : 0;
+    }
+    return this.inPoly(x, y, this.d - this.tb + RV * .5) ? this.q * .8 : 0;
+  }
+  box(o){
+    if (this.q <= 0) return false;
+    const r = this.NB === 2 ? this.L + this.tb : this.d / Math.cos(Math.PI / this.NB) + RV;
+    o[0] = -r; o[1] = -r; o[2] = r; o[3] = r; return true;
+  }
+  /* 囲いの中か（食べる玉が挟まれるかどうかに使う。m は余裕） */
+  contains(x, y, m){
+    if (this.NB === 2){
+      const c = Math.cos(this.ang), s = Math.sin(this.ang);
+      return Math.abs(-x * s + y * c) < this.L * .92 + m && Math.abs(x * c + y * s) < this.d - this.tb + m;
+    }
+    return this.inPoly(x, y, Math.min(this.d, this.dLock) - this.tb + m);
+  }
+  vise(e, x, y, o){
+    o.half = Math.max(2, this.d - this.tb);
+    if (this.NB === 2){
+      const c = Math.cos(this.ang), s = Math.sin(this.ang), xt = clamp(-x * s + y * c, -this.L * .85, this.L * .85);
+      o.x = -s * xt; o.y = c * xt; o.ax = c; o.ay = s;
+    } else { o.x = 0; o.y = 0; o.ax = 0; o.ay = 0; }
+  }
+  exitFor(x, y){
+    if (this.NB === 2) return 0;
+    const a = Math.atan2(y, x) - this.ang, w = TAU / this.NB;
+    return ((Math.floor(a / w) % this.NB) + this.NB) % this.NB;
+  }
+  /* 出口（生まれた玉が出てくる所）。2 枚のときは、その場からすき間に沿って流れる */
+  exitInfo(e, o){
+    if (this.NB === 2){ o.mode = 0; o.tx = -Math.sin(this.ang); o.ty = Math.cos(this.ang); return; }
+    const a = this.ang + TAU * (e + .5) / this.NB, se = (this.dCn + this.tb + 10) / Math.cos(Math.PI / this.NB);
+    o.mode = 1; o.dx = Math.cos(a); o.dy = Math.sin(a); o.x = o.dx * se; o.y = o.dy * se;
+  }
+  lump(e, o){ if (this.NB === 2) return false; o.x = 0; o.y = 0; return true; }
+  /* tau 秒後に閉じたとき、囲いの中にいそうな玉の数 */
+  prey(tau){
+    const NB = this.NB; let n = 0;
+    if (NB === 2){
+      const s = Math.sin(this.ang), c = Math.cos(this.ang), lim = this.L - 30 - RV;
+      for (let i = 0; i < M; i++){
+        if ((ST[i] & 7) || IMM[i] > T + tau) continue;
+        const yn = X[i] * c + Y[i] * s;
+        if (Math.abs(yn) > this.d - this.tb) continue;                       // 板のうしろにいる
+        const xt = -(X[i] + VX[i] * tau) * s + (Y[i] + VY[i] * tau) * c;
+        if (Math.abs(xt) < lim) n++;
+      }
+      return n;
+    }
+    const apo = this.dLock * 1.35, a0 = this.ang + this.spin * tau;                // 外から来る刃が玉を寄せ集めるので、少し広めに見る
+    for (let i = 0; i < M; i++){
+      if ((ST[i] & 7) || IMM[i] > T + tau + .5) continue;
+      const x = X[i] + VX[i] * tau, y = Y[i] + VY[i] * tau;
+      let inside = true;
+      for (let b = 0; b < NB; b++){ const th = a0 + TAU * b / NB; if (x * Math.cos(th) + y * Math.sin(th) > apo){ inside = false; break; } }
+      if (inside) n++;
+    }
+    return n;
+  }
+  drawBack(c){
+    if (this.NB === 2) return;
+    for (let i = 0; i < this.NB; i++){ const th = this.ang + TAU * i / this.NB; rail(c, 0, 0, Math.cos(th) * R * 2.4, Math.sin(th) * R * 2.4, 4); }
+  }
+  draw(c){
+    const NB = this.NB, np = this.np, wp = this.wp, tb = this.tb;
+    for (let i = 0; i < NB; i++){
+      c.save(); c.rotate(this.ang + TAU * i / NB - Math.PI / 2);   // 押し棒と台は、下向きの形で描いて回す
+      if (NB === 2){ rod(c, 0, R + 20, 0, this.d + tb, this.rw); mount(c, R + 6, -1); }
+      else rod(c, 0, R * 2.4, 0, this.d + tb, 4);
+      c.restore();
+    }
+    const ga = c.globalAlpha;
+    c.globalAlpha = ga * (1 - .5 * this.upK);          // 浮いている刃は、うすく描く
+    for (let i = 0; i < NB; i++){
+      const red = this.redK[i];
+      if (this.shape === "bar"){ const o = i * np * 2; bar(c, wp[o], wp[o + 1], wp[o + 2], wp[o + 3], tb, NB === 2, red); }
+      else drawPoly(c, wp, i * np, np, tb, red);
+    }
+    c.globalAlpha = ga;
+  }
+}
+
+/* ── 8 の字: 弧 N 本ずつの組が 2 つ、軸のまわりを逆向きに回り続ける。
+      弧がそろうと輪になり、そのまま行き違ってレンズ形に細り、つぶれる（動画と同じ。往復しない） ── */
+class Loops extends Rig {
+  constructor(NL, shape){
+    super();
+    this.key = "loops"; this.NL = NL; this.shape = shape; this.units = 2 * NL;
+    this.rho = (NL <= 3 ? 150 : NL === 4 ? 142 : 134) * (shape === "arc" ? 1 : 1.14); this.tb = 9; this.hub = 28; this.hm = 1;
+    this.P = shape === "arc" ? 10 : 2;
+    this.n = 2 * NL * this.P + 1;
+    this.thc = shape === "arc" ? Math.PI / 2 : Math.atan(this.hm);       // 輪ができてから、つぶれきるまでに回る角度
+    const Ts = [0, 0, 1.25, 1.35, 1.5, 1.6][NL] * rr(.92, 1.1);          // 輪ができる間隔（秒）
+    this.stp = Math.PI / NL; this.om = this.stp / Ts; this.cycle = Ts;
+    this.ang = rr(0, TAU); this.spin = rnd() < .35 ? pick([1, -1]) * rr(.04, .1) : 0;
+    this.phi = Math.min(this.stp * .9, this.om * .95);                   // 最初は口が開いている（1 秒たらずで輪になる）
+    this.lam = 1; this.slowT = 0; this.w = this.om;
+    this.area = NL * 2 * (shape === "arc" ? Math.PI * this.rho : 2 * this.rho * Math.hypot(1, this.hm)) * 2 * this.tb + Math.PI * this.hub ** 2;
+  }
+  name(){ return "8 の字 " + this.NL + " つ・" + SHAPE_NAMES[this.shape]; }
+  snd(){ return "loops"; }
+  start(){ const g = this.ang + Math.PI * Math.floor(this.phi / this.stp) / this.NL; return [this.rho * Math.cos(g), this.rho * Math.sin(g)]; }
+  advance(dt){
+    const stp = this.stp, p0 = this.phi;
+    // 玉が少ないうちは、輪の中に玉が来るまで、ゆっくり回って待つ
+    let lam = 1;
+    if (SMART && RD.phase === "grow" && N < 60){
+      const th = p0 - Math.floor(p0 / stp) * stp;
+      if (th < .75 && th > .05 && this.slowT < 3 * this.patience() && this.prey(th / this.om) === 0){ lam = .28; this.slowT += dt; }
+    }
+    this.lam += (lam - this.lam) * Math.min(1, dt * 8);
+    this.w = this.om * this.lam;
+    const p1 = p0 - this.w * dt;
+    this.phi = p1;
+    this.ang += this.spin * dt;
+    // つぶれる（先に）→ 次の輪ができる
+    if (Math.floor((p1 + this.thc) / stp) < Math.floor((p0 + this.thc) / stp)) rigEvent("impact");
+    if (Math.floor(p1 / stp) < Math.floor(p0 / stp)){ this.slowT = 0; rigEvent("close"); rigEvent("lock"); rigEvent("seal"); }
+    const s1 = Math.ceil((p1 + this.thc) / stp) - 1, th1 = p1 - s1 * stp;
+    this.q = th1 < 0 ? clamp(-th1 / this.thc, 0, 1) : 0;
+  }
+  motion(){ return .12 + .1 * this.lam; }
+  geom(){
+    const NL = this.NL, P = this.P, rho = this.rho, tb = this.tb;
+    let k = 0;
+    for (let b = 0; b < 2; b++) for (let j = 0; j < NL; j++){
+      const dir = this.ang + (b ? -this.phi : this.phi) + TAU * j / NL, dx = Math.cos(dir), dy = Math.sin(dir);
+      const nx = b ? dy : -dy, ny = b ? -dx : dx, unit = b * NL + j, kind = this.kindOf(unit);   // 組 A は左へ、組 B は右へふくらむ
+      let px = 0, py = 0;
+      for (let q = 1; q <= P; q++){
+        let x, y;
+        if (P > 2){ const u = Math.PI * q / P, cu = Math.cos(u), su = Math.sin(u); x = rho * (dx - cu * dx + su * nx); y = rho * (dy - cu * dy + su * ny); }
+        else if (q === 1){ x = rho * (dx + this.hm * nx); y = rho * (dy + this.hm * ny); }
+        else { x = 2 * rho * dx; y = 2 * rho * dy; }
+        setSeg(k++, px, py, x, y, tb, kind, b, unit); px = x; py = y;
+      }
+    }
+    setSeg(k++, 0, 0, 0, 0, this.hub, 0, -1, 255);   // 真ん中の軸（押すだけ）
+  }
+  /* いま閉じている輪（レンズ）の中か。中なら締まり具合を返す */
+  lens(x, y, m){
+    const lim0 = 2 * this.rho + this.tb;
+    if (x * x + y * y > lim0 * lim0) return 0;
+    const NL = this.NL, stp = this.stp, rho = this.rho, lim = rho - this.tb * .5 + m, lim2 = lim * lim;
+    const a = Math.atan2(y, x) - this.ang, w = TAU / NL;
+    const s0 = Math.floor(this.phi / stp) + 1, s1 = Math.ceil((this.phi + this.thc) / stp) - 1;
+    let best = 0;
+    for (let s = s0; s <= s1; s++){
+      const th = this.phi - s * stp;                                    // 0 より小さい（輪ができてから回った角度）
+      const j = Math.round((a - Math.PI * s / NL) / w), g = this.ang + Math.PI * (2 * j + s) / NL;
+      const ax = rho * Math.cos(g + th) - x, ay = rho * Math.sin(g + th) - y;
+      if (ax * ax + ay * ay > lim2) continue;
+      const bx = rho * Math.cos(g - th) - x, by = rho * Math.sin(g - th) - y;
+      if (bx * bx + by * by > lim2) continue;
+      const q = Math.max(.02, -th / this.thc);
+      if (q > best) best = q;
+    }
+    return best;
+  }
+  heat(x, y){ return this.lens(x, y, RV * .3) * .8; }
+  box(o){ const r = 2 * this.rho + this.tb; o[0] = -r; o[1] = -r; o[2] = r; o[3] = r; return true; }
+  contains(x, y, m){ return this.lens(x, y, m) > 0; }
+  vise(e, x, y, o){
+    const NL = this.NL, p = e >= NL ? 1 : 0, g = this.ang + Math.PI * (2 * (e % NL) + p) / NL;
+    this.lump(e, o);
+    o.ax = -Math.sin(g); o.ay = Math.cos(g);
+    o.half = Math.max(2, this.rho * (1 - Math.sin(this.q * Math.PI / 2)) - this.tb);
+  }
+  bait(x, y, o){
+    const w = Math.PI / this.NL, a = this.ang + Math.round((Math.atan2(y, x) - this.ang) / w) * w;
+    o.x = this.rho * Math.cos(a); o.y = this.rho * Math.sin(a);
+  }
+  exitFor(x, y){
+    const NL = this.NL;
+    const s1 = Math.ceil((this.phi + this.thc) / this.stp) - 1;        // いちばん古い（もうすぐつぶれる）輪
+    const p = ((s1 % 2) + 2) % 2;
+    let j = Math.round((Math.atan2(y, x) - this.ang - Math.PI * p / NL) / (TAU / NL));
+    j = ((j % NL) + NL) % NL;
+    return p * NL + j;
+  }
+  /* 出口: 輪がつぶれた向きの先、弧の届かない外側 */
+  exitInfo(e, o){
+    const NL = this.NL, p = e >= NL ? 1 : 0, j = e % NL, g = this.ang + Math.PI * (2 * j + p) / NL, dist = 2 * this.rho + this.tb + 12;
+    o.mode = 1; o.dx = Math.cos(g); o.dy = Math.sin(g); o.x = o.dx * dist; o.y = o.dy * dist;
+  }
+  lump(e, o){
+    const NL = this.NL, p = e >= NL ? 1 : 0, j = e % NL, g = this.ang + Math.PI * (2 * j + p) / NL;
+    let s1 = Math.ceil((this.phi + this.thc) / this.stp) - 1;
+    if ((((s1 % 2) + 2) % 2) !== p) s1--;
+    const th = Math.min(0, this.phi - s1 * this.stp);
+    const dist = Math.max(this.hub + RV + 4, this.rho * Math.cos(clamp(th * (Math.PI / 2) / this.thc, -Math.PI / 2, 0)));
+    o.x = Math.cos(g) * dist; o.y = Math.sin(g) * dist; return true;
+  }
+  prey(tau){
+    const NL = this.NL, sN = Math.floor(this.phi / this.stp), rho = this.rho;
+    const lim = (this.shape === "arc" ? rho : rho * Math.SQRT1_2) - this.tb - RV * 1.15, lim2 = lim * lim;
+    const a0 = this.ang + this.spin * tau, late = T + tau + this.thc / this.om * .7;
+    let n = 0;
+    for (let i = 0; i < M; i++){
+      if ((ST[i] & 7) || IMM[i] > late) continue;
+      const x = X[i] + VX[i] * tau, y = Y[i] + VY[i] * tau;
+      for (let j = 0; j < NL; j++){
+        const g = a0 + Math.PI * (2 * j + sN) / NL, dx = rho * Math.cos(g) - x, dy = rho * Math.sin(g) - y;
+        if (dx * dx + dy * dy < lim2){ n++; break; }
+      }
+    }
+    return n;
+  }
+  draw(c){
+    const NL = this.NL, rho = this.rho, Mv = this.shape === "arc" ? 26 : 2;
+    for (let b = 0; b < 2; b++) for (let j = 0; j < NL; j++){
+      const dir = this.ang + (b ? -this.phi : this.phi) + TAU * j / NL, dx = Math.cos(dir), dy = Math.sin(dir);
+      const nx = b ? dy : -dy, ny = b ? -dx : dx;
+      const pt = u => {
+        if (this.shape === "arc"){ const a = Math.PI * u, cu = Math.cos(a), su = Math.sin(a); return [rho * (dx - cu * dx + su * nx), rho * (dy - cu * dy + su * ny)]; }
+        if (u <= .5){ const f = u * 2; return [rho * (dx + this.hm * nx) * f, rho * (dy + this.hm * ny) * f]; }
+        const f = (u - .5) * 2; return [rho * (dx + this.hm * nx) + (rho * dx - rho * this.hm * nx) * f, rho * (dy + this.hm * ny) + (rho * dy - rho * this.hm * ny) * f];
+      };
+      c.beginPath();
+      for (let q = 0; q <= Mv; q++){ const p = pt(q / Mv); q ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1]); }
+      blade(c, this.tb, this.redK[b * NL + j]);
+      for (let q = 1; q < 7; q++){ const p = pt(q / 7); rivet(c, p[0], p[1], 1.7); }
+    }
+    hubDraw(c, this.hub);
+  }
+}
+
+/* ── はさみ箱: 棒 2 本がすべって入り、先の羽根が折れて箱になり、横に締まる。逆の順で戻る（動画の折れる箱） ── */
+class Box extends Rig {
+  constructor(){
+    super();
+    this.key = "box"; this.units = 2; this.n = 4; this.tb = 9; this.nex = 2;
+    this.hb = 122;                       // 箱になったときの、真ん中から棒までの距離
+    this.hf = 338;                       // 棒が入ってくるときの距離
+    this.X0 = 292;                       // 箱になったときの、真ん中から羽根までの距離
+    this.Lf = 2 * this.hb;               // 羽根の長さ（向かいの棒に届く）
+    this.Xfar = R + 70 + this.Lf;
+    this.mx = rnd() < .5 ? 1 : -1;       // 左右を入れかえた形もある
+    this.ang = pick([0, Math.PI / 2]) + rr(-.4, .4);
+    this.ca = Math.cos(this.ang); this.sa = Math.sin(this.ang);
+    const tp = this.tp = rr(.92, 1.1), ev = rigEvent;
+    this.cycle = 2.56 * tp; this.xc = this.tb + .8 * RV;
+    this.ph = new Phases({ s: -this.Xfar, h: this.hf, psi: 0 }, c => {
+      this.xc = this.tb + .8 * RV;
+      return [
+        { n: "wait", d: (c ? rr(.25, .45) * this.wk() : .2) * tp, hold: () => this.noPrey(.74 * tp), maxHold: 2.6 },
+        { n: "in", d: .4 * tp, to: { s: this.X0 }, e: EZ.inOut, enter: () => ev("close") },
+        { n: "fold", d: .34 * tp, to: { h: this.hb, psi: Math.PI / 2 }, e: EZ.inOut, exit: () => { this.sealed = true; ev("lock"); ev("seal"); } },
+        { n: "pause", d: .05 * tp },
+        { n: "squeeze", d: .32 * tp, to: { s: this.xc }, e: EZ.inQ, exit: () => ev("impact") },
+        { n: "hold", d: .1 * tp },
+        { n: "unsq", d: .3 * tp, to: { s: this.X0 }, e: EZ.outC },
+        { n: "unfold", d: .32 * tp, to: { h: this.hf, psi: 0 }, e: EZ.inOut },
+        { n: "out", d: .38 * tp, to: { s: -this.Xfar }, e: EZ.inQ },
+      ];
+    });
+    this.sPrev = -this.Xfar; this.vel = 0; this.sealed = false;
+    this.area = 2 * (2 * this.X0 + this.Lf) * 2 * this.tb;
+  }
+  name(){ return "はさみ箱"; }
+  snd(){ return "box"; }
+  start(){ return [0, 0]; }
+  advance(dt){
+    this.ph.update(dt);
+    const v = this.ph.v, nm = this.ph.name;
+    this.vel = Math.abs(v.s - this.sPrev) / dt; this.sPrev = v.s;
+    this.sealed = nm === "pause" || nm === "squeeze" || nm === "hold"; this.closed = nm === "hold";
+    this.live = nm === "in" || nm === "fold" || this.sealed;
+    this.q = nm === "squeeze" || nm === "pause" ? clamp((this.X0 - v.s) / (this.X0 - this.xc), 0, 1) : nm === "hold" ? 1 : 0;
+  }
+  motion(){ return Math.min(1, this.vel / 1500); }
+  /* 箱の向きに合わせた座標（lx: 羽根が寄る向き、ly: 棒が寄る向き）→ 画面の座標 */
+  wx(lx, ly){ return this.mx * lx * this.ca - ly * this.sa; }
+  wy(lx, ly){ return this.mx * lx * this.sa + ly * this.ca; }
+  lx(x, y){ return this.mx * (x * this.ca + y * this.sa); }
+  ly(x, y){ return -x * this.sa + y * this.ca; }
+  lseg(k, ax, ay, bx, by, w, kind, grp, unit){ setSeg(k, this.wx(ax, ay), this.wy(ax, ay), this.wx(bx, by), this.wy(bx, by), w, kind, grp, unit); }
+  geom(){
+    const { s, h, psi } = this.ph.v, Lf = this.Lf, cp = Math.cos(psi), sp = Math.sin(psi), tb = this.tb;
+    this.lseg(0, -s, -h, R + 150, -h, tb, 0, 2, 255);                          // 上の棒（右から入る）
+    this.lseg(1, s, h, -R - 150, h, tb, 0, 3, 255);                            // 下の棒（左から入る）
+    this.lseg(2, -s, -h, -s - Lf * cp, -h + Lf * sp, tb, this.kindOf(0), 0, 0);   // 左の羽根（上の棒の先）
+    this.lseg(3, s, h, s + Lf * cp, h - Lf * sp, tb, this.kindOf(1), 1, 1);       // 右の羽根（下の棒の先）
+  }
+  inBox(x, y, m){
+    const v = this.ph.v;
+    return Math.abs(this.lx(x, y)) < v.s - this.tb + m && Math.abs(this.ly(x, y)) < v.h - this.tb + m;
+  }
+  heat(x, y){ return this.q > 0 && this.inBox(x, y, RV * .5) ? this.q * .8 : 0; }
+  box(o){ if (this.q <= 0) return false; const r = Math.hypot(this.ph.v.s, this.hb) + RV; o[0] = -r; o[1] = -r; o[2] = r; o[3] = r; return true; }
+  contains(x, y, m){ return this.sealed && this.inBox(x, y, m); }
+  vise(e, x, y, o){
+    const ly = clamp(this.ly(x, y), -this.hb * .45, this.hb * .45);
+    o.x = this.wx(0, ly); o.y = this.wy(0, ly); o.ax = this.wx(1, 0); o.ay = this.wy(1, 0);
+    o.half = Math.max(2, this.ph.v.s - this.tb);
+  }
+  exitFor(x, y){ return this.ly(x, y) < 0 ? 0 : 1; }
+  /* 出口: 蝶番の 2 つの角の外（左上と右下） */
+  exitInfo(e, o){
+    const eo = this.tb + 14, sg = e ? 1 : -1, lx = sg * (this.xc + eo), ly = sg * (this.hb + eo), k = Math.SQRT1_2;
+    o.mode = 1; o.x = this.wx(lx, ly); o.y = this.wy(lx, ly); o.dx = this.wx(sg * k, sg * k); o.dy = this.wy(sg * k, sg * k);
+  }
+  lump(e, o){ const ly = (e ? 1 : -1) * this.hb * .32; o.x = this.wx(0, ly); o.y = this.wy(0, ly); return true; }
+  prey(tau){
+    const limX = this.X0 - this.tb - RV - 25, limY = this.hb - this.tb - RV;
+    let n = 0;
+    for (let i = 0; i < M; i++){
+      if ((ST[i] & 7) || IMM[i] > T + tau + .3) continue;
+      const x = X[i] + VX[i] * tau, y = Y[i] + VY[i] * tau;
+      if (Math.abs(this.lx(x, y)) < limX && Math.abs(this.ly(x, y)) < limY) n++;
+    }
+    return n;
+  }
+  draw(c){
+    const { s, h, psi } = this.ph.v, Lf = this.Lf, cp = Math.cos(psi), sp = Math.sin(psi), tb = this.tb;
+    c.save(); c.rotate(this.ang); c.scale(this.mx, 1);
+    bar(c, -s, -h, R + 150, -h, tb, true, 0); bar(c, s, h, -R - 150, h, tb, true, 0);
+    bar(c, -s, -h, -s - Lf * cp, -h + Lf * sp, tb, false, this.redK[0], true);
+    bar(c, s, h, s + Lf * cp, h - Lf * sp, tb, false, this.redK[1], true);
+    bolt(c, -s, -h, tb * .62); bolt(c, s, h, tb * .62);
+    c.restore();
+  }
+}
+const MECHS = { yose: Yose, loops: Loops, box: Box };
+const MECH_KEYS = ["yose", "loops", "box"];
+
+/* ── 仕掛けの絵 ── */
+const METAL = ["#eef1f7", "#c3c9d4", "#8d94a1", "#5a606b"], REDM = ["#ffe1d6", "#ff8068", "#d23a2c", "#701812"];
+function hexRgb(h){ const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+function mix(h1, h2, t){ const a = hexRgb(h1), b = hexRgb(h2); return `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(",")})`; }
+function rgba(h, a){ const c = hexRgb(h); return `rgba(${c[0]},${c[1]},${c[2]},${a})`; }
+function rrect(c, x, y, w, h, r){
+  if (c.roundRect){ c.beginPath(); c.roundRect(x, y, w, h, r); return; }
+  c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath();
+}
+function metal(c, x0, y0, x1, y1, red){
+  const g = c.createLinearGradient(x0, y0, x1, y1), st = [0, .3, .62, 1];
+  for (let q = 0; q < 4; q++) g.addColorStop(st[q], red > 0 ? mix(METAL[q], REDM[q], red) : METAL[q]);
+  return g;
+}
+function rivet(c, x, y, r){ c.beginPath(); c.arc(x, y, r, 0, TAU); c.fillStyle = "rgba(40,45,56,.55)"; c.fill(); }
+/* まっすぐな刃・棒（groove: 板の溝、gold: 羽根の金色の筋、red: 消し刃の赤さ 0〜1） */
+function bar(c, x0, y0, x1, y1, w, groove, red, gold){
+  const dx = x1 - x0, dy = y1 - y0, L = Math.hypot(dx, dy);
+  red = red || 0;
+  c.save(); c.translate(x0, y0); c.rotate(Math.atan2(dy, dx));
+  if (red > .02){ c.fillStyle = `rgba(255,70,40,${.22 * red})`; rrect(c, -w * 1.9, -w * 1.9, L + w * 3.8, w * 3.8, w * 1.9); c.fill(); }   // 赤く焼けた光
+  c.fillStyle = metal(c, 0, -w, 0, w, red);
+  rrect(c, -w, -w, L + 2 * w, 2 * w, w); c.fill();
+  c.lineWidth = Math.max(.8, w * .12); c.strokeStyle = "rgba(20,24,32,.55)"; c.stroke();
+  c.strokeStyle = "rgba(255,255,255,.6)"; c.lineWidth = w * .16;
+  c.beginPath(); c.moveTo(w * .2, -w * .55); c.lineTo(L - w * .2, -w * .55); c.stroke();
+  if (gold){ c.strokeStyle = "rgba(226,170,70,.85)"; c.lineWidth = w * .3; c.beginPath(); c.moveTo(w * 1.2, w * .42); c.lineTo(L - w * .6, w * .42); c.stroke(); }
+  if (groove && L > 6 * w){
+    c.strokeStyle = "rgba(40,46,58,.45)"; c.lineWidth = w * .14;
+    c.beginPath(); c.moveTo(w * 2, w * .25); c.lineTo(Math.min(L, 2 * R) - w * 2, w * .25); c.stroke();
+  }
+  const n = Math.min(24, Math.floor(L / 46));
+  for (let q = 1; q <= n; q++) rivet(c, L * q / (n + 1), 0, w * .17);
+  c.restore();
+}
+function drawPoly(c, wp, p0, np, w, red){
+  c.beginPath();
+  for (let j = 0; j < np; j++){ const o = (p0 + j) * 2; j ? c.lineTo(wp[o], wp[o + 1]) : c.moveTo(wp[o], wp[o + 1]); }
+  blade(c, w, red);
+}
+function rod(c, x0, y0, x1, y1, w){
+  const dx = x1 - x0, dy = y1 - y0, L = Math.hypot(dx, dy);
+  c.save(); c.translate(x0, y0); c.rotate(Math.atan2(dy, dx));
+  const g = c.createLinearGradient(0, -w, 0, w);
+  g.addColorStop(0, "#9aa2b0"); g.addColorStop(.4, "#d9dde6"); g.addColorStop(1, "#4d535e");
+  c.fillStyle = g; c.fillRect(0, -w, L, 2 * w);
+  c.restore();
+}
+function mount(c, y, dir){
+  c.save(); c.translate(0, y);
+  const g = c.createLinearGradient(-34, 0, 34, 0);
+  g.addColorStop(0, "#3b404b"); g.addColorStop(.5, "#9ba3b1"); g.addColorStop(1, "#30343d");
+  c.fillStyle = g;
+  rrect(c, -34, -13, 68, 26, 6); c.fill();
+  c.fillStyle = "#1c1f26"; c.fillRect(-12, dir > 0 ? 9 : -15, 24, 6);
+  c.restore();
+}
+function rail(c, x0, y0, x1, y1, w){
+  c.save(); c.lineCap = "round";
+  c.strokeStyle = "rgba(170,180,200,.13)"; c.lineWidth = w * 2.2;
+  c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke();
+  c.strokeStyle = "rgba(230,236,248,.12)"; c.lineWidth = w * .5;
+  c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke();
+  c.restore();
+}
+/* いま組んである道筋を、刃として描く（曲がった刃・ギザギザ用） */
+function blade(c, w, red){
+  red = red || 0;
+  c.lineCap = "round"; c.lineJoin = "round";
+  if (red > .02){ c.strokeStyle = `rgba(255,70,40,${.22 * red})`; c.lineWidth = w * 3.8; c.stroke(); }
+  c.strokeStyle = red ? mix("#555b67", "#4a1410", red) : "#555b67"; c.lineWidth = w * 2 + 1.6; c.stroke();
+  c.strokeStyle = red ? mix("#a9b0bd", "#e2503a", red) : "#a9b0bd"; c.lineWidth = w * 2; c.stroke();
+  c.strokeStyle = red ? `rgba(255,${Math.round(247 - 70 * red)},${Math.round(252 - 110 * red)},.75)` : "rgba(244,247,252,.75)";
+  c.lineWidth = w * .55; c.stroke();
+}
+function bolt(c, x, y, r){
+  c.beginPath(); c.arc(x, y, r, 0, TAU);
+  c.fillStyle = "#4a505b"; c.fill();
+  c.beginPath(); c.arc(x - r * .2, y - r * .2, r * .55, 0, TAU);
+  c.fillStyle = "#c9ced8"; c.fill();
+}
+function hubDraw(c, r){
+  const g = c.createRadialGradient(-r * .3, -r * .3, r * .1, 0, 0, r);
+  g.addColorStop(0, "#f2f4f8"); g.addColorStop(.6, "#9aa1ae"); g.addColorStop(1, "#4f5561");
+  c.beginPath(); c.arc(0, 0, r, 0, TAU); c.fillStyle = g; c.fill();
+  c.lineWidth = 2; c.strokeStyle = "rgba(30,34,42,.6)"; c.stroke();
+  for (let q = 0; q < 6; q++){ const a = q * TAU / 6; rivet(c, Math.cos(a) * r * .58, Math.sin(a) * r * .58, r * .09); }
+  c.beginPath(); c.arc(0, 0, r * .2, 0, TAU); c.fillStyle = "#2b2f38"; c.fill();
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   減るもの（増えるほうとケンカする相手）
+   どれも「行ったり来たり」になるように作ってあり、いつかは必ず引き下がる（終わりがある）。
+     食べる玉 … 食べるほど大きくなる。大きいと刃に挟まれてはじけ、食べた玉を吐き出す
+     穴       … ひびで知らせてから開き、しばらくすると閉じる。混んでいるほど勢いよく噴き出す
+     寿命     … 年をとると色あせ、しぼんで消える。だんだん長くなって、最後はなくなる
+     消し刃   … 赤い刃が 1 枚ずつ広がり、やがて引いていく。赤い刃に挟まれた玉は消える
+   ══════════════════════════════════════════════════════════════════ */
+const VZ = { x: 0, y: 0, ax: 0, ay: 0, half: 0 };
+const FOE_TUNE = {
+  //            弱い  ふつう  強い
+  // 食べる玉: 何匹・食べられる速さ（出てきたときの玉の数の何倍か/秒と、その下限）・おなかの大きさ（玉の数の何倍かと、その下限）
+  eater: { lives: [2, 3, 5], atOnce: [1, 2, 3], cE: [.22, .34, .45], eMin: [16, 26, 34], cFull: [.7, .8, .9], fullMin: [30, 36, 44], share: [.8, .65, .5],
+           keen: [.5, .7, .85], pull: [1000, 1600, 2000], reach: [70, 115, 130], age: [12, 13, 14], speed: [330, 400, 440], gulp: [.3, .3, .3] },
+  // 穴: 何回開くか・吸い出す風の強さ・玉が少ないうちの上乗せ（強い穴ほど、出だしの玉を吸いつくしにくる）・開いている秒数・2 つ同時に開くか
+  hole:  { opens: [2, 3, 4], wind: [600, 1400, 2100], early: [0, .5, 1.6], openT: [3, 4, 5.5], two: [0, 0, 1] },
+  // 寿命: 出てきたとき、1 個の玉が寿命のうちに残す子の数のねらい（1 より小さいと減っていく）・寿命がある秒数
+  life:  { rho: [1.75, 1.1, .8], dur: [16, 22, 28] },
+  // 消し刃: 赤がいちばん多いまま続く秒数（いちばん多いときの枚数は、分かれる数から決める）
+  red:   { hold: [5, 8, 9] },
+};
+function tune(key, name, lv){ return FOE_TUNE[key][name][lv - 1]; }
+function makeFoe(key, lv){
+  lv = clamp(lv | 0, 1, 3);
+  return key === "eater" ? new Eater(lv) : key === "hole" ? new Hole(lv) : key === "life" ? new Life(lv) : key === "red" ? new RedTide(lv) : null;
+}
+
+/* ── 食べる玉 ── */
+class Eater {
+  constructor(lv){
+    this.lv = lv;
+    this.left = tune("eater", "lives", lv);          // あと何匹やっつければ終わるか（今いるのも入れて）
+    this.toCome = this.left;                         // まだ出てきていない数
+    this.atOnce = tune("eater", "atOnce", lv);       // いっぺんに出てくる数
+    this.share = tune("eater", "share", lv);         // はじけたとき、食べた玉のうち吐き出す割合
+    this.keen = tune("eater", "keen", lv);           // 小さいうちに、囲いからとび出してよける確率
+    this.pull = tune("eater", "pull", lv);           // 吸いこむ強さ
+    this.reach = tune("eater", "reach", lv);         // 吸いこみが届く広さ
+    this.speed = tune("eater", "speed", lv);         // 動く速さ（小さいとき）
+    this.gulp = tune("eater", "gulp", lv);           // いっぺんに飲みこめる量（食べる速さの何秒ぶんか）
+    this.age = tune("eater", "age", lv);             // 食べきれなくても、この秒数でおなかいっぱいになる
+    this.r0 = Math.max(2.3 * rad, 24); this.rMax = 104;
+    this.list = []; this.next = 0; this.spray = 0; this.n0 = STAT.eaten; this.off = false;
+  }
+  start(){ this.next = T + .15; showLabel("食べる玉が来た！"); this.tell(); }
+  tell(){
+    showFight("食べる玉　のこり " + this.left + "　食べた " + NF.format(STAT.eaten - this.n0) + " 個" + (this.list.some(e => e.full && e.state !== "pop") ? "　おなかいっぱい！" : ""));
+  }
+  spawn(){
+    const r = this.r0;
+    let x = 0, y = 0;
+    for (let q = 0; q < 10; q++){                    // 囲いの中や、ほかの食べる玉の上には出ない
+      const a = rnd() * TAU, d = R - r - 8;
+      x = Math.cos(a) * d; y = Math.sin(a) * d;
+      if (!rig.contains(x, y, r + 30) && !this.list.some(o => Math.hypot(o.x - x, o.y - y) < o.r + r + 40)) break;
+    }
+    const a = Math.atan2(-y, -x);
+    // 食べる速さとおなかの大きさは、出てきたときの玉の数に合わせる（玉が多いほど、大食い）
+    const eMax = clamp(tune("eater", "cE", this.lv) * N, tune("eater", "eMin", this.lv), 400);
+    const cap = clamp(Math.round(tune("eater", "cFull", this.lv) * N), tune("eater", "fullMin", this.lv), 2500);
+    this.list.push({ x, y, vx: Math.cos(a) * 60, vy: Math.sin(a) * 60, r, rd: 0, eaten: 0, eMax, cap, t0: T, state: "hunt", st: T, tx: 0, ty: 0, pickT: 0,
+                     bite: 0, dir: a, mouth: 0, exit: 0, fx: x, fy: y, hx: x, hy: y, heat: 0, sq: 1, sq2: 1, sqA: 0, full: false, fullT: 0 });
+    this.toCome--;
+    fxBig(x, y, 9, r * 2.4);
+    AU.sfx("foe");
+  }
+  /* まだ決着がついていない（挟まれた食べる玉が、これから玉を吐き出す） */
+  pending(){ return this.list.some(e => e.state === "trap" && Math.round(e.eaten * this.share) > 0); }
+  update(dt){
+    if (this.off){
+      for (let j = this.list.length - 1; j >= 0; j--){ const e = this.list[j]; e.rd -= dt * 260; if (e.rd <= 0) this.list.splice(j, 1); }
+      return;
+    }
+    if (RD.phase !== "grow") return;
+    if (this.toCome > 0 && this.list.length < this.atOnce && T >= this.next){ this.spawn(); this.next = T + 1.3; }
+    for (let j = this.list.length - 1; j >= 0; j--){
+      const e = this.list[j];
+      e.r = Math.sqrt(this.r0 * this.r0 + (this.rMax * this.rMax - this.r0 * this.r0) * Math.min(1, e.eaten / e.cap));
+      e.rd += (e.r - e.rd) * Math.min(1, dt * 7);
+      e.mouth = Math.max(0, e.mouth - dt * 3.2);
+      if (e.state === "hunt") this.hunt(e, dt);
+      else if (e.state === "hop"){
+        const u = Math.min(1, (T - e.st) / .24), f = EZ.outC(u);
+        e.x = e.fx + (e.hx - e.fx) * f; e.y = e.fy + (e.hy - e.fy) * f;
+        if (u >= 1){ e.state = "hunt"; e.pickT = 0; }
+      } else if (e.state === "trap"){
+        // 挟まれた: 白いかたまりと一緒に、刃に押しつぶされていく
+        rig.vise(e.exit, e.x, e.y, VZ);
+        const k = Math.min(1, dt * 9);
+        e.x += (VZ.x - e.x) * k; e.y += (VZ.y - e.y) * k;
+        e.heat = Math.min(1, e.heat + dt * 2.5);
+        const f = clamp(VZ.half / e.r, .1, 1);
+        if (VZ.ax || VZ.ay){ e.sqA = Math.atan2(VZ.ay, VZ.ax); e.sq = f; e.sq2 = Math.min(1.7, 1 / Math.sqrt(f)); }
+        else { e.sqA = 0; e.sq = e.sq2 = f; }
+        if (T - e.st > 3.4) this.pop(e);             // はじける合図が来なかったとき
+      }
+      if (e.state === "pop") this.list.splice(j, 1);
+    }
+    this.tell();
+  }
+  hunt(e, dt){
+    // おなかいっぱいになると、のろくなって、囲いの真ん中へ寄っていく（もうよけられない → 次に閉じたとき挟まれる）
+    if (!e.full && (e.eaten >= e.cap || T - e.t0 > this.age)){ e.full = true; e.fullT = T; e.pickT = 0; }
+    if (T >= e.pickT){
+      e.pickT = T + .28;
+      // 近くの玉（生まれたてのかたまりは、ごちそう）をねらう
+      let best = -1, bs = 0;
+      const tries = Math.min(M, 30);
+      for (let q = 0; q < tries; q++){
+        const i = (rnd() * M) | 0;
+        if (ST[i] & 7) continue;
+        const sc = (T - BORN[i] < .8 ? 2.2 : 1) / (Math.hypot(X[i] - e.x, Y[i] - e.y) + 90);
+        if (sc > bs){ bs = sc; best = i; }
+      }
+      if (best >= 0){                                 // 玉の行く先を読んで、先回りする
+        const lead = Math.min(.45, Math.hypot(X[best] - e.x, Y[best] - e.y) / 700);
+        e.tx = X[best] + VX[best] * lead; e.ty = Y[best] + VY[best] * lead;
+        const td = Math.hypot(e.tx, e.ty), tl = R - e.r; if (td > tl){ e.tx *= tl / td; e.ty *= tl / td; }
+      } else { const a = rnd() * TAU; e.tx = Math.cos(a) * R * .5; e.ty = Math.sin(a) * R * .5; }
+      if (e.full){
+        rig.bait(e.x, e.y, VZ); e.tx = VZ.x; e.ty = VZ.y;
+        if (T - e.fullT > 16 && !rig.live){ e.exit = rig.exitFor(e.x, e.y); this.pop(e); return; }   // それでも挟まれなければ、食べすぎではじける
+      }
+    }
+    let dx = e.tx - e.x, dy = e.ty - e.y;
+    const d = Math.hypot(dx, dy) || 1, sp = this.speed * Math.pow(this.r0 / e.r, .4) * Math.min(1, d / 24) * (e.full ? .8 : 1), k = Math.min(1, dt * 3.5);
+    e.vx += (dx / d * sp - e.vx) * k; e.vy += (dy / d * sp - e.vy) * k;
+    for (const o of this.list){                      // 食べる玉どうしは重ならない
+      if (o === e) continue;
+      const ox = e.x - o.x, oy = e.y - o.y, od = Math.hypot(ox, oy) || 1, pen = e.r + o.r + 6 - od;
+      if (pen > 0){ e.vx += ox / od * pen * 6; e.vy += oy / od * pen * 6; }
+    }
+    e.x += e.vx * dt; e.y += e.vy * dt;
+    const dc = Math.hypot(e.x, e.y), lim = R - e.r - 2;
+    if (dc > lim){ e.x *= lim / dc; e.y *= lim / dc; }
+    if (Math.hypot(e.vx, e.vy) > 12) e.dir += wrapPi(Math.atan2(e.vy, e.vx) - e.dir) * Math.min(1, dt * 8);
+    this.feed(e, dt);
+  }
+  /* 吸いこんで、触れた玉を食べる。食べきれない玉は体ではね返す */
+  feed(e, dt){
+    // 食べはじめはゆっくり、おなかの 3 割まで食べたところで、いちばん速くなる。おなかいっぱいになると遅くなる
+    const rate = e.eMax * (.25 + .75 * Math.min(1, e.eaten / (.3 * e.cap))) * (e.full ? .4 : 1);
+    e.bite = Math.min(e.bite + rate * dt, Math.max(2, rate * this.gulp));
+    const S = e.r * 1.6 + this.reach + 3 * RV, S2 = S * S, span = S - e.r, pull = this.pull * dt;
+    const cx0 = Math.max(0, Math.floor((e.x - S - G0) * GINV)), cx1 = Math.min(GW - 1, Math.floor((e.x + S - G0) * GINV));
+    const cy0 = Math.max(0, Math.floor((e.y - S - G0) * GINV)), cy1 = Math.min(GHt - 1, Math.floor((e.y + S - G0) * GINV));
+    for (let cy = cy0; cy <= cy1; cy++) for (let cx = cx0; cx <= cx1; cx++){
+      const c = cy * GW + cx;
+      for (let k = CST[c], end = CST[c + 1]; k < end; k++){
+        const i = ITEM[k];
+        if (i >= M || (ST[i] & 7)) continue;
+        const dx = e.x - X[i], dy = e.y - Y[i], d2 = dx * dx + dy * dy;
+        if (d2 > S2) continue;
+        const d = Math.sqrt(d2) || 1, rb = RV * SC[i];
+        if (d < e.r + rb * .6){
+          if (e.bite >= 1){
+            e.bite -= 1; e.eaten++; e.mouth = 1;
+            if (FX.length < 160) fxRing(X[i], Y[i], COL[i]);
+            kill(i); STAT.eaten++; RD.gone++; AU.sfx("gulp");
+            continue;
+          }
+          const nx = -dx / d, ny = -dy / d, pen = e.r + rb - d;
+          X[i] += nx * pen; Y[i] += ny * pen;
+          const vn = (VX[i] - e.vx) * nx + (VY[i] - e.vy) * ny;
+          if (vn < 0){ VX[i] -= 1.5 * vn * nx; VY[i] -= 1.5 * vn * ny; }
+        } else {
+          const a = pull * (1 - (d - e.r) / span);
+          VX[i] += dx / d * a; VY[i] += dy / d * a;
+        }
+      }
+    }
+  }
+  /* 囲いこまれた: 小さいうちは、たいていとび出してよける。大きいと逃げられない */
+  onSeal(){
+    if (this.off) return;
+    for (const e of this.list){
+      if (e.state !== "hunt" || !rig.contains(e.x, e.y, 0)) continue;
+      const big = clamp((e.r - this.r0) / (this.rMax - this.r0), 0, 1);
+      const pd = e.full ? 0 : this.keen * (1 - .5 * big);
+      if (rnd() < pd) this.hop(e);
+      else { e.state = "trap"; e.st = T; e.heat = 0; e.exit = rig.exitFor(e.x, e.y); }
+    }
+  }
+  hop(e){
+    // いちばん近い「囲いの外」へ、ひょいと跳ぶ
+    const m = e.r + 2 * rig.tb + 12, a0 = Math.atan2(e.y, e.x);
+    let bx = e.x, by = e.y, bn = 1e9;
+    for (let q = 0; q < 12; q++){
+      const a = a0 + q * TAU / 12, dx = Math.cos(a), dy = Math.sin(a);
+      let x = e.x, y = e.y, n = 0;
+      while (n < 60 && rig.contains(x, y, m)){ x += dx * 12; y += dy * 12; n++; }
+      if (Math.hypot(x, y) > R - e.r - 4) n += 30;         // 円のふちにぶつかる向きは、あとまわし
+      if (n < bn){ bn = n; bx = x; by = y; }
+    }
+    const dc = Math.hypot(bx, by), lim = R - e.r - 4;
+    if (dc > lim){ bx *= lim / dc; by *= lim / dc; }
+    e.state = "hop"; e.st = T; e.fx = e.x; e.fy = e.y; e.hx = bx; e.hy = by; e.vx = e.vy = 0;
+    AU.sfx("pip");
+  }
+  onImpact(){
+    if (this.off) return;
+    for (const e of this.list) if (e.state === "trap") this.pop(e);
+  }
+  /* はじける: 食べた玉を、出口から吐き出す */
+  pop(e){
+    if (e.state === "pop") return;
+    e.state = "pop";
+    this.left--;
+    const n = RD.phase === "grow" ? clamp(Math.round(e.eaten * this.share), 0, Math.max(0, RD.target - N)) : 0;
+    if (n > 0) this.spill(e, n);
+    STAT.spilled += n;
+    fxBig(e.x, e.y, 9, e.r * 1.7); fxBig(e.x, e.y, 10, e.r);
+    cam.shake = Math.max(cam.shake, 9);
+    AU.sfx("splat");
+    if (this.left <= 0 && this.toCome <= 0){ this.tell(); foeOver("食べる玉をやっつけた！"); }
+    else { this.next = Math.max(this.next, T + 1.5); showLabel("食べる玉がはじけた！　のこり " + this.left); }
+  }
+  spill(e, n){
+    const pal = RD.pal, ep = RD.epoch + pal.length * 4;
+    rig.exitInfo(e.exit, EXO);
+    if (EXO.mode === 0){
+      // その場から、すき間に沿って左右へ
+      const tx = EXO.tx, ty = EXO.ty, ve = EJECT_V[+SET.eject] || EJECT_V[1], span = Math.min((rig.L || 240) * .8, 24 + RV * SC0 * n * .5);
+      for (let j = 0; j < n; j++){
+        const sg = j & 1 ? 1 : -1, off = span * Math.sqrt(rnd()) * sg, sp = ve * (.5 + .7 * rnd()) * sg, ac = ve * .2 * (rnd() - .5);
+        birth(e.x + tx * off, e.y + ty * off, tx * sp - ty * ac, ty * sp + tx * ac, pal[(ep - j % 3) % pal.length], SC0);
+      }
+      return;
+    }
+    const ne = rig.nex || 1;
+    for (let q = 0; q < ne; q++){
+      const cnt = Math.floor(n / ne) + (q < n % ne ? 1 : 0);
+      if (!cnt) continue;
+      const col = pal[(ep - q % 3) % pal.length];
+      rig.exitInfo(rig.nex ? (e.exit + q) % ne : e.exit, EXO);
+      fxStreak(e.x, e.y, EXO.x, EXO.y, col);
+      spawnBlob(EXO.x, EXO.y, EXO.dx, EXO.dy, cnt, col);
+    }
+  }
+  stop(){ if (RD.phase !== "gone") this.off = true; }      // 食べる玉が勝ったときは、消えるまで居すわる
+  info(){ return { left: this.left, toCome: this.toCome, list: this.list.map(e => ({ state: e.state, full: e.full, r: +e.r.toFixed(1), eaten: e.eaten, cap: e.cap, eMax: Math.round(e.eMax), x: Math.round(e.x), y: Math.round(e.y) })) }; }
+  draw(c){
+    for (const e of this.list){
+      const r = e.rd;
+      if (r < 1 || e.state === "pop") continue;
+      if (e.state === "hop"){                               // よけたときの残像
+        c.strokeStyle = "rgba(196,150,255,.3)"; c.lineWidth = r * 1.3; c.lineCap = "round";
+        c.beginPath(); c.moveTo(e.fx, e.fy); c.lineTo(e.x, e.y); c.stroke();
+      }
+      c.save(); c.translate(e.x, e.y);
+      const trap = e.state === "trap";
+      if (trap){
+        c.translate((Math.random() - .5) * 4 * e.heat, (Math.random() - .5) * 4 * e.heat);
+        c.rotate(e.sqA); c.scale(e.sq, e.sq2); c.rotate(-e.sqA);
+      }
+      // 体（暗いむらさき。明るいふちどり）
+      const g = c.createRadialGradient(-r * .32, -r * .36, r * .08, 0, 0, r);
+      g.addColorStop(0, "#7c58bd"); g.addColorStop(.5, "#35205f"); g.addColorStop(1, "#130a24");
+      c.beginPath(); c.arc(0, 0, r, 0, TAU); c.fillStyle = g; c.fill();
+      c.lineWidth = Math.max(1.6, r * .07); c.strokeStyle = "rgba(216,176,255,.92)"; c.stroke();
+      // 口（進む向きに開く。食べるとぱくぱくする）と歯
+      c.save();
+      c.rotate(e.dir); c.scale(1, Math.cos(e.dir) < 0 ? -1 : 1);
+      const open = trap ? .04 : .15 + .5 * e.mouth * (.55 + .45 * Math.sin(T * 30));
+      c.beginPath(); c.moveTo(-r * .12, 0); c.arc(0, 0, r * .95, -open, open); c.closePath();
+      c.fillStyle = "#2c0616"; c.fill();
+      if (!trap){
+        c.fillStyle = "#f6f1ff";
+        const th = r * .13 * Math.min(1, open * 3.2);
+        for (let sg = -1; sg <= 1; sg += 2){
+          const ex = Math.cos(open) * r * .95 + r * .12, ey = sg * Math.sin(open) * r * .95, el = Math.hypot(ex, ey) || 1;
+          const ux = ex / el, uy = ey / el, px = uy * -sg, py = ux * sg;             // 口のふちに沿う向きと、口の中へ向かう向き
+          for (const t of [.52, .72, .92]){
+            const bx = -r * .12 + ex * t, by = ey * t, w = r * .075;
+            c.beginPath(); c.moveTo(bx - ux * w, by - uy * w); c.lineTo(bx + ux * w, by + uy * w); c.lineTo(bx - px * th, by - py * th); c.closePath(); c.fill();
+          }
+        }
+      }
+      // 目（挟まれると見ひらく）
+      const ex = r * .2, ey = -r * .53, er = r * (trap ? .25 : .2);
+      c.beginPath(); c.arc(ex, ey, er, 0, TAU); c.fillStyle = "#fff"; c.fill();
+      c.beginPath(); c.arc(ex + er * (trap ? 0 : .34), ey + er * .08, er * (trap ? .24 : .52), 0, TAU); c.fillStyle = "#170a22"; c.fill();
+      if (e.full && !trap){                                 // おなかいっぱい: まぶたが下がる
+        c.beginPath(); c.arc(ex, ey, er * 1.04, Math.PI * 1.08, Math.PI * 1.92); c.closePath(); c.fillStyle = "#3b2468"; c.fill();
+      }
+      c.restore();
+      if (trap && e.heat > .02){ c.beginPath(); c.arc(0, 0, r, 0, TAU); c.fillStyle = `rgba(255,255,255,${.75 * e.heat * rig.q})`; c.fill(); }
+      c.restore();
+    }
+  }
+}
+
+/* ── 穴 ── */
+const CRACK_T = 1.3;
+class Hole {
+  constructor(lv){
+    this.lv = lv;
+    this.left = tune("hole", "opens", lv);           // あと何回開くか
+    this.wind = tune("hole", "wind", lv);            // 穴へ吸い出す風の強さ
+    this.early = tune("hole", "early", lv);          // 玉が少ないうちの上乗せ
+    this.openT = tune("hole", "openT", lv);          // 開いている時間（秒）
+    this.two = !!tune("hole", "two", lv);            // 2 つ同時に開く
+    this.gaps = []; this.next = 0; this.spray = 0; this.d0 = STAT.drained; this.lastD = STAT.drained; this.lastA = rnd() * TAU; this.busy = false;
+    // 2 回目からは、玉が増えてから開く（決めた数の何割まで増えたら開くか）。混んでいるほど勢いよく噴き出すのを見せるため
+    this.marks = this.left === 2 ? [0, .3] : this.left === 3 ? [0, .08, .5] : [0, .04, .2, .6];
+    this.count = 0; this.late = 0;
+  }
+  start(){ GAPS = this.gaps; this.next = T + .3; showLabel("円にひびが入る…"); this.tell(); }
+  tell(){ showFight("穴　あと " + this.left + " 回　こぼれた " + NF.format(STAT.drained - this.d0) + " 個"); }
+  site(a){
+    const hw = Math.max(2.6 * RV + 10, 52) * [.85, 1, 1.15][this.lv - 1] / R;
+    const lines = [];                                      // ひびの形（絵の飾り）
+    for (let q = 0; q < 5; q++){
+      const pts = [[0, (Math.random() - .5) * hw * R * .8]], side = q < 2;
+      let x = 0, y = pts[0][1];
+      const n = 4 + ((Math.random() * 4) | 0), dirY = Math.random() < .5 ? 1 : -1;
+      for (let j = 0; j < n; j++){
+        if (side){ x = Math.abs((Math.random() - .3) * 9); y += dirY * (8 + Math.random() * 12); }
+        else { x += 7 + Math.random() * 13; y += (Math.random() - .5) * 20; }
+        pts.push([x, y]);
+      }
+      lines.push(pts);
+    }
+    this.gaps.push({ a, hw: 0, max: hw, state: "crack", t: T, lines });
+  }
+  update(dt){
+    // 穴が開いているあいだは少し引いて映す（外へ噴き出す玉が見えるように）
+    const zt = this.gaps.some(g => g.hw > .002) && RD.phase === "grow" ? .9 : 1;
+    if (RD.phase === "grow" || RD.phase === "gone") cam.zoom += (zt - cam.zoom) * Math.min(1, dt * 3);
+    if (RD.phase !== "grow") return;
+    if (!this.busy && this.left > 0 && T >= this.next && (N >= this.marks[this.count] * RD.target || T >= this.late)){   // なかなか増えないときは、12 秒で開く
+      this.busy = true;
+      this.lastA += rr(1.6, 4.6);
+      this.site(this.lastA);
+      if (this.two) this.site(this.lastA + Math.PI + rr(-.7, .7));
+      showLabel("ひびが入った…");
+    }
+    let open = false;
+    for (let j = this.gaps.length - 1; j >= 0; j--){
+      const g = this.gaps[j], e = T - g.t;
+      if (g.state === "crack"){
+        if (Math.random() < dt * 10) AU.sfx("crack");
+        if (e > CRACK_T){ g.state = "open"; g.t = T; AU.sfx("boom2"); cam.shake = Math.max(cam.shake, 6); fxBig(Math.cos(g.a) * R, Math.sin(g.a) * R, GOLD, g.max * R * 1.6); }
+      } else if (g.state === "open"){
+        g.hw = g.max * EZ.outC(Math.min(1, e / .28));
+        if (e > this.openT){ g.state = "shut"; g.t = T; }
+      } else {
+        g.hw = g.max * (1 - EZ.inOut(Math.min(1, e / .6)));
+        if (e >= .6){ this.gaps.splice(j, 1); AU.sfx("plug"); continue; }
+      }
+      if (g.hw > .004) open = true;
+    }
+    if (this.busy && !this.gaps.length){
+      this.busy = false; this.left--; this.count++;
+      if (this.left <= 0){ this.tell(); foeOver("穴はぜんぶふさがった！"); return; }
+      this.next = T + rr(1.5, 2.4); this.late = T + 12;
+    }
+    // 風: 穴へ向かって吸い出す。中が混んでいるほど強い
+    let flow = 0;
+    if (open){
+      const press = 1 + 2 * smooth(.6, 2.2, N / Math.max(1, CAPC)), W = this.wind * (press + this.early * (1 - smooth(60, 400, N))) * dt;
+      for (const g of this.gaps){
+        if (g.hw <= .004) continue;
+        const gx = Math.cos(g.a) * R, gy = Math.sin(g.a) * R, w = W * (g.hw / g.max) * R;
+        for (let i = 0; i < M; i++){
+          if (ST[i] & 7) continue;
+          const dx = gx - X[i], dy = gy - Y[i], d = Math.sqrt(dx * dx + dy * dy) + 1, a = w / (d + .3 * R);
+          VX[i] += dx / d * a; VY[i] += dy / d * a;
+        }
+      }
+      const out = 700 * press * dt;                        // 外へ出た玉は、勢いよく飛んでいく
+      for (let i = 0; i < M; i++){
+        if ((ST[i] & 5) !== 4) continue;
+        const d = Math.hypot(X[i], Y[i]) || 1;
+        VX[i] += X[i] / d * out; VY[i] += Y[i] / d * out;
+      }
+    }
+    flow = (STAT.drained - this.lastD) / Math.max(dt, 1e-3); this.lastD = STAT.drained;
+    this.spray += (Math.min(1, flow / 45) - this.spray) * Math.min(1, dt * 8);
+    this.tell();
+  }
+  stop(){ this.gaps.length = 0; this.spray = 0; }
+  info(){ return { left: this.left, gaps: this.gaps.map(g => ({ state: g.state, hw: +g.hw.toFixed(3), a: +g.a.toFixed(2) })) }; }
+  draw(c, s){
+    const lw = 2 * DPR / s;
+    for (const g of this.gaps){
+      const gx = Math.cos(g.a) * R, gy = Math.sin(g.a) * R;
+      if (g.state === "crack"){
+        const u = Math.min(1, (T - g.t) / CRACK_T);
+        c.save(); c.translate(gx, gy); c.rotate(g.a + Math.PI);                 // x が円の中へ向かう向き
+        c.translate((Math.random() - .5) * 2.5 * u, (Math.random() - .5) * 2.5 * u);
+        c.strokeStyle = `rgba(255,255,255,${.55 + .45 * Math.random()})`; c.lineWidth = lw * (.8 + .6 * u); c.lineCap = "round"; c.lineJoin = "round";
+        for (const pts of g.lines){
+          const n = u * (pts.length - 1), full = Math.floor(n), fr = n - full;
+          c.beginPath(); c.moveTo(pts[0][0], pts[0][1]);
+          for (let j = 1; j <= full; j++) c.lineTo(pts[j][0], pts[j][1]);
+          if (full + 1 < pts.length) c.lineTo(pts[full][0] + (pts[full + 1][0] - pts[full][0]) * fr, pts[full][1] + (pts[full + 1][1] - pts[full][1]) * fr);
+          c.stroke();
+        }
+        c.restore();
+      } else if (g.hw > .004){
+        const k = g.hw / g.max;                             // 風のすじ（穴へ吸いこまれていく）
+        c.lineCap = "round"; c.lineWidth = lw * 1.2;
+        for (let j = 0; j < 11; j++){
+          const ph = (T * 1.5 + j * .37) % 1, ang = g.a + Math.PI + (j - 5) * .19 + Math.sin(j * 12.9) * .07;
+          const d0 = 50 + 330 * (1 - ph) * (1 - ph), d1 = Math.max(6, d0 - 40 - 70 * ph);
+          c.strokeStyle = `rgba(255,255,255,${.24 * k * Math.sin(Math.PI * ph)})`;
+          c.beginPath(); c.moveTo(gx + Math.cos(ang) * d0, gy + Math.sin(ang) * d0); c.lineTo(gx + Math.cos(ang) * d1, gy + Math.sin(ang) * d1); c.stroke();
+        }
+      }
+    }
+  }
+}
+
+/* ── 寿命 ── */
+class Life {
+  constructor(lv){
+    this.lv = lv;
+    this.rho0 = tune("life", "rho", lv);             // 1 個の玉が、寿命のうちに残す子の数のねらい（1 より小さいと減っていく）
+    this.dur = tune("life", "dur", lv);              // 寿命がある時間（秒）
+    this.t0 = T; this.L = 6; this.x0 = STAT.expired; this.done = false; this.spray = 0;
+  }
+  /* 寿命の長さ。挟まれる割合と分かれる数から逆算する（時間がたつほど長くなり、玉が有利になる） */
+  calc(){
+    const k = RD.k, f = clamp(RD.fhat, .1, .9), u = clamp((T - this.t0) / this.dur, 0, 1);
+    const rho = Math.min(k * .96, this.rho0 + (k * .9 - this.rho0) * u * u);
+    const n = Math.log(1 - rho / k) / Math.log(1 - f);     // 守りが切れてから、挟まれるまでに使える回数
+    return clamp(rig.cycle * (+SET.guard + n) + GROW_T, 1.5, 60);
+  }
+  start(){
+    this.t0 = T; this.L = LIFE_L = this.calc();
+    for (let i = 0; i < M; i++) if (!(ST[i] & 1)) DIE[i] = T + this.L * rr(.5, 1.1);
+    showLabel("玉に寿命がついた"); this.tell();
+  }
+  tell(){ showFight("寿命 " + this.L.toFixed(1) + " 秒　なくなるまで " + Math.max(0, Math.ceil(this.dur - (T - this.t0))) + " 秒　消えた " + NF.format(STAT.expired - this.x0) + " 個"); }
+  onBirth(i){ if (!this.done) DIE[i] = T + this.L * rr(.92, 1.08); }
+  update(dt){
+    if (this.done || RD.phase !== "grow") return;
+    if (T - this.t0 >= this.dur){ this.end(); foeOver("寿命がなくなった！"); return; }
+    this.L += (this.calc() - this.L) * Math.min(1, dt * .9); LIFE_L = this.L;
+    let dead = 0, fx = 0;
+    for (let i = 0; i < M; i++){
+      const st = ST[i];
+      if (st & 7) continue;                                // 挟まれた玉は間に合った（分かれて、若い玉になる）
+      if (st & 16){
+        SC[i] -= dt / .4;
+        if (SC[i] <= .12){ if (fx++ < 10 && FX.length < 200) fxFade(X[i], Y[i]); kill(i); dead++; }
+      } else if (DIE[i] <= T) ST[i] = st | 16;
+    }
+    if (dead){ STAT.expired += dead; RD.gone += dead; AU.sfx("pip"); }
+    this.tell();
+  }
+  end(){
+    this.done = true; LIFE_L = 0;
+    for (let i = 0; i < M; i++){ DIE[i] = Infinity; if ((ST[i] & 17) === 16){ ST[i] &= ~16; SC[i] = 1; } }
+  }
+  stop(){ if (!this.done) this.end(); }
+  info(){ return { L: +this.L.toFixed(2), left: +(this.dur - (T - this.t0)).toFixed(1), done: this.done }; }
+}
+
+/* ── 消し刃 ── */
+class RedTide {
+  constructor(lv){
+    this.lv = lv;
+    const U = this.U = rig.units, be = 1 - 1 / RD.k;      // 赤い刃の割合がこれを超えると、玉は減っていく
+    // いちばん赤が多いときの枚数: 弱い＝増え方がにぶる／ふつう＝少し減る／強い＝全部赤
+    this.P = lv === 1 ? Math.max(1, Math.floor((be - .1) * U + 1e-9)) : lv === 2 ? clamp(Math.ceil((be + .08) * U - 1e-9), 1, U) : U;
+    this.hold = tune("red", "hold", lv);
+    this.up = clamp(7 / this.P, .8, 2.2); this.down = clamp(5 / this.P, .6, 1.6);
+    // 赤くなる順（となりへ広がっていく）
+    const order = [], s0 = (rnd() * U) | 0;
+    if (rig.key === "loops"){ const NL = rig.NL; for (let j = 0; j < NL; j++){ const q = (s0 + j) % NL; order.push(q, NL + q); } }
+    else for (let j = 0; j < U; j++) order.push(((s0 + (j & 1 ? (j + 1) >> 1 : -(j >> 1))) % U + U) % U);
+    this.order = order; this.n = 0; this.t = T - this.up + .35; this.stage = "up"; this.done = false; this.x0 = STAT.erased; this.spray = 0;
+  }
+  start(){ RED.on = true; RED.set.clear(); showLabel("刃が赤くなる…"); this.tell(); }
+  tell(){ showFight("消し刃　赤い刃 " + this.n + "/" + this.U + " 枚　消された " + NF.format(STAT.erased - this.x0) + " 個"); }
+  update(dt){
+    if (this.done || RD.phase !== "grow") return;
+    const e = T - this.t;
+    if (this.stage === "up"){
+      if (e > this.up){ RED.set.add(this.order[this.n++]); this.t = T; AU.sfx("redon"); if (this.n >= this.P) this.stage = "hold"; }
+    } else if (this.stage === "hold"){
+      if (e > this.hold){ this.stage = "down"; this.t = T - this.down; }
+    } else if (e > this.down){
+      RED.set.delete(this.order[--this.n]); this.t = T;
+      if (this.n <= 0){ this.done = true; RED.on = false; this.tell(); foeOver("赤がひいた！"); return; }
+    }
+    this.tell();
+  }
+  stop(){ RED.on = false; RED.set.clear(); this.done = true; }
+  info(){ return { n: this.n, P: this.P, U: this.U, stage: this.stage, done: this.done }; }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   1 回ぶんの進め方（1 個から始まって、割れるか金色になるか全滅するまで）
+   ══════════════════════════════════════════════════════════════════ */
+let rig = null, RD = null, FOE = null;
+const EJECT_V = [.45 * R, 1.15 * R, 1.8 * R];       // 飛び出す勢い（弱く・ふつう・強く）
+const FOE_AT = { eater: 30, hole: 40, life: 30, red: 50 };   // 減るものが出てくる玉の数
+const FOE_NAMES = { eater: "食べる玉", hole: "穴", life: "寿命", red: "消し刃" };
+
+/* 袋から引く（同じものが続かないように、ひととおり出るまで戻さない） */
+const BAG = {};
+function bagDraw(name, items){
+  let b = BAG[name];
+  if (!b || !b.list.length){
+    const list = [];
+    for (const [v, w] of items) for (let i = 0; i < w; i++) list.push(v);
+    shuffle(list);
+    if (b && list.length > 1 && list[list.length - 1] === b.last){ const t = list[0]; list[0] = list[list.length - 1]; list[list.length - 1] = t; }
+    b = BAG[name] = { list, last: b ? b.last : undefined };
+  }
+  b.last = b.list.pop();
+  return b.last;
+}
+/* この回の組み合わせを決める（📌 で固定していれば、それを使う） */
+function planRound(){
+  if (SET.pin && MECHS[SET.pin.mk] && SIZES[SET.pin.sz]) return Object.assign({}, SET.pin);
+  const mk = MECHS[SET.mech] ? SET.mech : bagDraw("rig", [["yose", 4], ["loops", 3], ["box", 2]]);
+  const sz = SIZES[SET.size] ? SET.size : bagDraw("size", [["xl", 2], ["l", 3], ["m", 3], ["s", 2], ["t", 1]]);
+  // 分かれる数のおまかせ: 小さい玉ほど決めた数が多い（極小は 3 万個）ので、2 つは出さない（1 回が 2 分をこえて、だれる）
+  const k = [2, 3, 4].includes(+SET.split) ? +SET.split : wpick(sz === "s" || sz === "t" ? [[3, .5], [4, .5]] : sz === "m" ? [[2, .1], [3, .45], [4, .45]] : [[2, .18], [3, .45], [4, .37]]);
+  let nb = 0, shape = "";
+  if (mk === "yose"){
+    nb = SET.yoseN !== "auto" ? +SET.yoseN : bagDraw("yn", [[2, 3], [3, 2], [4, 3], [5, 2], [6, 2], [8, 2]]);
+    shape = SET.yoseShape !== "auto" ? SET.yoseShape : wpick([["bar", .35], ["arc", .25], ["saw", .2], ["chev", .2]]);
+  } else if (mk === "loops"){
+    nb = SET.loopN !== "auto" ? +SET.loopN : bagDraw("ln", [[2, 4], [3, 3], [4, 2], [5, 1]]);
+    if (sz === "xl" && nb > 4) nb = 4;       // 特大の玉は、輪 5 つだと輪が小さくて入れない（増えなくなる）ので、4 つまで
+    shape = SET.loopShape !== "auto" ? SET.loopShape : wpick([["arc", .75], ["bar", .25]]);
+  }
+  const fs = SET.foe;
+  const foe = fs === "none" ? null : fs === "auto" ? bagDraw("foe", [[null, 4], ["eater", 1], ["hole", 1], ["life", 1], ["red", 1]])   // おまかせ: 2 回に 1 回は、減るものなし
+            : fs === "any" ? bagDraw("foe2", [["eater", 1], ["hole", 1], ["life", 1], ["red", 1]]) : fs;
+  return { mk, nb, shape, sz, k, foe };
+}
+function recipeText(rc){
+  return rig.name() + "　" + SIZES[rc.sz].n + "の玉　" + rc.k + " つに分かれる" + (rc.foe ? "　＋ " + FOE_NAMES[rc.foe] : "");
+}
+function newRound(){
+  const rc = planRound();
+  rad = SIZES[rc.sz].r; RC = RV = rad; GAMMA = GAMMAS[SET.crowd] || 0;
+  M = 0; N = 0; DEAD = 0; doomedN = 0; FX.length = 0; wallOn = true; GAPS = null;
+  RED.on = false; RED.set.clear();
+  FOE = null; LIFE_L = 0; OUT_D = Math.max(4 * rad + 4, 170);
+  gridFit(); D2MAX = 4 * RC * RC;
+  rig = rc.mk === "yose" ? new Yose(rc.nb, rc.shape) : rc.mk === "loops" ? new Loops(rc.nb, rc.shape) : new Box();
+  rig.install();
+  AFREE = Math.PI * (R - rad) ** 2 - rig.area;
+  // どこまで増やすか（「円 1 杯」の何倍か、または数）。キリのいい数にそろえる
+  const cap = PACK * AFREE / (Math.PI * rad * rad), lim = SET.limit;
+  let target = lim === "auto" ? round2(cap * 3) : lim === "x1" ? round2(cap) : lim === "x2" ? round2(cap * 2) : lim === "x5" ? round2(cap * 5) : +lim || round2(cap * 3);
+  target = Math.max(10, Math.min(MAXN - 1000, target));
+  let gold = target === 10000 || rnd() < .15;
+  if (Q.get("gold")) gold = Q.get("gold") === "1";   // 試験用
+  const start = (rnd() * PAL.length) | 0, pal = [];
+  for (let i = 0; i < PAL.length; i++) pal.push((start + i * 5) % PAL.length);
+  RD = { rc, mk: rc.mk, sz: rc.sz, k: rc.k, cap: Math.round(cap), target, gold, pal, phase: "intro", t: 0, epoch: 0,
+         lastCrush: -99, still: true, fade: 1, mAlpha: 0, beads: null, frags: null,
+         foe: rc.foe, foeLv: +SET.foeLv, foeOn: false, foeDone: false, peak: 1, peakT: 0, growT: 0,
+         elig: 0, fhat: .3, born: 0, gone: 0, result: "", impT: 0 };
+  STAT.rounds++;
+  cam.zoom = 1;
+  buildSprites(); drawBg();
+  showLabel(recipeText(rc), false, 3400);
+  showFight("");
+  syncPin();
+}
+/* 生まれた玉を守る時間。玉がまだ少ないうち（12 個まで）は守らず、40 個までにだんだん長くする（出だしを待たせないため） */
+function guardTime(){
+  const g = +SET.guard;
+  if (!g) return .2;
+  return .2 + (rig.cycle * g - .08) * clamp((N - 12) / 28, 0, 1);
+}
+/* いま挟まれうる玉の数（守られていない玉） */
+function crushableCount(){
+  let n = 0;
+  const late = T + rig.cycle * .5;
+  for (let i = 0; i < M; i++) if (!(ST[i] & 7) && IMM[i] <= late) n++;
+  return n;
+}
+function rigEvent(name){
+  if (!RD) return;
+  if (name === "close"){
+    if (RD.phase === "grow"){ RD.epoch++; RD.elig = crushableCount(); }   // 閉じるたびに、次に生まれる玉の色を変える
+  } else if (name === "lock"){
+    AU.sfx("lock");
+  } else if (name === "seal"){
+    if (FOE && FOE.onSeal) FOE.onSeal();
+  } else if (name === "impact"){
+    impactDue = true;        // その歩の当たりを調べ終えてから、はじけさせる（閉じきった瞬間に挟まれた玉も入れるため）
+  }
+}
+let impactDue = false;
+function doImpact(){
+  impactDue = false;
+  RD.still = false;
+  if (RD.impT > 0 && N > 40) rig.cycle += (clamp(T - RD.impT, .6, 4) - rig.cycle) * .4;   // 閉じる間隔（守る時間の物差し）を、実際の間隔に合わせる
+  RD.impT = T;
+  const n = splitAll();
+  if (RD.phase === "grow" && RD.elig > 0) RD.fhat = RD.fhat * .7 + .3 * Math.min(1, n / RD.elig);   // 1 回で挟まれる割合（寿命の長さを決めるのに使う）
+  cam.shake = Math.max(cam.shake, rig.key === "yose" && rig.NB === 2 ? 7 : 5);
+  AU.sfx(rig.snd());
+  if (FOE && FOE.onImpact) FOE.onImpact(n);
+}
+
+/* ── はじける: 挟まれていた玉が、いっせいに決まった数に分かれる ── */
+const EXO = { mode: 0, x: 0, y: 0, dx: 0, dy: 0, tx: 0, ty: 0 };
+const EXC = new Int32Array(32);
+function splitAll(){
+  if (!doomedN) return 0;
+  const grow = RD.phase === "grow", k = RD.k, col = RD.pal[RD.epoch % RD.pal.length];
+  EXC.fill(0);
+  let room = RD.target - N, parents = 0, erased = 0, rings = 0, lx = 1e9, ly = 1e9;
+  for (let i = 0; i < M; i++){
+    const st = ST[i];
+    if ((st & 3) !== 2) continue;
+    if (st & 8){ if (erased < 60) fxPoof(X[i], Y[i]); kill(i); erased++; continue; }      // 消し刃: 分かれずに消える
+    if (!grow || room <= 0){ ST[i] = st & ~2; doomedN--; GHO[i] = T + .5; HEAT[i] = 0; SC[i] = 1; continue; }   // もう増やせない: そのまま放す
+    const kids = Math.min(k, room + 1);
+    room -= kids - 1;
+    const e = EXI[i];
+    rig.exitInfo(e, EXO);
+    if (EXO.mode === 0){ spawnInPlace(X[i], Y[i], kids, col, EXO.tx, EXO.ty); if (rings++ < 70) fxRing(X[i], Y[i], col); }   // その場で分かれる: 分かれた所に輪
+    else if (rig.nex){ const st = Math.max(1, Math.round(rig.nex / kids)); for (let j = 0; j < kids; j++) EXC[(e + j * st) % rig.nex]++; }   // 出口（角）に分けて出す
+    else EXC[e] += kids;
+    kill(i); parents++;
+  }
+  for (let e = 0; e < 32; e++) if (EXC[e]){
+    rig.exitInfo(e, EXO);
+    if (rig.lump(e, LUMP)){
+      fxStreak(LUMP.x, LUMP.y, EXO.x, EXO.y, col);
+      if (Math.abs(LUMP.x - lx) + Math.abs(LUMP.y - ly) > 1){     // かたまりのあった所に、大きな輪をひとつ
+        lx = LUMP.x; ly = LUMP.y;
+        fxBig(lx, ly, col, clamp(RV * 2.2 * Math.sqrt(parents), RV * 3, 110));
+      }
+    }
+    spawnBlob(EXO.x, EXO.y, EXO.dx, EXO.dy, EXC[e], col);
+  }
+  STAT.crush += parents; STAT.erased += erased; RD.born += parents * (k - 1); RD.gone += erased;
+  if (parents){ RD.lastCrush = T; AU.pops(parents, RD.epoch); }
+  if (erased) AU.sfx("sizzle");
+  return parents;
+}
+function birth(x, y, vx, vy, col, sc){
+  const i = addBall(x, y, vx, vy, col, guardTime(), sc);
+  if (i >= 0){ FL[i] = T; if (FOE && FOE.onBirth) FOE.onBirth(i); }
+  return i;
+}
+/* 出口から、かたまりで飛び出す（出たては小さく、ふくらみながら広がる） */
+function spawnBlob(px, py, dx, dy, n, col){
+  const ve = EJECT_V[+SET.eject] || EJECT_V[1];
+  const rb = clamp(SC0 * RC * Math.sqrt(n / .78), RC * .6, 95);
+  let cx = px + dx * rb, cy = py + dy * rb;
+  const dc = Math.hypot(cx, cy), lim = R - RV - rb * .7;
+  if (dc > lim){ cx *= lim / dc; cy *= lim / dc; }
+  const a0 = rnd() * TAU;
+  for (let j = 0; j < n; j++){
+    const q = rb * Math.sqrt((j + .5) / n), a = a0 + j * 2.39996, ox = Math.cos(a) * q, oy = Math.sin(a) * q;
+    const sp = ve * (.8 + .32 * rnd());
+    birth(cx + ox, cy + oy, dx * sp + ox / rb * ve * .22, dy * sp + oy / rb * ve * .22, col, SC0);
+  }
+}
+/* その場から、すき間に沿って左右へ流れ出す（プレス） */
+function spawnInPlace(x, y, n, col, tx, ty){
+  const ve = EJECT_V[+SET.eject] || EJECT_V[1], s0 = rnd() < .5 ? 1 : -1;
+  for (let j = 0; j < n; j++){
+    const sg = (j & 1) ? -s0 : s0, sp = ve * (.5 + .7 * rnd()) * sg, across = ve * .2 * (rnd() - .5), off = (j + 1) * .5 * RV * SC0 * sg;
+    birth(x + tx * off, y + ty * off, tx * sp - ty * across, ty * sp + tx * across, col, SC0);
+  }
+}
+/* はじける合図が来なかった玉が、その場で分かれる（めったにない） */
+function splitOne(i){
+  if (ST[i] & 8){ fxPoof(X[i], Y[i]); kill(i); STAT.erased++; RD.gone++; return; }
+  const room = RD.target - N;
+  if (RD.phase !== "grow" || room <= 0){ ST[i] &= ~2; doomedN--; GHO[i] = T + .5; HEAT[i] = 0; SC[i] = 1; return; }
+  const kids = Math.min(RD.k, room + 1), col = RD.pal[RD.epoch % RD.pal.length], x = X[i], y = Y[i], a0 = rnd() * TAU;
+  kill(i);
+  for (let j = 0; j < kids; j++){ const a = a0 + j * TAU / kids; birth(x + Math.cos(a) * RV * .4, y + Math.sin(a) * RV * .4, Math.cos(a) * V0, Math.sin(a) * V0, col, SC0); }
+  fxRing(x, y, col); STAT.crush++; RD.born += kids - 1; RD.lastCrush = T; AU.pops(1, RD.epoch);
+}
+
+/* ── 進み方（段取り） ── */
+function roundUpdate(dt){
+  RD.t += dt;
+  const ph = RD.phase;
+  RD.mAlpha = ph === "clear" ? Math.max(0, RD.mAlpha - dt / .6) : Math.min(1, RD.mAlpha + dt / .5);
+  if (ph === "intro"){
+    if (RD.t > .75){
+      const p = rig.start();
+      const i = addBall(p[0], p[1], 0, 0, RD.pal[0], 0, 1);
+      FL[i] = T;
+      RD.phase = "grow"; RD.growT = RD.t; RD.peakT = RD.t; RD.lastCrush = T;
+      AU.sfx("pop");
+    }
+  } else if (ph === "grow"){
+    if (!RD.foeOn && RD.foe && N >= FOE_AT[RD.foe]) startFoe();
+    if (N >= RD.peak + Math.max(2, RD.peak * .01)){ RD.peak = N; RD.peakT = RD.t; }     // ゆっくりでも増えていれば（45 秒で 1%）、打ち切らない
+    if (N > REC.maxN) REC.maxN = N;
+    const fighting = RD.foeOn && !RD.foeDone;
+    if (N >= RD.target){
+      if (RD.foeOn){ showLabel("増えるほうの勝ち！"); if (!RD.result) RD.result = "win"; }
+      if (RD.gold) startGold(); else startWarn();
+    } else if (N === 0 && !doomedN && !(FOE && FOE.pending && FOE.pending())){
+      foeWins(RD.foeOn ? FOE_NAMES[RD.foe] + "の勝ち（全滅）" : "全滅");
+    } else if (!fighting && ((N < 8 && T - RD.lastCrush > 24) || RD.t - RD.peakT > 45 || RD.t - RD.growT > 330)){
+      // 増えも減りもしなくなった回は、そっと終わりにする
+      if (N > RD.target * .5){ if (RD.gold) startGold(); else startWarn(); } else fizzle();
+    }
+  } else if (ph === "gone" || ph === "fizzle"){
+    if (ph === "fizzle") RD.fade = Math.max(0, 1 - (RD.t - RD.goneT) / 1.2);
+    if (RD.t - RD.goneT > 1.8) startClear();
+  } else if (ph === "warn"){
+    cam.zoom += (1 - cam.zoom) * Math.min(1, dt * 5);
+    const e = (RD.t - RD.warnT) / 1.8;
+    cam.shake = Math.max(cam.shake, 1 + 5 * e * e);
+    if (e >= 1) startBurst();
+  } else if (ph === "burst"){
+    const e = RD.t - RD.burstT;
+    cam.zoom = 1 + .32 * EZ.outC(Math.min(1, e / 1.3));
+    if (e > .7) wipeOffscreen();
+    if (N === 0 || e > 4.5) startClear();
+  } else if (ph === "gold"){
+    cam.zoom += (1 - cam.zoom) * Math.min(1, dt * 5);
+    const e = RD.t - RD.goldT, wr = EZ.outC(Math.min(1, e / 1.1)) * (R + 30), wr2 = wr * wr;
+    for (let i = 0; i < M; i++) if (COL[i] !== GOLD && !(ST[i] & 1) && X[i] * X[i] + Y[i] * Y[i] < wr2){ COL[i] = GOLD; FL[i] = T; }
+    if (e > 1 && Math.random() < .5) fxTwinkle();
+    if (e > 3.2) RD.fade = Math.max(0, 1 - (e - 3.2) / 1.1);
+    if (RD.fade <= 0) startClear();
+  } else if (ph === "clear"){
+    cam.zoom += (1 - cam.zoom) * Math.min(1, dt * 4);
+    if (RD.t - RD.clearT > .75) newRound();
+  }
+}
+function startFoe(){
+  RD.foeOn = true;
+  FOE = makeFoe(RD.foe, RD.foeLv);
+  if (!FOE){ RD.foeDone = true; return; }
+  FOE.start();
+  AU.sfx("foe");
+}
+/* 減るものが引き下がった（玉の勝ち。あとは決めた数まで増える） */
+function foeOver(text){
+  if (RD.foeDone) return;
+  RD.foeDone = true; RD.result = "win";
+  RD.peak = Math.max(1, N); RD.peakT = RD.t; RD.growT = RD.t; RD.lastCrush = T;   // ここから増え直す（「増えなくなった」の見張りを、やり直す）
+  showLabel(text); showFight("");
+  AU.sfx("cheer");
+}
+function endFoes(){ if (FOE && FOE.stop) FOE.stop(); showFight(""); }
+function startWarn(){
+  RD.phase = "warn"; RD.warnT = RD.t; endFoes();
+  RD.beads = []; for (let i = 0; i < 56; i++) RD.beads.push({ a: i / 56 * TAU, t: RD.t + rnd() * 1.5 });
+  AU.riser(1.8);
+}
+function startBurst(){
+  RD.phase = "burst"; RD.burstT = RD.t; wallOn = false; GAPS = null;
+  for (let i = 0; i < M; i++){
+    if (ST[i] & 1) continue;
+    if (ST[i] & 2){ ST[i] &= ~2; doomedN--; SC[i] = 1; HEAT[i] = 0; }
+    const x = X[i], y = Y[i], d = Math.hypot(x, y);
+    let nx, ny;
+    if (d < 1){ const a = rnd() * TAU; nx = Math.cos(a); ny = Math.sin(a); } else { nx = x / d; ny = y / d; }
+    const sp = 320 + 760 * (d / R) + rnd() * 160;
+    VX[i] = VX[i] * .3 + nx * sp; VY[i] = VY[i] * .3 + ny * sp;
+  }
+  RD.frags = [];
+  for (let i = 0; i < 20; i++){
+    const a0 = i / 20 * TAU, a1 = (i + 1) / 20 * TAU, am = (a0 + a1) / 2, sp = rr(260, 520);
+    RD.frags.push({ a0: a0 - am, a1: a1 - am, x: Math.cos(am) * R, y: Math.sin(am) * R, vx: Math.cos(am) * sp, vy: Math.sin(am) * sp, rot: am, vr: rr(-1.5, 1.5) });
+  }
+  cam.shake = 12;
+  AU.sfx("boom");
+  roundDone();
+}
+function startGold(){ RD.phase = "gold"; RD.goldT = RD.t; endFoes(); AU.chime(); roundDone(); }
+function startClear(){ RD.phase = "clear"; RD.clearT = RD.t; if (FOE && FOE.stop) FOE.stop(); }
+function foeWins(text){
+  RD.phase = "gone"; RD.goneT = RD.t; RD.result = RD.foeOn ? "lose" : "";
+  endFoes(); showLabel(text); AU.sfx("gone"); roundDone();
+}
+function fizzle(){ RD.phase = "fizzle"; RD.goneT = RD.t; endFoes(); showLabel("増えなくなったので、次へ"); roundDone(); }
+/* 玉が少ないのに、しばらくひとつも挟まれていないとき: 玉を「次に囲いこまれる所」へ少しずつ向かわせる。
+   （玉が刃のうしろや端に回りこんだまま、いつまでも増えない回をなくす。ふだんは働かない） */
+function herd(dt){
+  if (RD.phase !== "grow" || N >= 30 || T - RD.lastCrush < 4) return;
+  const a = 1100 * dt;
+  for (let i = 0; i < M; i++){
+    if (ST[i] & 7) continue;
+    rig.bait(X[i], Y[i], VZ);
+    const dx = VZ.x - X[i], dy = VZ.y - Y[i], d = Math.hypot(dx, dy);
+    if (d < 40) continue;
+    VX[i] += dx / d * a; VY[i] += dy / d * a;
+  }
+}
+/* 記録をつける */
+function roundDone(){
+  REC.rounds++;
+  if (RD.foe && RD.foeOn && RD.result){ const b = RD.result === "win" ? REC.win : REC.lose; b[RD.foe] = (b[RD.foe] || 0) + 1; }
+  saveRec(); syncStats();
+}
+/* 割れたあと: 外向きの風で、残った玉も外へ運ぶ */
+function blowOut(dt){
+  const a = 900 * dt;
+  for (let i = 0; i < M; i++){
+    if (ST[i] & 1) continue;
+    const x = X[i], y = Y[i], d = Math.hypot(x, y) || 1;
+    VX[i] += x / d * a; VY[i] += y / d * a;
+  }
+}
+function wipeOffscreen(){
+  const s = VIEW.s * (CALM ? 1 : cam.zoom), m = rad * 3;
+  const l = -VIEW.cx / s - m, r = (CW - VIEW.cx) / s + m, t = -VIEW.cy / s - m, b = (CH - VIEW.cy) / s + m;
+  for (let i = 0; i < M; i++){ const x = X[i], y = Y[i]; if (!(ST[i] & 1) && (x < l || x > r || y < t || y > b)) kill(i); }
+}
+
+/* ── 進める（描かない） ── */
+let simAcc = 0, lastFill = 0;
+function advance(dt){
+  simAcc += dt;
+  let n = 0;
+  while (simAcc >= HS && n < 12){ substep(HS); simAcc -= HS; n++; }
+  if (n >= 12) simAcc = 0;
+  const ph = RD.phase;
+  if (ph !== "burst" && ph !== "clear"){ lastFill = governor(dt); spread(dt); herd(dt); } else blowOut(dt);
+  growYoung();
+  if (FOE) FOE.update(dt);
+  heatPass(dt);
+  updateRadius(dt);
+  compact();
+  roundUpdate(dt);
+  fxUpdate(dt);
+}
+
+/* ── 演出（輪・けむり・すじ・きらめき）と、画面の揺れ ── */
+const FX = [];
+const cam = { zoom: 1, shake: 0, sx: 0, sy: 0 };
+const CALM = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);   // 動きを控えめにする設定なら、画面を揺らさない
+function fxRing(x, y, col){ FX.push({ k: 0, x, y, col, t0: T, life: .4 }); }
+function fxPoof(x, y){ FX.push({ k: 2, x, y, col: 0, t0: T, life: .45 }); }
+function fxStreak(x0, y0, x1, y1, col){ FX.push({ k: 3, x: x0, y: y0, x1, y1, col, t0: T, life: .22 }); }
+function fxBig(x, y, col, r){ FX.push({ k: 4, x, y, col, r, t0: T, life: .55 }); }
+function fxFade(x, y){ FX.push({ k: 5, x, y, col: 0, t0: T, life: .4 }); }
+function fxTwinkle(){
+  if (!M) return;
+  const i = (Math.random() * M) | 0;
+  if (ST[i] & 1) return;
+  FX.push({ k: 1, x: X[i], y: Y[i], col: GOLD, t0: T, life: .6 });
+}
+function fxUpdate(dt){
+  for (let i = FX.length - 1; i >= 0; i--) if (T - FX[i].t0 > FX[i].life) FX.splice(i, 1);
+  if (RD.frags) for (const f of RD.frags){ f.x += f.vx * dt; f.y += f.vy * dt; f.rot += f.vr * dt; }
+  cam.shake *= Math.exp(-dt / .12);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   画面（玉は WebGL でまとめて描き、円・刃・演出は上に重ねたキャンバスに描く）
+   ══════════════════════════════════════════════════════════════════ */
+const cv = $("#cv"), ctx = cv.getContext("2d");
+const bg = $("#bg"), bctx = bg.getContext("2d");
+const glc = $("#gl");
+const countEl = $("#count"), labelEl = $("#label"), fightEl = $("#fight");
+let DPR = 1, CW = 0, CH = 0;
+const VIEW = { s: 1, cx: 0, cy: 0 };
+function layout(){
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  const w = innerWidth, h = innerHeight;
+  CW = Math.max(1, Math.round(w * DPR)); CH = Math.max(1, Math.round(h * DPR));
+  cv.width = bg.width = glc.width = CW; cv.height = bg.height = glc.height = CH;
+  const top = SET.count ? Math.max(70, h * .13) : 20;
+  const avail = h - top - 18;
+  const diam = Math.max(60, Math.min(w - 32, avail) * .97);
+  VIEW.s = diam / 2 * DPR / (R + 26); VIEW.cx = w / 2 * DPR; VIEW.cy = (top + avail / 2) * DPR;
+  const fs = clamp(top * .46, 26, 72), y0 = Math.max(6, (top - fs) / 2 - 8);
+  countEl.style.fontSize = fs + "px";
+  countEl.style.top = y0 + "px";
+  labelEl.style.top = y0 + fs + 6 + "px";
+  fightEl.style.top = y0 + fs + 24 + "px";
+  $("#hint").style.top = y0 + fs + 42 + "px";
+  countEl.classList.toggle("off", !SET.count);
+  placePanel();
+  if (RD){ buildSprites(); drawBg(); }
+}
+/* 設定の欄は、下の帯のすぐ上に置く（帯が 2 段になる幅でも重ならないように） */
+function placePanel(){
+  const bar = $("#bar"), panel = $("#panel"), up = (parseFloat(getComputedStyle(bar).bottom) || 16) + bar.offsetHeight + 10;
+  panel.style.bottom = up + "px"; panel.style.maxHeight = `calc(100% - ${up + 24}px)`;
+}
+function drawBg(){
+  const g = bctx, w = CW, h = CH, Mx = Math.max(w, h);
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  const rg = g.createRadialGradient(VIEW.cx, VIEW.cy, 0, VIEW.cx, VIEW.cy, Mx * .75);
+  rg.addColorStop(0, "#0c0f1d"); rg.addColorStop(1, "#030308");
+  g.fillStyle = rg; g.fillRect(0, 0, w, h);
+  for (let i = 0; i < 8; i++){
+    const x = Math.random() * w, y = Math.random() * h, r = (.1 + Math.random() * .2) * Mx;
+    const col = PAL[(Math.random() * PAL.length) | 0];
+    const gg = g.createRadialGradient(x, y, 0, x, y, r);
+    gg.addColorStop(0, rgba(col, .07)); gg.addColorStop(1, rgba(col, 0));
+    g.fillStyle = gg; g.fillRect(x - r, y - r, 2 * r, 2 * r);
+  }
+}
+
+/* 玉ひとつの見え方（こまごとに、玉の並び順のまま GPU へ送る） */
+let LIFE_L = 0;            // 寿命の長さ（色あせの進み具合を出すのに使う。0 = 寿命なし）
+function ballLook(i, o, d, x, y, base){
+  const st = ST[i], fe = T - FL[i];
+  let white = HEAT[i];
+  if (fe < .28){ const f = .62 * (1 - fe / .28); if (f > white) white = f; }
+  let gray = 0;
+  if (LIFE_L > 0 && DIE[i] !== Infinity) gray = clamp(1 - (DIE[i] - T) / (.5 * LIFE_L), 0, 1);
+  d[o] = x; d[o + 1] = y; d[o + 2] = base * SC[i]; d[o + 3] = COL[i];
+  d[o + 4] = white; d[o + 5] = gray;
+  d[o + 6] = st & 4 ? clamp(1.15 - (Math.hypot(X[i], Y[i]) - R) / OUT_D, 0, 1) : 1;
+  d[o + 7] = st & 8 ? 2 : Math.max(HEAT[i], white * .22);     // 光のにじみの強さ（2 = 消し刃で焼けている）。生まれたての光は、にじみを控えめに
+}
+const GLR = {
+  gl: null, ok: false, data: new Float32Array(MAXN * 8), loc: {}, n: 0,
+  /* force: GPU がなくても WebGL を使う（試験用 ?gl=1）。ふだんは、GPU のない PC（WebGL がソフトウェア描画になる）では 2D で描く。
+     そういう PC では、玉を 1 個ずつ貼る 2D のほうが何倍も速いため */
+  init(force){
+    let gl = null;
+    const opt = { alpha: true, premultipliedAlpha: true, antialias: false, depth: false, stencil: false, failIfMajorPerformanceCaveat: !force };
+    try { gl = glc.getContext("webgl2", opt) || glc.getContext("webgl", opt); } catch (e){}
+    if (!gl) return;
+    if (!force){
+      let name = "";
+      try { const dbg = gl.getExtension("WEBGL_debug_renderer_info"); name = String(gl.getParameter(dbg ? dbg.UNMASKED_RENDERER_WEBGL : gl.RENDERER)); } catch (e){}
+      if (/swiftshader|llvmpipe|softpipe|software|basic render/i.test(name)) return;      // ソフトウェア描画の WebGL は使わない
+    }
+    const gl2 = typeof WebGL2RenderingContext !== "undefined" && gl instanceof WebGL2RenderingContext;
+    const ext = gl2 ? null : gl.getExtension("ANGLE_instanced_arrays");
+    if (!gl2 && !ext) return;
+    const divisor = gl2 ? (l, v) => gl.vertexAttribDivisor(l, v) : (l, v) => ext.vertexAttribDivisorANGLE(l, v);
+    this.drawN = gl2 ? n => gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, n) : n => ext.drawArraysInstancedANGLE(gl.TRIANGLE_STRIP, 0, 4, n);
+    const vs = `
+      attribute vec2 aQ; attribute vec4 aA; attribute vec4 aB;
+      uniform vec2 uRes; uniform vec3 uPal[${PALX.length}]; uniform mediump float uGlow; uniform float uBase;
+      varying vec2 vP; varying vec3 vCol; varying vec4 vB; varying float vR; varying float vG;
+      void main(){
+        float r = aA.z;
+        if (uGlow > .5 && (aB.w < .04 || r < 1.5)){ gl_Position = vec4(2., 2., 2., 1.); return; }
+        float pad = uGlow > .5 ? 2.6 : 1. + 1.5 / max(r, 1.);
+        vec2 p = (aA.xy + aQ * r * pad) / uRes * 2. - 1.;
+        gl_Position = vec4(p.x, -p.y, 0., 1.);
+        vP = aQ * pad; vCol = uPal[int(aA.w + .5)]; vB = aB; vR = r;
+        vG = min(1., .62 * uBase / max(r, .01));          // 大きい玉ほど、にじみを弱く（かたまりが真っ白につぶれないように）
+      }`;
+    const fs = `
+      precision mediump float;
+      varying vec2 vP; varying vec3 vCol; varying vec4 vB; varying float vR; varying float vG;
+      uniform float uGlow; uniform float uAlpha;
+      void main(){
+        float d = length(vP);
+        if (uGlow > .5){                                   // 光のにじみ（足し算で重ねる）
+          float g = max(0., 1. - d / 2.6); g = g * g * .5 * uAlpha * vB.z * vG;
+          float emb = step(1.5, vB.w);
+          vec3 hot = mix(mix(vCol, vec3(1.), .55), vec3(1., .34, .16), emb);
+          gl_FragColor = vec4(hot * g * mix(vB.w, .8, emb), 0.);
+          return;
+        }
+        float aa = 1.5 / max(vR, 1.);
+        float edge = 1. - smoothstep(1. - aa, 1., d);
+        if (edge <= 0.) discard;
+        float big = smoothstep(2.6, 6., vR);              // 小さく映る玉は、ふちどりと光の点を省く
+        float t = clamp(length(vP - vec2(-.36, -.4)) / 1.4, 0., 1.);
+        vec3 lit = mix(vCol, vec3(1.), .5), c;
+        if (t < .24) c = mix(lit, vCol, t / .24);
+        else if (t < .62) c = mix(vCol, vCol * .8, (t - .24) / .38);
+        else c = mix(vCol * .8, vCol * .5, (t - .62) / .38);
+        vec2 q = vP - vec2(-.34, -.4);
+        vec2 e = vec2(q.x * .8253 - q.y * .5646, q.x * .5646 + q.y * .8253) / vec2(.27, .16);
+        c = mix(c, vec3(1.), .6 * (1. - smoothstep(.7, 1., length(e))) * big);
+        float l = dot(c, vec3(.3, .59, .11));
+        c = mix(c, vec3(l * .7 + .05), vB.y);              // 年をとると色あせる
+        c = mix(c, vec3(1.), vB.x);                        // 挟まれる前は白く光る
+        c = mix(c, vec3(1., .32, .14) * (.6 + .4 * vB.x), step(1.5, vB.w));   // 消し刃に挟まれたら赤く焼ける
+        float ow = clamp(2.4 / max(vR, 1.), .07, .22);
+        float ring = smoothstep(1. - ow - aa, 1. - ow, d) * big;
+        c = mix(c, vCol * .14, ring * (1. - .7 * vB.x) * (1. - vB.y * .5));   // 黒いふちどり
+        float a = edge * uAlpha * vB.z;
+        gl_FragColor = vec4(c * a, a);
+      }`;
+    const sh = (type, src) => { const o = gl.createShader(type); gl.shaderSource(o, src); gl.compileShader(o); if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(o)); return o; };
+    try {
+      const pr = gl.createProgram();
+      gl.attachShader(pr, sh(gl.VERTEX_SHADER, vs)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, fs));
+      gl.linkProgram(pr);
+      if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(pr));
+      gl.useProgram(pr);
+      const L = this.loc;
+      for (const a of ["aQ", "aA", "aB"]) L[a] = gl.getAttribLocation(pr, a);
+      for (const u of ["uRes", "uPal", "uAlpha", "uGlow", "uBase"]) L[u] = gl.getUniformLocation(pr, u);
+      const pal = new Float32Array(PALX.length * 3);
+      PALX.forEach((h, i) => { const c = hexRgb(h); pal[i * 3] = c[0] / 255; pal[i * 3 + 1] = c[1] / 255; pal[i * 3 + 2] = c[2] / 255; });
+      gl.uniform3fv(L.uPal, pal);
+      const quad = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, quad);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(L.aQ); gl.vertexAttribPointer(L.aQ, 2, gl.FLOAT, false, 0, 0); divisor(L.aQ, 0);
+      this.buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, this.buf);
+      gl.bufferData(gl.ARRAY_BUFFER, this.data.byteLength, gl.DYNAMIC_DRAW);
+      gl.enableVertexAttribArray(L.aA); gl.vertexAttribPointer(L.aA, 4, gl.FLOAT, false, 32, 0); divisor(L.aA, 1);
+      gl.enableVertexAttribArray(L.aB); gl.vertexAttribPointer(L.aB, 4, gl.FLOAT, false, 32, 16); divisor(L.aB, 1);
+      gl.enable(gl.BLEND);
+      this.gl = gl; this.ok = true;
+    } catch (e){ console.warn("WebGL を使わずに描きます:", e); this.ok = false; }
+    glc.addEventListener("webglcontextlost", e => { e.preventDefault(); this.ok = false; });
+  },
+  clear(){ if (this.gl && !this.gl.isContextLost()){ this.gl.clearColor(0, 0, 0, 0); this.gl.clear(this.gl.COLOR_BUFFER_BIT); } },
+  draw(s, ox, oy, alpha){
+    const gl = this.gl;
+    if (!this.ok || gl.isContextLost()) return false;
+    const d = this.data, base = RV * s, m = 2 * base + 4;
+    const l = -m, r = CW + m, t = -m, b = CH + m;
+    let n = 0, hot = false;
+    for (let i = 0; i < M; i++){
+      if (ST[i] & 1) continue;
+      const x = ox + X[i] * s, y = oy + Y[i] * s;
+      if (x < l || x > r || y < t || y > b) continue;
+      const o = n * 8;
+      ballLook(i, o, d, x, y, base);
+      if (d[o + 7] > .04) hot = true;
+      n++;
+    }
+    this.n = n;
+    gl.viewport(0, 0, CW, CH); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+    if (!n) return true;
+    const L = this.loc;
+    gl.uniform2f(L.uRes, CW, CH); gl.uniform1f(L.uAlpha, alpha); gl.uniform1f(L.uBase, base);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, d.subarray(0, n * 8));
+    gl.uniform1f(L.uGlow, 0); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA); this.drawN(n);
+    if (hot){ gl.uniform1f(L.uGlow, 1); gl.blendFunc(gl.ONE, gl.ONE); this.drawN(n); }
+    return true;
+  },
+};
+
+/* WebGL が使えないときは、色ごとの絵を 1 個ずつ貼る（ふちどりつき。光のにじみはなし） */
+const SPR = { img: [], white: null, gray: null, size: 4 };
+function buildSprites(){
+  if (GLR.ok) return;
+  const rp = RV * VIEW.s, size = Math.max(4, Math.ceil(rp * 2 + 2));
+  SPR.size = size;
+  SPR.img = PALX.map(c => ballSprite(c, size, rp, 0));
+  SPR.white = ballSprite("#ffffff", size, rp, 1);
+  SPR.gray = ballSprite("#8c8f98", size, rp, 0);
+}
+function ballSprite(hex, size, rp, flat){
+  const cnv = document.createElement("canvas"); cnv.width = cnv.height = size;
+  const g = cnv.getContext("2d"), m = size / 2;
+  if (flat || rp < 2.6){ g.fillStyle = hex; g.beginPath(); g.arc(m, m, Math.max(.8, rp), 0, TAU); g.fill(); return cnv; }
+  const grd = g.createRadialGradient(m - rp * .36, m - rp * .4, rp * .06, m, m, rp);
+  grd.addColorStop(0, mix(hex, "#ffffff", .5)); grd.addColorStop(.34, hex);
+  grd.addColorStop(.84, mix(hex, "#000000", .2)); grd.addColorStop(1, mix(hex, "#000000", .5));
+  g.fillStyle = grd; g.beginPath(); g.arc(m, m, rp, 0, TAU); g.fill();
+  const ow = clamp(2.4 / rp, .07, .22) * rp;
+  g.strokeStyle = mix(hex, "#000000", .86); g.lineWidth = ow; g.beginPath(); g.arc(m, m, rp - ow / 2, 0, TAU); g.stroke();
+  if (rp > 4){ g.fillStyle = "rgba(255,255,255,.6)"; g.beginPath(); g.ellipse(m - rp * .34, m - rp * .4, rp * .27, rp * .16, -.6, 0, TAU); g.fill(); }
+  return cnv;
+}
+const LOOK = new Float32Array(8);
+function drawBalls2D(c, s, ox, oy, alpha){
+  if (SPR.size !== Math.max(4, Math.ceil(RV * VIEW.s * 2 + 2))) { GLR.ok = false; buildSprites(); }
+  const k = s / VIEW.s, base = RV * s, m = 2 * base + 4, l = -m, r = CW + m, t = -m, b = CH + m;
+  for (let i = 0; i < M; i++){
+    if (ST[i] & 1) continue;
+    const x = ox + X[i] * s, y = oy + Y[i] * s;
+    if (x < l || x > r || y < t || y > b) continue;
+    ballLook(i, 0, LOOK, x, y, base);
+    const z = SPR.size * k * SC[i], a = alpha * LOOK[6];
+    c.globalAlpha = a; c.drawImage(SPR.img[COL[i]], x - z / 2, y - z / 2, z, z);
+    if (LOOK[5] > .03){ c.globalAlpha = a * LOOK[5] * .85; c.drawImage(SPR.gray, x - z / 2, y - z / 2, z, z); }
+    if (LOOK[4] > .03){ c.globalAlpha = a * LOOK[4]; c.drawImage(SPR.white, x - z / 2, y - z / 2, z, z); }
+  }
+  c.globalAlpha = 1;
+}
+
+/* 円（穴があれば、そこだけ線を切る）と、割れるときのかけら・白い粒 */
+function drawContainer(c, s){
+  const ph = RD.phase, lw = 2.2 * DPR / s;
+  if (ph === "burst" || ph === "clear"){
+    if (!RD.frags) return;
+    const e = RD.t - RD.burstT, a = Math.max(0, 1 - e / 1.4);
+    if (a <= 0) return;
+    c.strokeStyle = `rgba(255,255,255,${.85 * a})`; c.lineWidth = lw;
+    for (const f of RD.frags){
+      c.save(); c.translate(f.x, f.y); c.rotate(f.rot);
+      c.beginPath(); c.arc(-R, 0, R, f.a0, f.a1); c.stroke();
+      c.restore();
+    }
+    return;
+  }
+  let alpha = .88;
+  if (ph === "warn") alpha *= .55 + .45 * Math.random();
+  c.strokeStyle = `rgba(255,255,255,${alpha})`; c.lineWidth = lw; c.lineCap = "butt";
+  const gaps = GAPS ? GAPS.filter(g => g.hw > .001).sort((p, q) => p.a - q.a) : null;
+  if (gaps && gaps.length){
+    for (let j = 0; j < gaps.length; j++){
+      const g = gaps[j], h = gaps[(j + 1) % gaps.length];
+      const from = g.a + g.hw, to = h.a - h.hw + (j + 1 === gaps.length ? TAU : 0);
+      if (to > from){ c.beginPath(); c.arc(0, 0, R, from, to); c.stroke(); }
+    }
+    c.fillStyle = `rgba(255,255,255,${alpha})`;
+    for (const g of gaps) for (let sg = -1; sg <= 1; sg += 2){ const a = g.a + sg * g.hw; c.beginPath(); c.arc(Math.cos(a) * R, Math.sin(a) * R, Math.max(4, lw * 1.6), 0, TAU); c.fill(); }
+  } else {
+    const a0 = -Math.PI / 2, sweep = TAU * (ph === "intro" ? EZ.outC(Math.min(1, RD.t / .6)) : 1);
+    c.beginPath(); c.arc(0, 0, R, a0, a0 + sweep); c.stroke();
+  }
+  if (ph === "warn" && RD.beads){
+    for (const b of RD.beads){
+      const e = RD.t - b.t; if (e < 0) continue;
+      const k = Math.min(1, e / .15), rb = (5 + 3 * Math.sin(e * 18)) * k * DPR / s * 1.6;
+      c.beginPath(); c.arc(Math.cos(b.a) * R, Math.sin(b.a) * R, Math.max(rb, lw), 0, TAU);
+      c.fillStyle = "rgba(255,255,255,.95)"; c.fill();
+    }
+  }
+}
+/* 進み具合の輪（決めた数まで、あとどのくらいか。けたで数えるので、増え方が一定なら一定の速さで進む） */
+let ringShown = 0;
+function drawRing(c, s){
+  const ph = RD.phase;
+  if (SET.ring === "0" || (ph !== "grow" && ph !== "warn" && ph !== "gold")) { ringShown = 0; return; }
+  const want = N > 1 ? clamp(Math.log(N) / Math.log(RD.target), 0, 1) : 0;
+  ringShown += (want - ringShown) * .12;
+  const rr_ = R + 15, lw = 3.4 * DPR / s, a0 = -Math.PI / 2;
+  c.lineWidth = lw; c.lineCap = "round";
+  c.strokeStyle = "rgba(255,255,255,.07)"; c.beginPath(); c.arc(0, 0, rr_, 0, TAU); c.stroke();
+  if (ringShown > .004){
+    c.strokeStyle = ph === "gold" ? rgba(PALX[GOLD], .85) : rgba(PALX[RD.pal[RD.epoch % RD.pal.length]], .75);
+    c.beginPath(); c.arc(0, 0, rr_, a0, a0 + TAU * ringShown); c.stroke();
+  }
+}
+function drawFx(c){
+  for (const f of FX){
+    const e = (T - f.t0) / f.life;
+    if (f.k === 0){                                      // はじけた所の輪
+      c.strokeStyle = rgba(PALX[f.col], .9 * (1 - e)); c.lineWidth = RV * .45 * (1 - e) + .5;
+      c.beginPath(); c.arc(f.x, f.y, RV * (1.2 + 3.2 * EZ.outC(e)), 0, TAU); c.stroke();
+    } else if (f.k === 2){                               // 消し刃のけむり
+      c.strokeStyle = `rgba(190,120,100,${.8 * (1 - e)})`; c.lineWidth = RV * .3 * (1 - e) + .5;
+      c.beginPath(); c.arc(f.x, f.y, RV * (.6 + 1.8 * EZ.outC(e)), 0, TAU); c.stroke();
+      c.fillStyle = `rgba(16,8,6,${.6 * (1 - e)})`; c.beginPath(); c.arc(f.x, f.y, RV * (1 - e), 0, TAU); c.fill();
+    } else if (f.k === 3){                               // つぶれた所から出口へのすじ
+      const u = EZ.outC(e), x = f.x + (f.x1 - f.x) * u, y = f.y + (f.y1 - f.y) * u;
+      c.strokeStyle = rgba(PALX[f.col], .55 * (1 - e)); c.lineWidth = RV * 1.5 * (1 - e) + 1; c.lineCap = "round";
+      c.beginPath(); c.moveTo(f.x + (f.x1 - f.x) * u * u, f.y + (f.y1 - f.y) * u * u); c.lineTo(x, y); c.stroke();
+    } else if (f.k === 4){                               // 大きな光の輪
+      c.strokeStyle = rgba(PALX[f.col], .8 * (1 - e)); c.lineWidth = (f.r * .16) * (1 - e) + 1;
+      c.beginPath(); c.arc(f.x, f.y, f.r * (.4 + 1.3 * EZ.outC(e)), 0, TAU); c.stroke();
+    } else if (f.k === 5){                               // 寿命で消えた所（灰色の輪）
+      c.strokeStyle = `rgba(170,174,186,${.6 * (1 - e)})`; c.lineWidth = RV * .22 * (1 - e) + .4;
+      c.beginPath(); c.arc(f.x, f.y, RV * (.5 + 1.1 * EZ.outC(e)), 0, TAU); c.stroke();
+    } else {                                             // 金色のきらめき
+      const r = RV * 2.6 * Math.sin(Math.PI * e);
+      c.strokeStyle = `rgba(255,240,200,${.9 * (1 - e)})`; c.lineWidth = RV * .25;
+      c.beginPath(); c.moveTo(f.x - r, f.y); c.lineTo(f.x + r, f.y); c.moveTo(f.x, f.y - r); c.lineTo(f.x, f.y + r); c.stroke();
+    }
+  }
+}
+let shownN = -1, bumpAt = 0;
+const NF = new Intl.NumberFormat("en-US");
+function render(){
+  const c = ctx;
+  c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, CW, CH);
+  if (!RD) return;
+  const calm = CALM || SET.shake === "0";
+  const shake = calm ? 0 : cam.shake, zoom = CALM ? 1 : cam.zoom;
+  cam.sx = (Math.random() - .5) * 2 * shake * DPR; cam.sy = (Math.random() - .5) * 2 * shake * DPR;
+  const s = VIEW.s * zoom, ox = VIEW.cx + cam.sx, oy = VIEW.cy + cam.sy;
+  const fade = RD.phase === "clear" ? Math.min(RD.fade, RD.mAlpha) : RD.fade;
+  if (!GLR.draw(s, ox, oy, fade)){ GLR.clear(); drawBalls2D(c, s, ox, oy, fade); }
+  c.setTransform(s, 0, 0, s, ox, oy);
+  c.globalAlpha = RD.mAlpha * fade; rig.drawBack(c);
+  c.globalAlpha = fade; drawRing(c, s); drawContainer(c, s);
+  if (FOE && FOE.draw) FOE.draw(c, s);
+  c.globalAlpha = RD.mAlpha * fade; rig.draw(c);
+  c.globalAlpha = fade; drawFx(c);
+  c.globalAlpha = 1;
+  // 玉の数
+  if (N !== shownN && RD.phase !== "clear"){   // 消えていく間は数字を止めておく
+    if (N > shownN && shownN > 0) bumpAt = performance.now();
+    shownN = N; countEl.textContent = NF.format(N);
+  }
+  const b = Math.exp(-(performance.now() - bumpAt) / 110);
+  countEl.style.transform = b > .01 ? `scale(${1 + .1 * b})` : "";
+  countEl.classList.toggle("gold", RD.phase === "gold" || (RD.phase === "clear" && RD.gold && RD.fade < 1));
+  countEl.style.opacity = RD.phase === "clear" || RD.phase === "intro" ? ".35" : "1";
+}
+
+/* 名札（仕掛けの名前や、できごとを少しのあいだ出す）と、ケンカの様子（出しっぱなし） */
+let labelTimer = 0;
+function showLabel(text, keep, ms){
+  labelEl.textContent = text; labelEl.classList.add("show");
+  clearTimeout(labelTimer);
+  if (!keep) labelTimer = setTimeout(() => labelEl.classList.remove("show"), ms || 2600);
+}
+let fightText = "";
+function showFight(text){
+  if (text === fightText) return;
+  fightText = text; fightEl.textContent = text; fightEl.classList.toggle("show", !!text);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   音（その場で作る。ファイルは使わない）
+   ・はじける音は、閉じるたびに音程が上がっていく（5 つの音の音階を 3 段。15 回でひとまわり）
+   ・玉どうしの粒の音は、数が増えると「ザーッ」という 1 本の音にまとめる
+   ・仕掛けが動く低い音、閉じる音、割れる前に上がっていく音
+   ══════════════════════════════════════════════════════════════════ */
+const SCALE = [0, 2, 4, 7, 9];
+const AU = {
+  ctx: null, master: null, B: {}, voices: 0, hum: null, humSrc: null, rain: null, rainBP: null, hiss: null,
+  ready: false, last: {}, act: 0, dest: null,
+  init(){
+    if (this.ctx) return;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    try { this.ctx = new AC(); } catch (e){ return; }
+    const c = this.ctx;
+    const comp = c.createDynamicsCompressor();
+    comp.threshold.value = -16; comp.knee.value = 12; comp.ratio.value = 5; comp.attack.value = .003; comp.release.value = .2;
+    this.master = c.createGain(); this.master.connect(comp); comp.connect(c.destination);
+    if (Q.get("rec") === "1" && c.createMediaStreamDestination){ this.dest = c.createMediaStreamDestination(); comp.connect(this.dest); }   // 試験用（音を録って確かめる）
+    try { this.synth(); } catch (e){ console.error(e); return; }
+    const loop = (buf, filterType, freq, q) => {
+      const src = c.createBufferSource(); src.buffer = buf; src.loop = true;
+      const f = c.createBiquadFilter(); f.type = filterType; f.frequency.value = freq; if (q) f.Q.value = q;
+      const g = c.createGain(); g.gain.value = 0;
+      src.connect(f); f.connect(g); g.connect(this.master); src.start();
+      return { src, f, g };
+    };
+    const h = loop(this.B.hum, "lowpass", 420); this.hum = h.g; this.humSrc = h.src;      // 仕掛けが動く音
+    const r = loop(this.B.noise, "bandpass", 1800, .7); this.rain = r.g; this.rainBP = r.f;   // 玉の粒の音をまとめた「ザーッ」
+    const s = loop(this.B.noise, "highpass", 2600); this.hiss = s.g;                       // 穴から噴き出す音
+    this.ready = true; this.setVol();
+    c.onstatechange = () => showHint();
+  },
+  running(){ return this.ready && this.ctx.state === "running" && !SET.mute && SET.vol > 0; },
+  resume(){ this.init(); if (this.ctx && this.ctx.state !== "running") this.ctx.resume().then(showHint, () => {}); },
+  setVol(){ if (this.master){ const v = SET.mute ? 0 : (SET.vol / 100) ** 2; this.master.gain.setTargetAtTime(v, this.ctx.currentTime, .03); } },
+  rl(key, gap){ const now = this.ctx.currentTime; if ((this.last[key] || -9) + gap > now) return false; this.last[key] = now; return true; },
+  play(buf, gain, rate, pan, when){
+    if (this.voices > 46 || !buf) return;
+    const c = this.ctx, src = c.createBufferSource(), g = c.createGain();
+    src.buffer = buf; src.playbackRate.value = rate || 1; g.gain.value = gain;
+    src.connect(g);
+    if (pan && c.createStereoPanner){ const p = c.createStereoPanner(); p.pan.value = clamp(pan, -1, 1); g.connect(p); p.connect(this.master); }
+    else g.connect(this.master);
+    this.voices++; src.onended = () => { this.voices--; };
+    src.start(when || 0);
+  },
+  any(a){ return a[(Math.random() * a.length) | 0]; },
+  sfx(name){
+    if (!this.running()) return;
+    const B = this.B, now = this.ctx.currentTime, j = () => .94 + Math.random() * .12;
+    if (name === "press"){ this.play(B.clank, .8, .92 * j()); }
+    else if (name === "cross"){ this.play(B.clank, .72, 1.18 * j()); this.play(B.clack, .4, 1); }
+    else if (name === "box"){ this.play(B.clank, .66, 1.32 * j()); this.play(B.clack, .45, .9); }
+    else if (name === "loops"){ this.play(B.snip, .8, j()); }
+    else if (name === "lock"){ this.play(B.clack, .3, 1.05 * j(), 0, now); }
+    else if (name === "pop"){ this.play(B.pop[0], .5, j()); }
+    else if (name === "boom"){ this.play(B.boom, 1, 1); this.play(B.shatter, .5, 1, 0, now + .02); }
+    else if (name === "gulp"){ if (this.rl("gulp", .09)) this.play(this.any(B.pop), .3, .42 * j()); }
+    else if (name === "splat"){ this.play(B.splat, .9, j()); }
+    else if (name === "sizzle"){ if (this.rl("sizzle", .08)) this.play(B.sizzle, .5, j()); }
+    else if (name === "pip"){ if (this.rl("pip", .12)) this.play(this.any(B.tick), .06, 2.2 * j()); }
+    else if (name === "crack"){ if (this.rl("crack", .05)) this.play(this.any(B.tick), .3, .5 * j(), (Math.random() - .5)); }
+    else if (name === "plug"){ this.play(B.pop[1], .4, .6); }
+    else if (name === "boom2"){ this.play(B.shatter, .42, .8); this.play(B.boom, .4, 1.5); }
+    else if (name === "redon"){ this.play(B.sizzle, .34, .7); this.play(B.bell, .14, .2, 0, now); }
+    else if (name === "foe"){ this.play(B.bell, .24, .36, -.3, now); this.play(B.bell, .2, .27, .3, now + .12); }
+    else if (name === "gone"){ this.play(B.bell, .3, .3, 0, now); this.play(B.bell, .22, .225, 0, now + .25); }
+    else if (name === "cheer"){ [1, 1.25, 1.5].forEach((r, q) => this.play(B.bell, .2, r * .75, (q - 1) * .3, now + q * .07)); }
+  },
+  /* はじける音。m: 分かれた玉の数、epoch: 何回目の閉じか（音程を決める） */
+  pops(m, epoch){
+    if (!this.running()) return;
+    const B = this.B, now = this.ctx.currentTime, idx = ((epoch % 15) + 15) % 15;
+    const note = 2 ** ((SCALE[idx % 5] + 12 * Math.floor(idx / 5) - 12) / 12);
+    const n = Math.min(7, 1 + Math.floor(Math.log2(m + 1))), loud = Math.min(1, .45 + .08 * Math.log2(m + 1));
+    const mult = [1, 1.5, 2, 1.25, 3, 1, 1.5];
+    for (let q = 0; q < n; q++){
+      this.play(this.any(B.pop), loud * .8 / (1 + q * .28), note * mult[q] * (.99 + Math.random() * .02), (Math.random() - .5) * .8, now + q * (.012 + Math.random() * .02));
+    }
+  },
+  /* 割れる前に上がっていく音と、ぱちぱち */
+  riser(sec){
+    if (!this.running()) return;
+    const c = this.ctx, now = c.currentTime;
+    const o = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain();
+    o.type = "sawtooth"; o.frequency.setValueAtTime(150, now); o.frequency.exponentialRampToValueAtTime(640, now + sec);
+    f.type = "lowpass"; f.frequency.setValueAtTime(500, now); f.frequency.exponentialRampToValueAtTime(3200, now + sec);
+    g.gain.setValueAtTime(0, now); g.gain.linearRampToValueAtTime(.085, now + sec * .9); g.gain.linearRampToValueAtTime(0, now + sec + .04);
+    o.connect(f); f.connect(g); g.connect(this.master); o.start(now); o.stop(now + sec + .06);
+    for (let q = 0; q < 34; q++){ const t = sec * Math.sqrt(q / 34); this.play(this.any(this.B.tick), .12 + .25 * (t / sec), 1.6 + Math.random() * .8, (Math.random() - .5) * 1.4, now + t); }
+  },
+  chime(){
+    if (!this.running()) return;
+    const now = this.ctx.currentTime;
+    [1, 1.25, 1.5, 2, 2.5].forEach((r, q) => this.play(this.B.bell, .32, r * .5, (q - 2) * .25, now + q * .09));
+  },
+  /* こまごと: 仕掛けの音・粒の音・噴き出す音の大きさを、いまの様子に合わせる */
+  frame(fill, motion, dt, spray){
+    if (!this.ready) return;
+    const on = this.running(), now = this.ctx.currentTime;
+    this.hum.gain.setTargetAtTime(on ? Math.min(.16, motion * .16) : 0, now, .05);
+    this.humSrc.playbackRate.setTargetAtTime(.85 + .5 * Math.min(1, motion), now, .08);
+    const per = (hitN + clinkN) / Math.max(dt, 1 / 240);            // 1 秒あたりのぶつかり
+    this.act += (per - this.act) * Math.min(1, dt * 6);
+    const dense = Math.min(1, this.act / 1500);                    // 粒がまとまって 1 本の音になる度合い
+    this.rain.gain.setTargetAtTime(on ? Math.min(.11, .0034 * Math.sqrt(this.act)) * (.35 + .65 * dense) : 0, now, .08);
+    this.rainBP.frequency.setTargetAtTime(1300 + 1900 * dense, now, .1);
+    this.hiss.gain.setTargetAtTime(on ? Math.min(.14, (spray || 0) * .14) : 0, now, .06);
+    if (!on) return;
+    const quiet = (1 - .65 * smooth(.25, .7, fill)) * (1 - .75 * dense);
+    if (hitN && Math.random() < Math.min(.85, .15 + hitN / 40)){
+      this.play(this.any(this.B.tick), .26 * quiet * Math.min(1, hitV / (V0 * 1.4)) + .015, .8 + Math.random() * .5, hitX / R * .7);
+    }
+    if (clinkN && Math.random() < Math.min(.6, .12 + clinkN / 30)){
+      this.play(this.any(this.B.tick), .2 * quiet * Math.min(1, clinkV / (V0 * 1.4)) + .015, 1.35 + Math.random() * .4, clinkX / R * .7);
+    }
+  },
+  synth(){
+    const c = this.ctx, sr = c.sampleRate, rn = Math.random;
+    const mk = (sec, fn, peak) => {
+      const n = Math.max(1, Math.floor(sec * sr)), b = c.createBuffer(1, n, sr), d = b.getChannelData(0);
+      fn(d, n); let m = 0; for (let i = 0; i < n; i++) m = Math.max(m, Math.abs(d[i]));
+      if (m > 0){ const g = (peak || .9) / m; for (let i = 0; i < n; i++) d[i] *= g; }
+      const f = Math.min(n, Math.floor(sr * .004)); for (let i = 0; i < f; i++) d[n - 1 - i] *= i / f;
+      return b;
+    };
+    // コツッ（玉どうし）
+    this.B.tick = [0, 1, 2, 3, 4, 5].map(() => mk(.07, (d, n) => {
+      const f1 = 850 + rn() * 900, f2 = f1 * (2.2 + rn() * .6); let lp = 0;
+      for (let i = 0; i < n; i++){
+        const t = i / sr; let v = Math.sin(TAU * f1 * t) * Math.exp(-t / .011) * .8 + Math.sin(TAU * f2 * t) * Math.exp(-t / .005) * .35;
+        if (t < .0025){ lp += ((rn() * 2 - 1) * (1 - t / .0025) - lp) * .5; v += lp * .5; }
+        d[i] = v;
+      }
+    }, .8));
+    // ポン（分かれる。音程をつけて鳴らす）
+    this.B.pop = [0, 1, 2].map(() => mk(.3, (d, n) => {
+      const f0 = 300 + rn() * 30, f1 = f0 * 2.02; let ph = 0;
+      for (let i = 0; i < n; i++){
+        const t = i / sr, f = f0 + (f1 - f0) * (1 - Math.exp(-t / .016)); ph += TAU * f / sr;
+        d[i] = (Math.sin(ph) + .25 * Math.sin(2 * ph)) * Math.min(1, t / .002) * Math.exp(-t / .06);
+      }
+    }));
+    // ガシャン（閉じる）
+    this.B.clank = mk(1.1, (d, n) => {
+      const P = [[390, .34, .5], [1040, .22, .34], [1730, .16, .26], [2620, .11, .18], [3510, .08, .12], [4890, .05, .08]];
+      let lp = 0, ph = 0;
+      for (let i = 0; i < n; i++){
+        const t = i / sr; let v = 0;
+        const ft = 42 + 80 * Math.exp(-t / .035); ph += TAU * ft / sr; v += Math.sin(ph) * Math.exp(-t / .17);
+        for (const p of P) v += Math.sin(TAU * p[0] * t + p[0]) * Math.exp(-t / p[1]) * p[2];
+        lp += ((rn() * 2 - 1) - lp) * .25; v += lp * Math.exp(-t / .02) * .9;
+        d[i] = v * Math.min(1, t / .001);
+      }
+    });
+    // カチッ（囲いこんだ）
+    this.B.clack = mk(.13, (d, n) => {
+      let hp = 0, prev = 0;
+      for (let i = 0; i < n; i++){
+        const t = i / sr, w = rn() * 2 - 1; hp = .9 * (hp + w - prev); prev = w;
+        d[i] = hp * Math.exp(-t / .006) * .8 + Math.sin(TAU * 2150 * t) * Math.exp(-t / .018) * .5 + Math.sin(TAU * 3320 * t) * Math.exp(-t / .012) * .35;
+      }
+    });
+    // シャキン（8 の字）
+    this.B.snip = mk(.65, (d, n) => {
+      const P = [[2280, .16, .4], [3460, .12, .32], [5120, .09, .22], [1210, .2, .25]]; let ph = 0;
+      for (let i = 0; i < n; i++){
+        const t = i / sr; let v = 0;
+        for (const p of P) v += Math.sin(TAU * p[0] * t) * Math.exp(-t / p[1]) * p[2];
+        v += (rn() * 2 - 1) * Math.exp(-t / .012) * .5;
+        const ft = 70 + 60 * Math.exp(-t / .03); ph += TAU * ft / sr; v += Math.sin(ph) * Math.exp(-t / .09) * .6;
+        d[i] = v;
+      }
+    });
+    // ドーン（割れる）
+    this.B.boom = mk(2.3, (d, n) => {
+      let ph = 0, lp = 0;
+      for (let i = 0; i < n; i++){
+        const t = i / sr, f = 28 + 40 * Math.exp(-t / .25); ph += TAU * f / sr;
+        let v = Math.sin(ph) * Math.exp(-t / .7);
+        lp += ((rn() * 2 - 1) - lp) * (.02 + .5 * Math.exp(-t / .35)); v += lp * Math.exp(-t / .9) * 1.2;
+        d[i] = v * Math.min(1, t / .004);
+      }
+    });
+    // パリン（円のかけら）
+    this.B.shatter = mk(.9, (d, n) => {
+      const P = []; for (let q = 0; q < 9; q++) P.push([2400 + rn() * 5200, .05 + rn() * .22, rn() * .5 + .2, rn() * .25]);
+      for (let i = 0; i < n; i++){
+        const t = i / sr; let v = 0;
+        for (const p of P) if (t > p[3]) v += Math.sin(TAU * p[0] * (t - p[3])) * Math.exp(-(t - p[3]) / p[1]) * p[2];
+        d[i] = v + (rn() * 2 - 1) * Math.exp(-t / .03) * .6;
+      }
+    }, .7);
+    // ベチャ（食べる玉がはじける）
+    this.B.splat = mk(.4, (d, n) => {
+      let lp = 0, ph = 0;
+      for (let i = 0; i < n; i++){
+        const t = i / sr; lp += ((rn() * 2 - 1) - lp) * .18;
+        const f = 70 + 130 * Math.exp(-t / .04); ph += TAU * f / sr;
+        d[i] = lp * Math.exp(-t / .06) * 1.2 + Math.sin(ph) * Math.exp(-t / .1) * .8;
+      }
+    });
+    // ジュッ（消し刃）
+    this.B.sizzle = mk(.26, (d, n) => {
+      let hp = 0, prev = 0;
+      for (let i = 0; i < n; i++){ const t = i / sr, w = rn() * 2 - 1; hp = .82 * (hp + w - prev); prev = w; d[i] = hp * Math.min(1, t / .004) * Math.exp(-t / .07); }
+    }, .7);
+    // キラン（金色・合図）
+    this.B.bell = mk(2.2, (d, n) => {
+      const f = 1046.5, P = [[1, .9, 1], [2.76, .45, .5], [5.4, .25, .25], [8.93, .12, .12]];
+      for (let i = 0; i < n; i++){
+        const t = i / sr; let v = 0;
+        for (const p of P) v += Math.sin(TAU * f * p[0] * t) * Math.exp(-t / p[1]) * p[2];
+        d[i] = v * Math.min(1, t / .002);
+      }
+    }, .6);
+    // ウィーン（仕掛けが動く音。くり返し）
+    this.B.hum = mk(3, (d, n) => {
+      let b = 0, lp = 0;
+      for (let i = 0; i < n; i++){ const w = rn() * 2 - 1; b = (b + .02 * w) / 1.02; lp += (b - lp) * .08; d[i] = lp + Math.sin(TAU * 55 * i / sr) * .02; }
+      const f = Math.floor(sr * .2); for (let i = 0; i < f; i++){ d[i] *= i / f; }
+    }, .5);
+    // 白い雑音（くり返し。粒の音・噴き出す音のもと）
+    this.B.noise = mk(2.5, (d, n) => {
+      for (let i = 0; i < n; i++) d[i] = rn() * 2 - 1;
+      const f = Math.floor(sr * .05); for (let i = 0; i < f; i++){ const k = i / f; d[i] = d[i] * k + d[n - f + i] * (1 - k); }   // つなぎ目をならす
+    }, .5);
+  },
+};
+function showHint(){
+  const h = $("#hint");
+  h.hidden = !(AU.ctx && AU.ctx.state !== "running" && !SET.mute && SET.vol > 0);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   操作（下の帯・設定の欄・キー）と、こまごとのくり返し
+   ══════════════════════════════════════════════════════════════════ */
+const ICON = {
+  pause: '<svg viewBox="0 0 24 24"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>',
+  play: '<svg viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z"/></svg>',
+  snd: '<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4zM16 8.5a5 5 0 010 7l-1.4-1.4a3 3 0 000-4.2zM18.5 6a8.5 8.5 0 010 12l-1.4-1.4a6.5 6.5 0 000-9.2z"/></svg>',
+  mute: '<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4zM16 9.4l1.4-1.4 2.1 2.1 2.1-2.1L23 9.4 20.9 11.5 23 13.6l-1.4 1.4-2.1-2.1-2.1 2.1-1.4-1.4 2.1-2.1z"/></svg>',
+};
+let paused = Q.get("pause") === "1";   // ?pause=1 で止めた状態から始める（録画・試験用）
+let restartTimer = 0;
+function restartSoon(){ clearTimeout(restartTimer); restartTimer = setTimeout(nextRound, 500); }   // 続けていくつか変えても、作り直しは 1 回
+function applyLive(key){
+  if (key === "quality") HS = HS_Q[SET.quality] || 1 / 180;
+  if (key === "crowd") GAMMA = GAMMAS[SET.crowd] || 0;
+}
+function buildPanel(){
+  const pb = $("#presets");
+  PRESETS.forEach(([name, vals], idx) => {
+    const b = document.createElement("button"); b.textContent = name; b.dataset.i = idx;
+    b.onclick = () => {
+      for (const k of PRESET_KEYS) SET[k] = vals[k] !== undefined ? vals[k] : DEF[k];
+      SET.pin = null; saveSet(); for (const k of LIVE) applyLive(k); syncUI(); nextRound();
+    };
+    pb.appendChild(b);
+  });
+  const box = $("#opts"); let sec = "";
+  for (const [s, key, label, opts] of OPTS){
+    if (s !== sec){ sec = s; const h = document.createElement("h3"); h.textContent = s; box.appendChild(h); }
+    const row = document.createElement("div"); row.className = "row";
+    const sp = document.createElement("span"); sp.textContent = label;
+    const sel = document.createElement("select"); sel.id = "o_" + key;
+    for (const [v, t] of opts){ const o = document.createElement("option"); o.value = v; o.textContent = t; sel.appendChild(o); }
+    sel.onchange = () => {
+      sel.blur(); SET[key] = sel.value; saveSet();
+      if (LIVE.has(key)) applyLive(key);
+      else { if (SET.pin){ SET.pin = null; saveSet(); } restartSoon(); }
+      syncUI();
+    };
+    row.appendChild(sp); row.appendChild(sel); box.appendChild(row);
+  }
+}
+function syncUI(){
+  $("#bPlay").innerHTML = paused ? ICON.play : ICON.pause;
+  $("#bMute").innerHTML = SET.mute ? ICON.mute : ICON.snd;
+  $("#bMute").classList.toggle("on", SET.mute);
+  $("#sMech").value = MECHS[SET.mech] ? SET.mech : "auto";
+  for (const o of OPTS){ const el = $("#o_" + o[1]); if (el && o[3].some(v => v[0] === SET[o[1]])) el.value = SET[o[1]]; }
+  $("#cCount").checked = !!SET.count;
+  $("#vol").value = SET.vol; $("#vol2").value = SET.vol;
+  $("#ver").textContent = "ふえる玉 v" + VERSION;
+  document.querySelectorAll("#presets button").forEach(b => {
+    const vals = PRESETS[+b.dataset.i][1];
+    b.classList.toggle("on", !SET.pin && PRESET_KEYS.every(k => SET[k] === (vals[k] !== undefined ? vals[k] : DEF[k])));
+  });
+  syncPin(); syncStats();
+}
+/* 気に入った組み合わせ（仕掛け・刃・玉の大きさ・分かれる数・減るもの）を固定する */
+function syncPin(){
+  $("#bPin").classList.toggle("on", !!SET.pin);
+  const el = $("#pinrow");
+  if (!RD || !rig){ el.textContent = ""; return; }
+  el.innerHTML = "";
+  const b = document.createElement("b"); b.textContent = SET.pin ? "固定中: " : "いまの回: ";
+  el.appendChild(b);
+  el.appendChild(document.createTextNode(recipeText(RD.rc) + (SET.pin ? "　（📌 か P で外す）" : "　（気に入ったら 📌 か P で固定）")));
+}
+function togglePin(){
+  SET.pin = SET.pin ? null : Object.assign({}, RD.rc);
+  saveSet(); syncUI();
+  showLabel(SET.pin ? "この組み合わせを固定しました" : "固定を外しました");
+}
+function syncStats(){
+  const el = $("#stats"); if (!el) return;
+  el.innerHTML = "";
+  const line = (parts) => { const d = document.createElement("div"); for (const p of parts){ if (p.b){ const b = document.createElement("b"); b.textContent = p.b; d.appendChild(b); } else d.appendChild(document.createTextNode(p)); } el.appendChild(d); };
+  line(["見た回数 ", { b: NF.format(REC.rounds) }, "　いちばん多かった玉 ", { b: NF.format(REC.maxN) }, " 個"]);
+  for (const k of Object.keys(FOE_NAMES)){
+    const w = REC.win[k] || 0, l = REC.lose[k] || 0;
+    if (w + l) line([FOE_NAMES[k] + " と ", { b: String(w) }, " 勝 ", { b: String(l) }, " 敗"]);
+  }
+}
+function togglePause(){ paused = !paused; syncUI(); if (paused) showLabel("一時停止中", true); else labelEl.classList.remove("show"); }
+function nextRound(){ clearTimeout(restartTimer); paused = false; newRound(); syncUI(); }
+function toggleMute(){ SET.mute = !SET.mute; saveSet(); AU.resume(); AU.setVol(); syncUI(); showHint(); }
+function setVol(v){ SET.vol = clamp(Math.round(v), 0, 100); if (SET.vol > 0) SET.mute = false; saveSet(); AU.resume(); AU.setVol(); syncUI(); showHint(); }
+function setMech(m){ SET.mech = m; SET.pin = null; saveSet(); nextRound(); }
+function toggleFull(){
+  try {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen().catch(() => {});
+  } catch (e){}
+}
+$("#bPlay").onclick = togglePause;
+$("#bNext").onclick = nextRound;
+$("#bPin").onclick = togglePin;
+$("#bMute").onclick = toggleMute;
+$("#bFull").onclick = toggleFull;
+$("#bSet").onclick = () => { $("#panel").hidden = !$("#panel").hidden; $("#bSet").classList.toggle("on", !$("#panel").hidden); if (!$("#panel").hidden){ placePanel(); syncUI(); } };
+$("#vol").oninput = e => setVol(+e.target.value);
+$("#vol2").oninput = e => setVol(+e.target.value);
+$("#sMech").onchange = e => { e.target.blur(); setMech(e.target.value); };
+$("#cCount").onchange = e => { SET.count = e.target.checked; saveSet(); layout(); };
+cv.addEventListener("dblclick", toggleFull);
+addEventListener("keydown", e => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const tag = e.target && e.target.tagName;
+  if (tag === "SELECT" || (tag === "INPUT" && e.target.type !== "range" && e.target.type !== "checkbox")) return;
+  const k = e.key;
+  if (k === " "){ togglePause(); e.preventDefault(); }
+  else if (k === "n" || k === "N" || k === "ArrowRight"){ nextRound(); }
+  else if (k === "f" || k === "F"){ toggleFull(); }
+  else if (k === "m" || k === "M"){ toggleMute(); }
+  else if (k === "p" || k === "P"){ togglePin(); }
+  else if (k === "ArrowUp"){ setVol(SET.vol + 10); e.preventDefault(); }
+  else if (k === "ArrowDown"){ setVol(SET.vol - 10); e.preventDefault(); }
+  else if (k === "0"){ setMech("auto"); }
+  else if (k >= "1" && k <= "3"){ setMech(MECH_KEYS[+k - 1]); }
+  else if (k === "c" || k === "C"){ SET.count = !SET.count; saveSet(); syncUI(); layout(); }
+  poke();
+});
+/* しばらく触らなければ、操作の帯とマウスの矢印を隠す */
+let idleTimer = 0, overBar = false;
+function poke(){
+  $("#bar").classList.remove("hide"); document.body.classList.remove("idle");
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    if (overBar || !$("#panel").hidden) return poke();
+    $("#bar").classList.add("hide"); document.body.classList.add("idle");
+  }, 2800);
+}
+for (const ev of ["pointermove", "pointerdown", "touchstart"]) addEventListener(ev, poke, { passive: true });
+for (const ev of ["pointerdown", "keydown", "touchend"]) addEventListener(ev, () => AU.resume(), { passive: true });
+$("#bar").addEventListener("pointerenter", () => { overBar = true; });
+$("#bar").addEventListener("pointerleave", () => { overBar = false; });
+cv.addEventListener("pointerdown", () => { if (!$("#panel").hidden){ $("#panel").hidden = true; $("#bSet").classList.remove("on"); } });
+
+/* ── くり返し ── */
+let last = performance.now(), physAvg = 0, fps = 60, fpsN = 0, fpsT = last;
+function frame(now){
+  requestAnimationFrame(frame);
+  try {
+    let dt = (now - last) / 1000; last = now;
+    if (dt > .1) dt = .1;
+    if (dt < 0) dt = 0;
+    fpsN++; if (now - fpsT > 1000){ fps = fpsN * 1000 / (now - fpsT); fpsN = 0; fpsT = now; }
+    hitN = 0; hitV = 0; clinkN = 0; clinkV = 0;
+    if (!paused){
+      const t0 = performance.now();
+      advance(dt * +SET.speed);
+      physAvg = physAvg * .95 + (performance.now() - t0) * .05;
+      // 重いときは、1 こまの歩数を減らす（設定の細かさより細かくはしない）
+      const base = HS_Q[SET.quality] || 1 / 180;
+      if (physAvg > 30 && HS < 1 / 61) HS = 1 / 60;
+      else if (physAvg > 22 && HS < 1 / 91) HS = 1 / 90;
+      else if (physAvg > 12 && HS < 1 / 121) HS = 1 / 120;
+      else if (physAvg < 5 && HS > base) HS = base;
+      AU.frame(lastFill, rig.motion(), dt, FOE && FOE.spray ? FOE.spray : 0);
+    } else if (AU.ready) AU.frame(lastFill, 0, dt, 0);
+    render();
+  } catch (err){ console.error(err); }
+}
+
+/* 試験用（画面を描かずに速く進める・様子を数で見る・音を録る） */
+window.FT = {
+  version: VERSION,
+  state(){ return { N, M, phase: RD.phase, mech: RD.mk, nb: rig.NB || rig.NL || 0, shape: rig.shape || "", size: RD.sz, k: RD.k,
+                    cap: RD.cap, target: RD.target, gold: RD.gold, foe: RD.foe, foeOn: RD.foeOn, foeDone: RD.foeDone, foeLv: RD.foeLv, result: RD.result,
+                    t: +RD.t.toFixed(2), T: +T.toFixed(2), epoch: RD.epoch, peak: RD.peak, rounds: STAT.rounds, doomed: doomedN,
+                    crush: STAT.crush, erased: STAT.erased, eaten: STAT.eaten, drained: STAT.drained, expired: STAT.expired, spilled: STAT.spilled, ghost: STAT.ghost,
+                    born: RD.born, gone: RD.gone, fhat: +RD.fhat.toFixed(3), foeInfo: FOE && FOE.info ? FOE.info() : null,
+                    rc: +RC.toFixed(3), rv: +RV.toFixed(3), rad, fps: Math.round(fps), physMs: +physAvg.toFixed(2), hs: Math.round(1 / HS), gl: GLR.ok,
+                    paused, mute: SET.mute, vol: SET.vol, setMech: SET.mech, pin: !!SET.pin, label: labelEl.textContent, fight: fightText }; },
+  run(sec){ const n = Math.round(sec * 60); for (let i = 0; i < n; i++){ hitN = 0; clinkN = 0; advance(1 / 60); } return this.state(); },
+  next(){ newRound(); return this.state(); },
+  pause(v){ paused = !!v; syncUI(); },
+  /* 音を ms ミリ秒だけ録って、webm を base64 で返す（?rec=1 のときだけ） */
+  rec(ms){
+    return new Promise((res, rej) => {
+      if (!AU.dest) return rej(new Error("?rec=1 で開いてください"));
+      const mr = new MediaRecorder(AU.dest.stream), chunks = [];
+      mr.ondataavailable = e => chunks.push(e.data);
+      mr.onstop = () => { const fr = new FileReader(); fr.onload = () => res(String(fr.result).split(",")[1]); fr.readAsDataURL(new Blob(chunks, { type: mr.mimeType })); };
+      mr.start(); setTimeout(() => mr.stop(), ms);
+    });
+  },
+};
+
+buildPanel();
+layout();
+if (Q.get("gl") !== "0") GLR.init(Q.get("gl") === "1");
+newRound();
+syncUI();
+AU.init();
+showHint();
+poke();
+addEventListener("resize", layout);
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
